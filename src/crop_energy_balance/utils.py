@@ -1,5 +1,5 @@
 def convert_kelvin_to_celsius(temperature: float,
-                      absolute_zero: float = -273.15) -> float:
+                              absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
 
     Args:
@@ -14,7 +14,7 @@ def convert_kelvin_to_celsius(temperature: float,
 
 
 def convert_celsius_to_kelvin(temperature: float,
-                      absolute_zero: float = -273.15) -> float:
+                              absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
 
     Args:
