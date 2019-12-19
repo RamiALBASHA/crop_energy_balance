@@ -1,40 +1,42 @@
-def kelvin_to_celsius(temperature, absolute_zero=-273.15):
+def kelvin_to_celsius(temperature: float,
+                      absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
 
     Args:
-        temperature (float): [K] temperature
-        absolute_zero (float): [°C] absolute zero temperature
+        temperature: [K] temperature
+        absolute_zero: [°C] absolute zero temperature
 
     Returns:
-        (float): [K] temperature
+        [K] temperature
 
     """
     return temperature + absolute_zero
 
 
-def celsius_to_kelvin(temperature, absolute_zero=-273.15):
+def celsius_to_kelvin(temperature: float,
+                      absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
 
     Args:
-        temperature (float): [°C] temperature
-        absolute_zero (float): [°C] absolute zero temperature
+        temperature: [°C] temperature
+        absolute_zero: [°C] absolute zero temperature
 
     Returns:
-        (float): [°C] temperature
+        [°C] temperature
 
     """
     return temperature - absolute_zero
 
 
-def stomatal_density_factor(amphistomatal_leaf):
+def stomatal_density_factor(amphistomatal_leaf: bool) -> int:
     """Computes an integer that expresses whether stomata are equally present on both faces or on one face of the leaf
         blade
 
     Args:
-        amphistomatal_leaf (bool): `True` if both blade sides have stomata of equivalent density
+        amphistomatal_leaf: `True` if both blade sides have stomata of equivalent density
 
     Returns:
-        (int): [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
+        [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     """
     if amphistomatal_leaf:
