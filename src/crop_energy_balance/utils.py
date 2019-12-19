@@ -45,3 +45,25 @@ def calc_stomatal_density_factor(amphistomatal_leaf: bool) -> int:
         nu = 2
 
     return nu
+
+
+def discretize_linearly(inclusive_start: float,
+                        inclusive_stop: float,
+                        vector_length: int) -> list:
+    """Discretizes linearily an axis.
+
+    Args:
+        inclusive_start: inclusive start
+        inclusive_stop: inclusive stop
+        vector_length: desired length of the returned list
+
+    Returns:
+        Discretized axis
+
+    Notes:
+        This function replaces numpy.linspace()
+    """
+    assert vector_length != 1, 'args:`vector_length` must be greater than 1.'
+
+    step = (inclusive_stop - inclusive_start) / (vector_length - 1)
+    return [inclusive_start + step * i for i in range(vector_length)]
