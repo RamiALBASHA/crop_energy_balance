@@ -1,4 +1,4 @@
-def kelvin_to_celsius(temperature: float,
+def convert_kelvin_to_celsius(temperature: float,
                       absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
 
@@ -13,7 +13,7 @@ def kelvin_to_celsius(temperature: float,
     return temperature + absolute_zero
 
 
-def celsius_to_kelvin(temperature: float,
+def convert_celsius_to_kelvin(temperature: float,
                       absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
 
@@ -28,7 +28,7 @@ def celsius_to_kelvin(temperature: float,
     return temperature - absolute_zero
 
 
-def stomatal_density_factor(amphistomatal_leaf: bool) -> int:
+def calc_stomatal_density_factor(amphistomatal_leaf: bool) -> int:
     """Computes an integer that expresses whether stomata are equally present on both faces or on one face of the leaf
         blade
 
