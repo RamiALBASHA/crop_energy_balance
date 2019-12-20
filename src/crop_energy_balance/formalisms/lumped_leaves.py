@@ -1,4 +1,4 @@
-from math import exp
+from math import exp, log
 
 from crop_energy_balance.formalisms import common
 
