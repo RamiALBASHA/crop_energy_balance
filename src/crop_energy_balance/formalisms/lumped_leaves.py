@@ -65,7 +65,7 @@ def calc_leaf_layer_boundary_resistance_to_vapor(wind_speed_at_canopy_height: fl
     return 1.0 / (boundary_conductance / stomatal_density_factor)
 
 
-def calc_leaf_layer_surface_conductance_to_vapor(absorbed_photosynthetically_active_radiation: float,
+def calc_leaf_layer_surface_conductance_to_vapor(absorbed_irradiance: float,
                                                  maximum_stomatal_conductance: float,
                                                  stomatal_sensibility: float,
                                                  upper_cumulative_leaf_area_index: float,
@@ -76,7 +76,7 @@ def calc_leaf_layer_surface_conductance_to_vapor(absorbed_photosynthetically_act
     """Calculates the bulk surface conductance of a leaf layer.
 
     Args:
-        absorbed_photosynthetically_active_radiation: [W m-2ground] absorbed photosynthetically active radiation
+        absorbed_irradiance: [W m-2ground] absorbed photosynthetically active radiation
         maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         stomatal_sensibility: [-] stomatal closure fraction due to water stress
         upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
@@ -91,9 +91,9 @@ def calc_leaf_layer_surface_conductance_to_vapor(absorbed_photosynthetically_act
         [m h-1] bulk surface conductance of the leaf layer
     """
     scaling_factor = 1.0 / global_extinction_coefficient * log(
-        (global_extinction_coefficient * absorbed_photosynthetically_active_radiation *
+        (global_extinction_coefficient * absorbed_irradiance *
          exp(-global_extinction_coefficient * upper_cumulative_leaf_area_index) + absorbed_par_50) /
-        (global_extinction_coefficient * absorbed_photosynthetically_active_radiation *
+        (global_extinction_coefficient * absorbed_irradiance *
          exp(-global_extinction_coefficient * lower_cumulative_leaf_area_index) + absorbed_par_50))
 
     return residual_stomatal_conductance * (
