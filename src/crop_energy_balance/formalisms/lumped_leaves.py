@@ -66,35 +66,35 @@ def calc_leaf_layer_boundary_resistance_to_vapor(wind_speed_at_canopy_height: fl
 
 
 def calc_leaf_layer_surface_conductance_to_vapor(absorbed_irradiance: float,
-                                                 maximum_stomatal_conductance: float,
-                                                 stomatal_sensibility: float,
                                                  upper_cumulative_leaf_area_index: float,
                                                  lower_cumulative_leaf_area_index: float,
-                                                 absorbed_par_50: float = 105,
-                                                 global_extinction_coefficient: float = 0.45,
-                                                 residual_stomatal_conductance: float = 3.0) -> float:
+                                                 stomatal_sensibility_to_water_status: float,
+                                                 global_extinction_coefficient: float,
+                                                 maximum_stomatal_conductance: float,
+                                                 residual_stomatal_conductance: float,
+                                                 shape_parameter: float = 105) -> float:
     """Calculates the bulk surface conductance of a leaf layer.
 
     Args:
         absorbed_irradiance: [W m-2ground] absorbed photosynthetically active radiation
-        maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
-        stomatal_sensibility: [-] stomatal closure fraction due to water stress
         upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
         lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index below the considered layer
-        absorbed_par_50: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
-            to absorbed PAR
+        stomatal_sensibility_to_water_status: [-] stomatal closure fraction due to water stress
         global_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of the entire PAR wavelength into
             the canopy
+        maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
+        shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
+            to absorbed PAR
 
     Returns:
         [m h-1] bulk surface conductance of the leaf layer
     """
     scaling_factor = 1.0 / global_extinction_coefficient * log(
         (global_extinction_coefficient * absorbed_irradiance *
-         exp(-global_extinction_coefficient * upper_cumulative_leaf_area_index) + absorbed_par_50) /
+         exp(-global_extinction_coefficient * upper_cumulative_leaf_area_index) + shape_parameter) /
         (global_extinction_coefficient * absorbed_irradiance *
-         exp(-global_extinction_coefficient * lower_cumulative_leaf_area_index) + absorbed_par_50))
+         exp(-global_extinction_coefficient * lower_cumulative_leaf_area_index) + shape_parameter))
 
     return residual_stomatal_conductance * (
-            1 - scaling_factor) + maximum_stomatal_conductance * stomatal_sensibility * scaling_factor
+            1 - scaling_factor) + maximum_stomatal_conductance * stomatal_sensibility_to_water_status * scaling_factor
