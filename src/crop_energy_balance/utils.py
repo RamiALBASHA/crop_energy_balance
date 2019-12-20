@@ -81,3 +81,15 @@ def calc_temperature_step(previous_value: float,
         [K] the temperature step value between two consecutive energy balance calculations
     """
     return step_fraction * (actual_value - previous_value)
+
+
+def convert_photosynthetically_active_radition_into_global_radiation(value: float) -> float:
+    """Converts photosynthetically active radition into global radiation.
+
+    Args:
+        value: [W_{PAR} m-2] photosynthetically active radition
+
+    Returns:
+        [W_{global} m-2] global radition
+    """
+    return value / 0.48

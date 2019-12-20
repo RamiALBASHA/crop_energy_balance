@@ -46,7 +46,8 @@ class Inputs:
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
 
-        self.sky_emissivity = weather.calc_atmospheric_emissivity(self._air_vapor_pressure, self.air_temperature)
+        self.atmospheric_emissivity = weather.calc_atmospheric_emissivity(self._air_vapor_pressure,
+                                                                          self.air_temperature)
         """[-] sky longwave radiation emissivity"""
 
         self.psychrometric_constant = weather.calc_psychrometric_constant(
@@ -64,12 +65,25 @@ class Inputs:
             Dictionary keys are integers indicating the order of the leaf layers.
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
+        self.absorbed_irradiance = inputs['absorbed_irradiance']
+        """[W_{PAR} m-2ground] dictionary of absobed photosynthetically active radiation per layer layer
+
+        Notes:
+            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'
+            For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
+                'sunlit' and 'shaded'
+            Dictionary keys are integers indicating the order of the leaf layers.
+            The uppermost layer must have the highest number while the lowermost layer has the lowest number.
+        """
+
         self.components_keys = sorted(list(self.leaf_layers.keys()) + [-1])
 
     @staticmethod
     def _fmt_inputs(inputs: dict):
         inputs['leaf_layers'] = {int(key): value for key, value in
                                  inputs['layered_leaf_area_index'].items()}
+        inputs['absorbed_irradiance'] = {int(key): value for key, value in
+                                         inputs['absorbed_global_irradiance'].items()}
         return inputs
 
 
@@ -78,9 +92,6 @@ class LumpedInputs(Inputs):
         Inputs.__init__(self, inputs_path)
         inputs = load(open(str(inputs_path), mode='r'), encoding='utf-8')
         inputs = self._fmt_inputs(inputs)
-
-        inputs['absorbed__irradiance'] = {int(key): value for key, value in
-                                          inputs['absorbed_global_irradiance'].items()}
 
 
 class SunlitShadedInputs(Inputs):
