@@ -21,7 +21,6 @@ def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
 
     Returns:
         [m h-1] Calculates bulk layer boundary layer conductance (for both sides of leaves)
-
     """
     leaf_boundary_conductance = common.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
                                                                       characteristic_length,
@@ -53,7 +52,6 @@ def calc_leaf_layer_boundary_resistance_to_vapor(wind_speed_at_canopy_height: fl
 
     Returns:
         [h m-1] bulk leaf layer resistance to water vapor transfer
-
     """
     boundary_conductance = calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height,
                                                                 upper_leaf_area_index,
