@@ -1,6 +1,6 @@
 from math import exp
 
-from crop_energy_balance.formalisms import lumped_leaves, common
+from crop_energy_balance.formalisms import lumped_leaves, leaf
 from crop_energy_balance.formalisms.irradiance import calc_leaf_fraction, calc_absorbed_irradiance
 from crop_energy_balance.utils import discretize_linearly
 
@@ -29,15 +29,13 @@ def calc_leaf_layer_boundary_conductance(leaves_category: str,
     Returns:
         [m h-1] bulk layer boundary layer conductance (for both sides of leaves)
     """
-    leaf_boundary_conductance = common.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
-                                                                      characteristic_length,
-                                                                      shape_parameter)
-    sunlit_layer_scaling_factor = 2.0 / (
-            wind_speed_extinction_coefficient + 2.0 * direct_black_extinction_coefficient) * (
-                                          exp(-(
-                                                      0.5 * wind_speed_extinction_coefficient + direct_black_extinction_coefficient) * upper_leaf_area_index) -
-                                          exp(-(
-                                                      0.5 * wind_speed_extinction_coefficient + direct_black_extinction_coefficient) * lower_leaf_area_index))
+    leaf_boundary_conductance = leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
+                                                                    characteristic_length,
+                                                                    shape_parameter)
+    lumped_extinction_coefficient = 0.5 * wind_speed_extinction_coefficient + direct_black_extinction_coefficient
+    sunlit_layer_scaling_factor = 1.0 / lumped_extinction_coefficient * (
+            exp(-lumped_extinction_coefficient * upper_leaf_area_index) -
+            exp(-lumped_extinction_coefficient * lower_leaf_area_index))
 
     sunlit_layer_boundary_conductance = leaf_boundary_conductance * sunlit_layer_scaling_factor
 
@@ -80,14 +78,8 @@ def calc_leaf_layer_boundary_resistance_to_vapor(leaves_category: str,
     Returns:
         [h m-1] bulk leaf layer resistance to water vapor transfer
     """
-    boundary_conductance = calc_leaf_layer_boundary_conductance(leaves_category,
-                                                                wind_speed_at_canopy_height,
-                                                                upper_leaf_area_index,
-                                                                lower_leaf_area_index,
-                                                                direct_black_extinction_coefficient,
-                                                                wind_speed_extinction_coefficient,
-                                                                characteristic_length,
-                                                                shape_parameter)
+    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
+    boundary_conductance = calc_leaf_layer_boundary_conductance(**args)
 
     return 1.0 / (boundary_conductance / stomatal_density_factor)
 
@@ -139,7 +131,6 @@ def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
     leaf_layer_surface_conductance = 0
     for cumulative_leaf_area_index in discretize_linearly(upper_cumulative_leaf_area_index,
                                                           lower_cumulative_leaf_area_index, sublayers_number):
-
         absorbed_irradiance = calc_absorbed_irradiance(leaves_category,
                                                        incident_direct_irradiance,
                                                        incident_diffuse_irradiance,
@@ -180,7 +171,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
                                                 maximum_stomatal_conductance: float,
                                                 residual_stomatal_conductance: float,
                                                 shape_parameter: float = 105,
-                                                sublayers_number: int = 5):
+                                                sublayers_number: int = 5) -> float:
     """Calculates the bulk surface resistance of a leaf layer.
 
     Args:
@@ -208,3 +199,16 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
         (float): [h m-1] bulk surface resistance of the leaf layer
     """
     return 1.0 / max(1.e-6, calc_leaf_layer_surface_resistance_to_vapor(**locals()))
+
+
+def calc_leaf_layer_boundary_resistance_to_heat(leaf_layer_boundary_conductance: float) -> float:
+    """Calculates the bulk leaf layer resistance to heat transfer.
+
+    Args:
+        leaf_layer_boundary_conductance: [m h-1] Calculates bulk layer boundary layer conductance (for both blade sides)
+
+    Returns:
+        [h m-1] bulk leaf layer resistance to heat transfer
+
+    """
+    return 1.0 / max(1.e-6, leaf_layer_boundary_conductance)

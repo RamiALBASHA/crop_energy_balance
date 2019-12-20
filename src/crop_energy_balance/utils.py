@@ -65,3 +65,19 @@ def discretize_linearly(inclusive_start: float,
 
     step = (inclusive_stop - inclusive_start) / (vector_length - 1)
     return [inclusive_start + step * i for i in range(vector_length)]
+
+
+def calc_temperature_step(previous_value: float,
+                          actual_value: float,
+                          step_fraction: float = 0.5) -> float:
+    """Calculates the temperature step value between two consecutive energy balance calculations.
+
+    Args:
+        previous_value: [K] previous calculated temperature
+        actual_value: [K] actual calculated temperature
+        step_fraction: [-] fraction of the entire step (`actual_value - previous_value`) to be used
+
+    Returns:
+        [K] the temperature step value between two consecutive energy balance calculations
+    """
+    return step_fraction * (actual_value - previous_value)

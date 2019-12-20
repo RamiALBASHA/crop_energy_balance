@@ -1,6 +1,6 @@
 from math import exp, log
 
-from crop_energy_balance.formalisms import common
+from crop_energy_balance.formalisms import leaf
 
 
 def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
@@ -22,9 +22,9 @@ def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
     Returns:
         [m h-1] Calculates bulk layer boundary layer conductance (for both sides of leaves)
     """
-    leaf_boundary_conductance = common.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
-                                                                      characteristic_length,
-                                                                      shape_parameter)
+    leaf_boundary_conductance = leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
+                                                                    characteristic_length,
+                                                                    shape_parameter)
     scaling_factor = 2.0 / wind_speed_extinction_coefficient * (
             exp(-0.5 * wind_speed_extinction_coefficient * upper_leaf_area_index) -
             exp(-0.5 * wind_speed_extinction_coefficient * lower_leaf_area_index))
@@ -33,8 +33,8 @@ def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
 
 
 def calc_leaf_layer_boundary_resistance_to_vapor(wind_speed_at_canopy_height: float,
-                                                 upper_leaf_area_index: float,
-                                                 lower_leaf_area_index: float,
+                                                 upper_cumulative_leaf_area_index: float,
+                                                 lower_cumulative_leaf_area_index: float,
                                                  wind_speed_extinction_coefficient: float,
                                                  characteristic_length: float,
                                                  shape_parameter: float,
@@ -43,8 +43,8 @@ def calc_leaf_layer_boundary_resistance_to_vapor(wind_speed_at_canopy_height: fl
 
     Args:
         wind_speed_at_canopy_height: [m s-1] local wind speed in the vicinity of the leaf
-        upper_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
-        lower_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
         wind_speed_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of wind speed inside the canopy
         characteristic_length: [m] characteristic leaf length in the direction of the wind
         shape_parameter: [m s-1/2] an empirical shape parameter
@@ -53,12 +53,8 @@ def calc_leaf_layer_boundary_resistance_to_vapor(wind_speed_at_canopy_height: fl
     Returns:
         [h m-1] bulk leaf layer resistance to water vapor transfer
     """
-    boundary_conductance = calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height,
-                                                                upper_leaf_area_index,
-                                                                lower_leaf_area_index,
-                                                                wind_speed_extinction_coefficient,
-                                                                characteristic_length,
-                                                                shape_parameter)
+    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
+    boundary_conductance = calc_leaf_layer_boundary_conductance(**args)
 
     return 1.0 / (boundary_conductance / stomatal_density_factor)
 
@@ -83,7 +79,7 @@ def calc_leaf_layer_surface_conductance_to_vapor(absorbed_irradiance: float,
         maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
         shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
-            to absorbed PAR
+            to absorbed absorbed photosynthetically active radiation
 
     Returns:
         [m h-1] bulk surface conductance of the leaf layer
@@ -118,10 +114,23 @@ def calc_leaf_layer_surface_resistance_to_vapor(absorbed_irradiance: float,
         maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
         shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
-            to absorbed PAR
+            to absorbed photosynthetically active radiation
 
     Returns:
         [m h-1] bulk surface conductance of the leaf layer
     """
 
     return 1.0 / max(1.e-6, calc_leaf_layer_surface_resistance_to_vapor(**locals()))
+
+
+def calc_leaf_layer_boundary_resistance_to_heat(leaf_layer_boundary_conductance: float) -> float:
+    """Calculates the bulk leaf layer resistance to heat transfer.
+
+    Args:
+        leaf_layer_boundary_conductance: [m h-1] Calculates bulk layer boundary layer conductance (for both blade sides)
+
+    Returns:
+        [h m-1] bulk leaf layer resistance to heat transfer
+
+    """
+    return 1.0 / max(1.e-6, leaf_layer_boundary_conductance)

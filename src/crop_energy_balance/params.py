@@ -1,6 +1,6 @@
 from json import load
 
-from crop_energy_balance.inputs import SunLitShadedInputs
+from crop_energy_balance.inputs import SunlitShadedInputs
 
 
 class Params:
@@ -53,7 +53,7 @@ class Constants:
 
 class Simulation:
     def __init__(self, data):
-        self.vapor_pressure_deficit_coef = data['vpd_coeff']
+        self.vapor_pressure_deficit_coefficient = data['vpd_coeff']
         """[kPa] empirical parameter regulating the shape of stomata response to air vapor pressure deficit"""
 
         self.soil_aerodynamic_resistance_shape_parameter = data['soil_aerodynamic_resistance_shape_parameter']
