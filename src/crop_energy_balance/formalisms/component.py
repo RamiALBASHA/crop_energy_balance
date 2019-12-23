@@ -1,12 +1,12 @@
 from math import exp
-from crop_energy_balance.formalisms.soil import calc_soil_heat_flux
+from crop_energy_balance.formalisms.soil import calc_heat_flux
 
 
-def calc_component_composed_resistance(surface_resistance: float,
-                                       boundary_layer_resistance: float,
-                                       vapor_pressure_slope: float,
-                                       psychrometric_constant: float,
-                                       stomatal_density_factor: int) -> float:
+def calc_composed_resistance(surface_resistance: float,
+                             boundary_layer_resistance: float,
+                             vapor_pressure_slope: float,
+                             psychrometric_constant: float,
+                             stomatal_density_factor: int) -> float:
     """Calculates Lhomme's lumped boundary and surface resistance (Ri) for a given canopy component.
 
     Args:
@@ -29,9 +29,9 @@ def calc_component_composed_resistance(surface_resistance: float,
             stomatal_density_factor + vapor_pressure_slope / psychrometric_constant)
 
 
-def calc_component_composed_conductance(composed_boundary_and_surface_resistance: float,
-                                        sum_composed_boundary_and_surface_conductances: float,
-                                        canopy_lumped_aerodynamic_resistance: float) -> float:
+def calc_composed_conductance(composed_boundary_and_surface_resistance: float,
+                              sum_composed_boundary_and_surface_conductances: float,
+                              canopy_lumped_aerodynamic_resistance: float) -> float:
     """Calculates Lhomme's composed boundary and surface conductance (Pi) of a given canopy component
 
     Args:
@@ -54,14 +54,14 @@ def calc_component_composed_conductance(composed_boundary_and_surface_resistance
             1.0 + canopy_lumped_aerodynamic_resistance * sum_composed_boundary_and_surface_conductances))
 
 
-def calc_component_evaporative_energy(net_radiation: float,
-                                      boundary_layer_resistance: float,
-                                      lumped_boundary_and_surface_resistance: float,
-                                      canopy_lumped_aerodynamic_resistance: float,
-                                      penman_evaporative_energy: float,
-                                      penman_monteith_evaporative_energy: float,
-                                      vapor_pressure_slope: float,
-                                      psychrometric_constant: float) -> float:
+def calc_evaporative_energy(net_radiation: float,
+                            boundary_layer_resistance: float,
+                            lumped_boundary_and_surface_resistance: float,
+                            canopy_lumped_aerodynamic_resistance: float,
+                            penman_evaporative_energy: float,
+                            penman_monteith_evaporative_energy: float,
+                            vapor_pressure_slope: float,
+                            psychrometric_constant: float) -> float:
     """Calculates the evaporative energy for a given canopy component.
 
     Args:
@@ -92,12 +92,12 @@ def calc_component_evaporative_energy(net_radiation: float,
     return 1.0 / lumped_boundary_and_surface_resistance * (energy_driven_evaporation + radiation_driven_evaporation)
 
 
-def calc_component_temperature(canopy_temperature: float,
-                               boundary_layer_resistance: float,
-                               component_net_radiation: float,
-                               component_evaporative_energy: float,
-                               air_density: float,
-                               air_specific_heat_capacity: float) -> float:
+def calc_temperature(canopy_temperature: float,
+                     boundary_layer_resistance: float,
+                     component_net_radiation: float,
+                     component_evaporative_energy: float,
+                     air_density: float,
+                     air_specific_heat_capacity: float) -> float:
     """Calculates air temperature at source height.
 
     Args:
@@ -115,11 +115,11 @@ def calc_component_temperature(canopy_temperature: float,
             component_net_radiation - component_evaporative_energy)
 
 
-def calc_component_net_longwave_radiation(air_temperature: float,
-                                          lower_cumulative_leaf_area_index: float,
-                                          atmospheric_emissivity: float,
-                                          extinction_coefficient: float,
-                                          stefan_boltzman_constant: float) -> float:
+def calc_net_longwave_radiation(air_temperature: float,
+                                lower_cumulative_leaf_area_index: float,
+                                atmospheric_emissivity: float,
+                                extinction_coefficient: float,
+                                stefan_boltzman_constant: float) -> float:
     """Calculates net long wave radiation of a canopy component.
 
     Args:
@@ -137,9 +137,9 @@ def calc_component_net_longwave_radiation(air_temperature: float,
     return - (1 - atmospheric_emissivity) * stefan_boltzman_constant * air_temperature ** 4 * scaling_factor
 
 
-def calc_component_net_radiation(net_shortwave_radiation: float,
-                                 net_longwave_radiation: float,
-                                 is_soil: bool) -> float:
+def calc_net_radiation(net_shortwave_radiation: float,
+                       net_longwave_radiation: float,
+                       is_soil: bool) -> float:
     """Calculates the net radiation flux density of a canopy component per unit ground surface area.
 
     Args:
@@ -155,4 +155,4 @@ def calc_component_net_radiation(net_shortwave_radiation: float,
         return net_shortwave_radiation + net_longwave_radiation
     else:
         net_above_ground_radiation = net_shortwave_radiation + net_longwave_radiation
-        return net_above_ground_radiation - calc_soil_heat_flux(net_above_ground_radiation, net_shortwave_radiation > 0)
+        return net_above_ground_radiation - calc_heat_flux(net_above_ground_radiation, net_shortwave_radiation > 0)
