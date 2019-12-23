@@ -3,12 +3,12 @@ from math import exp
 from crop_energy_balance.formalisms import canopy
 
 
-def calc_soil_boundary_resistance(canopy_height: float,
-                                  wind_speed: float,
-                                  measurement_height: float,
-                                  soil_roughness_length_for_momentum: float = 0.01,
-                                  shape_parameter: float = 2.5,
-                                  von_karman_constant: float = 0.41) -> float:
+def calc_boundary_resistance(canopy_height: float,
+                             wind_speed: float,
+                             measurement_height: float,
+                             soil_roughness_length_for_momentum: float = 0.01,
+                             shape_parameter: float = 2.5,
+                             von_karman_constant: float = 0.41) -> float:
     """Calculates the bulk soil boundary layer resistance.
 
     Args:
@@ -46,9 +46,9 @@ def calc_soil_boundary_resistance(canopy_height: float,
     return canopy_height * exp(shape_parameter) / (shape_parameter * eddy_diffusivity) * scaling_factor
 
 
-def calc_soil_surface_resistance(soil_saturation_ratio: float,
-                                 shape_parameter_1: float = 8.206,
-                                 shape_parameter_2: float = 4.255) -> float:
+def calc_surface_resistance(soil_saturation_ratio: float,
+                            shape_parameter_1: float = 8.206,
+                            shape_parameter_2: float = 4.255) -> float:
     """Calculates the bulk soil surface resistance.
 
     Args:
@@ -69,8 +69,8 @@ def calc_soil_surface_resistance(soil_saturation_ratio: float,
     return 1.0 / 3600.0 * exp(shape_parameter_1 - shape_parameter_2 * soil_saturation_ratio)
 
 
-def calc_soil_heat_flux(net_above_ground_radiation: float,
-                        is_diurnal: bool) -> float:
+def calc_heat_flux(net_above_ground_radiation: float,
+                   is_diurnal: bool) -> float:
     """Calculates the net heat flux density into the soil substrates.
 
     Args:
