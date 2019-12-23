@@ -78,7 +78,7 @@ def calc_turbulent_diffusivity(von_karman_constant: float,
     Returns:
         [m2 h-1] turbulent (eddy) diffusivity of water vapor at canopy height
     """
-    wind_speed = max(2400.0, wind_speed)
+    wind_speed = max(2400, wind_speed)
     canopy_height = max(0.1, canopy_height)
 
     return (von_karman_constant ** 2 * wind_speed * (canopy_height - zero_displacement_height)) / (

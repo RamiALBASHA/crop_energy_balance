@@ -1,7 +1,5 @@
 from json import load
 
-from crop_energy_balance.inputs import SunlitShadedInputs
-
 
 class Params:
     def __init__(self, params_path):
@@ -171,13 +169,9 @@ class SunlitShadedSimulation(Simulation):
 
         self.direct_black_extinction_coefficient = None
 
-    def update(self,
-               inputs: SunLitShadedInputs):
+    def update(self, data):
         self.direct_black_extinction_coefficient = data['global_extinction_coefficient']
         """[m2ground m-2leaf] extinction coefficient of global irradiance"""
-
-        self.diffuse_extinction_coef = data['diffuse_extinction_coef']
-        """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
 
 
 class NumericalResolution:

@@ -1,5 +1,6 @@
+from pathlib import Path
 from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, component, soil
-from crop_energy_balance.inputs import LumpedInputs, SunlitShadedInputs
+from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params, Constants
 
 from crop_energy_balance import utils
@@ -9,11 +10,10 @@ constants = Constants()
 
 class Component:
     def __init__(self,
-                 absorbed_irradiance: float,
-                 air_temperature: float):
-        self.absorbed_irradiance = absorbed_irradiance
-        self._temperature = air_temperature
+                 index: int):
+        self.index = index
 
+        self.absorbed_irradiance = None
         self.upper_cumulative_leaf_area_index = None
         self.lower_cumulative_leaf_area_index = None
         self.surface_resistance = None
@@ -23,12 +23,14 @@ class Component:
         self.net_longwave_radiation = None
         self.net_radiation = None
         self.penman_monteith_evaporative_energy = None
+        self._temperature = None
         self.temperature = None
 
     def init_state_variables(self,
-                             inputs: LumpedInputs,
+                             inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             canopy_state_variables: object):
+        self._temperature = inputs.air_temperature,
         self.composed_resistance = component.calc_composed_resistance(
             surface_resistance=self.surface_resistance,
             boundary_layer_resistance=self.boundary_resistance,
@@ -48,14 +50,14 @@ class Component:
             is_soil=False)
 
     def calc_composed_conductance(self,
-                                  canopy_state_variables: CanopyStateVariables):
+                                  canopy_state_variables: object):
         self.composed_conductance = component.calc_composed_conductance(
             composed_boundary_and_surface_resistance=self.composed_resistance,
             sum_composed_boundary_and_surface_conductances=canopy_state_variables.sum_composed_conductance,
             canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance)
 
     def calc_evaporative_energy(self,
-                                canopy_state_variables: CanopyStateVariables):
+                                canopy_state_variables: object):
         self.penman_monteith_evaporative_energy = component.calc_evaporative_energy(
             net_radiation=self.net_radiation,
             boundary_layer_resistance=self.boundary_resistance,
@@ -67,8 +69,8 @@ class Component:
             psychrometric_constant=constants.psychrometric_constant)
 
     def calc_temperature(self,
-                         canopy_state_variables: CanopyStateVariables):
-        self._temperature = component.calc_temperature(
+                         canopy_state_variables: object):
+        self.temperature = component.calc_temperature(
             canopy_temperature=canopy_state_variables.source_temperature,
             boundary_layer_resistance=self.boundary_resistance,
             component_net_radiation=self.net_radiation,
@@ -86,19 +88,18 @@ class Component:
 
 class SoilComponent(Component):
     def __init__(self,
-                 lower_cumulative_leaf_area_index: float,
-                 absorbed_irradiance: float,
-                 air_temperature: float):
+                 index: int,
+                 lower_cumulative_leaf_area_index: float):
         Component.__init__(self,
-                           absorbed_irradiance=absorbed_irradiance,
-                           air_temperature=air_temperature)
+                           index=index)
 
         self.lower_cumulative_leaf_area_index = lower_cumulative_leaf_area_index
 
     def init_state_variables(self,
-                             inputs: LumpedInputs,
+                             inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             canopy_state_variables: object):
+        self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.surface_resistances = soil.calc_surface_resistance(
             soil_saturation_ratio=inputs.soil_saturation_ratio,
             shape_parameter_1=params.simulation.soil_resistance_to_vapor_shape_parameter_1,
@@ -111,7 +112,7 @@ class SoilComponent(Component):
             shape_parameter=params.simulation.soil_aerodynamic_resistance_shape_parameter,
             von_karman_constant=constants.von_karman)
 
-        self.init_state_variables(
+        Component.init_state_variables(self,
             inputs=inputs,
             params=params,
             canopy_state_variables=canopy_state_variables)
@@ -119,13 +120,11 @@ class SoilComponent(Component):
 
 class LeafComponent(Component):
     def __init__(self,
+                 index: int,
                  upper_cumulative_leaf_area_index: float,
-                 thickness: float,
-                 absorbed_irradiance: float,
-                 air_temperature: float):
+                 thickness: float):
         Component.__init__(self,
-                           absorbed_irradiance=absorbed_irradiance,
-                           air_temperature=air_temperature)
+                           index=index)
 
         self.upper_cumulative_leaf_area_index = upper_cumulative_leaf_area_index
         self.lower_cumulative_leaf_area_index = upper_cumulative_leaf_area_index + thickness
@@ -138,9 +137,10 @@ class LumpedLeafComponent(LeafComponent):
         LeafComponent.__init__(self, **kwargs)
 
     def init_state_variables(self,
-                             inputs: LumpedInputs,
+                             inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             canopy_state_variables: object):
+        self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
             inputs.vapor_pressure_deficit,
             params.simulation.vapor_pressure_deficit_coefficient)
@@ -162,7 +162,7 @@ class LumpedLeafComponent(LeafComponent):
             shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
 
-        self.init_state_variables(
+        Component.init_state_variables(self,
             inputs=inputs,
             params=params,
             canopy_state_variables=canopy_state_variables)
@@ -175,7 +175,7 @@ class SunlitShadedLeafComponent(LeafComponent):
 
 class CanopyStateVariables:
     def __init__(self,
-                 inputs: LumpedInputs or SunlitShadedInputs):
+                 inputs: Inputs):
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
             utils.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
@@ -241,11 +241,11 @@ class CanopyStateVariables:
 
     def calc_source_temperature(self,
                                 crop_components: dict,
-                                inputs: LumpedInputs or SunlitShadedInputs):
+                                inputs: Inputs):
         self.source_temperature = max(
             constants.absolute_zero,
             canopy.calc_temperature(
-                air_temperature=inputs.inputs.air_temperature,
+                air_temperature=inputs.air_temperature,
                 canopy_aerodynamic_resistance=self.aerodynamic_resistance,
                 canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components.values()]),
                 penman_monteith_evaporative_energy=self.total_penman_monteith_evaporative_energy,
@@ -263,12 +263,14 @@ class Canopy(dict):
 
     def __init__(self,
                  leaves_category: str,
-                 inputs: LumpedInputs or SunlitShadedInputs,
-                 params: Params):
+                 inputs: Inputs = None,
+                 params: Params = None,
+                 inputs_path: Path = None,
+                 params_path: Path = None):
         """Creates a class:`Shoot` object having either 'lumped' leaves or 'sunlit-shaded' leaves.
         Args:
             leaves_category: one of ('lumped', 'sunlit-shaded')
-            inputs: see class`LumpedInputs` and `SunlitShadedInputs`
+            inputs: see class`Inputs` and `SunlitShadedInputs`
             params: see class`Params`
         Notes:
             The created shoot can implicitly be 'big-leaf' or a 'layered'. If the attribute `leaf_layers` of the
@@ -281,30 +283,44 @@ class Canopy(dict):
 
         dict.__init__(self)
 
-        self.inputs = inputs
-        self.params = params
-        self.components_indexes = list(reversed(sorted(inputs.leaf_layers.keys())))
+        if inputs_path:
+            self.inputs = Inputs(inputs_path)
+        else:
+            self.inputs = inputs
+
+        if params_path:
+            self.params = Params(params_path)
+        else:
+            self.params = params
+
+        self.components_keys = self.inputs.components_keys
+
+        self.state_variables = None
 
         self._set_components(leaves_category)
 
     def _set_components(self, leaves_category: str):
-        """Sets leaf layers of the shoot.
+        """Sets canopy's components.
         Args:
             leaves_category: one of ('lumped', 'sunlit-shaded')
         """
 
         upper_cumulative_leaf_area_index = 0.0
-        for index in self.components_indexes:
+        for index in reversed(self.components_keys):
             if index != -1:
                 layer_thickness = self.inputs.leaf_layers[index]
                 if leaves_category == 'lumped':
-                    self[index] = LumpedLeafComponent(index=index,
-                                                      upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
-                                                      thickness=layer_thickness)
+                    self[index] = LumpedLeafComponent(
+                        index=index,
+                        upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
+                        thickness=layer_thickness)
                 else:
-                    self[index] = SunlitShadedLeafComponent(index=index,
-                                                            upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
-                                                            thickness=layer_thickness)
+                    self[index] = SunlitShadedLeafComponent(
+                        index=index,
+                        upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
+                        thickness=layer_thickness)
                 upper_cumulative_leaf_area_index += layer_thickness
             else:
-                self[index] = SoilComponent()
+                self[index] = SoilComponent(
+                    index=index,
+                    lower_cumulative_leaf_area_index=upper_cumulative_leaf_area_index)

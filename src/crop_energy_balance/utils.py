@@ -93,3 +93,16 @@ def convert_photosynthetically_active_radition_into_global_radiation(value: floa
         [W_{global} m-2] global radition
     """
     return value / 0.48
+
+
+def convert_global_irradiance_into_photosynthetically_active_radition(value: float) -> float:
+    """Converts global radiation into photosynthetically active radition.
+
+    Args:
+        value: [W_{global} m-2] global radition
+
+    Returns:
+        [W_{PAR} m-2] photosynthetically active radition
+    """
+    return value * 0.48
+

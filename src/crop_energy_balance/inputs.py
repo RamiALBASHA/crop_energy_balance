@@ -1,14 +1,18 @@
 from json import load
 
-from crop_energy_balance import utils, params
 from crop_energy_balance.formalisms import canopy, weather
+
+from crop_energy_balance import utils, params
 
 constants = params.Constants()
 
 
 class Inputs:
     def __init__(self, inputs_path):
-        inputs = load(open(str(inputs_path), mode='r'), encoding='utf-8')
+        with open(str(inputs_path), mode='r') as f:
+            inputs = load(f, encoding='utf-8')
+
+        inputs = self._fmt_inputs(inputs)
 
         self.measurement_height = inputs['measurement_height']
         """[m] height at which the meteorological variables are measured"""
@@ -65,7 +69,7 @@ class Inputs:
             Dictionary keys are integers indicating the order of the leaf layers.
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
-        self.absorbed_irradiance = inputs['absorbed_irradiance']
+        self.absorbed_irradiance = self._calc_absorbed_irradiance(inputs)
         """[W_{PAR} m-2ground] dictionary of absobed photosynthetically active radiation per layer layer
 
         Notes:
@@ -79,21 +83,18 @@ class Inputs:
         self.components_keys = sorted(list(self.leaf_layers.keys()) + [-1])
 
     @staticmethod
+    def _calc_absorbed_irradiance(inputs) -> dict:
+        res = {}
+        for component_key, global_irradiance in inputs['absorbed_global_irradiance'].items():
+            res[component_key] = {
+                leaves_category: utils.convert_global_irradiance_into_photosynthetically_active_radition(value)
+                for leaves_category, value in global_irradiance.items()}
+        return res
+
+    @staticmethod
     def _fmt_inputs(inputs: dict):
         inputs['leaf_layers'] = {int(key): value for key, value in
-                                 inputs['layered_leaf_area_index'].items()}
-        inputs['absorbed_irradiance'] = {int(key): value for key, value in
-                                         inputs['absorbed_global_irradiance'].items()}
+                                 inputs['leaf_layers'].items()}
+        inputs['absorbed_global_irradiance'] = {int(key): value for key, value in
+                                                inputs['absorbed_global_irradiance'].items()}
         return inputs
-
-
-class LumpedInputs(Inputs):
-    def __init__(self, inputs_path):
-        Inputs.__init__(self, inputs_path)
-        inputs = load(open(str(inputs_path), mode='r'), encoding='utf-8')
-        inputs = self._fmt_inputs(inputs)
-
-
-class SunlitShadedInputs(Inputs):
-    def __init__(self, inputs_path):
-        Inputs.__init__(self, inputs_path)
