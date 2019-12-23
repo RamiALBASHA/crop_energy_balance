@@ -204,12 +204,12 @@ def calc_penman_monteith_evaporative_energy(components_indices: list,
             vapor_pressure_slope / psychrometric_constant) * sum_p_a_r
 
 
-def calc_canopy_temperature(air_temperature: float,
-                            canopy_aerodynamic_resistance: float,
-                            canopy_net_radiation: float,
-                            penman_monteith_evaporative_energy: float,
-                            air_density: float,
-                            air_specific_heat_capacity: float) -> float:
+def calc_temperature(air_temperature: float,
+                     canopy_aerodynamic_resistance: float,
+                     canopy_net_radiation: float,
+                     penman_monteith_evaporative_energy: float,
+                     air_density: float,
+                     air_specific_heat_capacity: float) -> float:
     """Calculates air temperature at source height.
 
     Args:
