@@ -1,3 +1,5 @@
+from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_diffuse_extinction_coefficient
+from crop_energy_balance.inputs import Inputs
 from json import load
 
 
@@ -7,6 +9,17 @@ class Params:
 
         self.simulation = Simulation(self.user_params)
         self.numerical_resolution = NumericalResolution(self.user_params)
+
+    def update(self,
+               inputs: Inputs):
+
+        self.simulation.diffuse_black_extinction_coefficient = calc_diffuse_extinction_coefficient(
+            leaf_area_index=sum(inputs.leaf_layers.values()),
+            leaf_scattering_coefficient=self.simulation.leaf_scattering_coefficient,
+            sky_sectors_number=3,
+            sky_type='soc')
+        """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
+
 
 
 class Constants:
@@ -144,6 +157,9 @@ class Simulation:
         self.stomatal_density_factor = data['stomatal_density_factor']
         """ [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2"""
 
+        self.leaf_scattering_coefficient = data['leaf_scattering_coefficient']
+        """[-] leaf scattering coefficient"""
+
         self.extinction_coefficient = None
         """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
 
@@ -155,23 +171,14 @@ class LumpedSimulation(Simulation):
     def __init__(self, data):
         Simulation.__init__(self, data)
 
-        self.global_extinction_coefficient = data['global_extinction_coefficient']
-        """[m2ground m-2leaf] extinction coefficient of global irradiance"""
-
-        self.diffuse_extinction_coef = data['diffuse_extinction_coef']
-        """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
+        self.extinction_coefficient = None
+        """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
 
 
 class SunlitShadedSimulation(Simulation):
     def __init__(self,
                  data: dict):
         Simulation.__init__(self, data)
-
-        self.direct_black_extinction_coefficient = None
-
-    def update(self, data):
-        self.direct_black_extinction_coefficient = data['global_extinction_coefficient']
-        """[m2ground m-2leaf] extinction coefficient of global irradiance"""
 
 
 class NumericalResolution:

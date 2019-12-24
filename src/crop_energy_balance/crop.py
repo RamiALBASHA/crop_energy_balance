@@ -100,7 +100,7 @@ class SoilComponent(Component):
                              params: Params,
                              canopy_state_variables: object):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
-        self.surface_resistances = soil.calc_surface_resistance(
+        self.surface_resistance = soil.calc_surface_resistance(
             soil_saturation_ratio=inputs.soil_saturation_ratio,
             shape_parameter_1=params.simulation.soil_resistance_to_vapor_shape_parameter_1,
             shape_parameter_2=params.simulation.soil_resistance_to_vapor_shape_parameter_2)
@@ -113,9 +113,9 @@ class SoilComponent(Component):
             von_karman_constant=constants.von_karman)
 
         Component.init_state_variables(self,
-            inputs=inputs,
-            params=params,
-            canopy_state_variables=canopy_state_variables)
+                                       inputs=inputs,
+                                       params=params,
+                                       canopy_state_variables=canopy_state_variables)
 
 
 class LeafComponent(Component):
@@ -163,9 +163,9 @@ class LumpedLeafComponent(LeafComponent):
             stomatal_density_factor=params.simulation.stomatal_density_factor)
 
         Component.init_state_variables(self,
-            inputs=inputs,
-            params=params,
-            canopy_state_variables=canopy_state_variables)
+                                       inputs=inputs,
+                                       params=params,
+                                       canopy_state_variables=canopy_state_variables)
 
 
 class SunlitShadedLeafComponent(LeafComponent):
