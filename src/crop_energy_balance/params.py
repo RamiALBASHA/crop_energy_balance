@@ -1,6 +1,6 @@
-from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_diffuse_extinction_coefficient
-#from crop_energy_balance.inputs import Inputs
 from json import load
+
+from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_diffuse_extinction_coefficient
 
 
 class Params:
