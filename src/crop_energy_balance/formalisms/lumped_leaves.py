@@ -4,8 +4,8 @@ from crop_energy_balance.formalisms import leaf
 
 
 def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
-                                         upper_leaf_area_index: float,
-                                         lower_leaf_area_index: float,
+                                         upper_cumulative_leaf_area_index: float,
+                                         lower_cumulative_leaf_area_index: float,
                                          wind_speed_extinction_coefficient: float = 0.5,
                                          characteristic_length: float = 0.01,
                                          shape_parameter: float = 0.01) -> float:
@@ -13,8 +13,8 @@ def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
 
     Args:
         wind_speed_at_canopy_height: [m s-1] local wind speed in the vicinity of the leaf
-        upper_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
-        lower_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
         wind_speed_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of wind speed inside the canopy
         characteristic_length: [m] characteristic leaf length in the direction of the wind
         shape_parameter: [m s-0.5] an empirical shape parameter
@@ -26,8 +26,8 @@ def calc_leaf_layer_boundary_conductance(wind_speed_at_canopy_height: float,
                                                                     characteristic_length,
                                                                     shape_parameter)
     scaling_factor = 2.0 / wind_speed_extinction_coefficient * (
-            exp(-0.5 * wind_speed_extinction_coefficient * upper_leaf_area_index) -
-            exp(-0.5 * wind_speed_extinction_coefficient * lower_leaf_area_index))
+            exp(-0.5 * wind_speed_extinction_coefficient * upper_cumulative_leaf_area_index) -
+            exp(-0.5 * wind_speed_extinction_coefficient * lower_cumulative_leaf_area_index))
 
     return leaf_boundary_conductance * scaling_factor
 
@@ -120,7 +120,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(absorbed_irradiance: float,
         [m h-1] bulk surface conductance of the leaf layer
     """
 
-    return 1.0 / max(1.e-6, calc_leaf_layer_surface_resistance_to_vapor(**locals()))
+    return 1.0 / max(1.e-6, calc_leaf_layer_surface_conductance_to_vapor(**locals()))
 
 
 def calc_leaf_layer_boundary_resistance_to_heat(leaf_layer_boundary_conductance: float) -> float:

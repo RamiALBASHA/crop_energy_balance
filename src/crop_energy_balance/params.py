@@ -1,5 +1,5 @@
 from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_diffuse_extinction_coefficient
-from crop_energy_balance.inputs import Inputs
+#from crop_energy_balance.inputs import Inputs
 from json import load
 
 
@@ -7,19 +7,21 @@ class Params:
     def __init__(self, params_path):
         self.user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
 
-        self.simulation = Simulation(self.user_params)
+        if self.user_params['leaves_category'] == 'lumped':
+            self.simulation = LumpedSimulation(self.user_params)
+        else:
+            self.simulation = SunlitShadedSimulation(self.user_params)
+
         self.numerical_resolution = NumericalResolution(self.user_params)
 
     def update(self,
-               inputs: Inputs):
-
+               inputs):
         self.simulation.diffuse_black_extinction_coefficient = calc_diffuse_extinction_coefficient(
             leaf_area_index=sum(inputs.leaf_layers.values()),
             leaf_scattering_coefficient=self.simulation.leaf_scattering_coefficient,
             sky_sectors_number=3,
-            sky_type='soc')
+            sky_type='soc')[1]
         """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
-
 
 
 class Constants:
@@ -160,7 +162,7 @@ class Simulation:
         self.leaf_scattering_coefficient = data['leaf_scattering_coefficient']
         """[-] leaf scattering coefficient"""
 
-        self.extinction_coefficient = None
+        self.global_extinction_coefficient = None
         """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
 
         self.diffuse_black_extinction_coefficient = None
@@ -171,7 +173,7 @@ class LumpedSimulation(Simulation):
     def __init__(self, data):
         Simulation.__init__(self, data)
 
-        self.extinction_coefficient = None
+        self.global_extinction_coefficient = data['global_extinction_coefficient']
         """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
 
 

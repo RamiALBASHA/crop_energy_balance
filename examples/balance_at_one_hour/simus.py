@@ -9,6 +9,7 @@ if __name__ == '__main__':
 
     inputs = Inputs(root_pth / 'inputs_well_watered.json')
     params = Params(root_pth / 'params.json')
+    params.update(inputs=inputs)
 
     canopy = Canopy(leaves_category='lumped',
                     inputs=inputs,

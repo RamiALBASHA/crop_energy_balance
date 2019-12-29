@@ -30,7 +30,7 @@ class Component:
                              inputs: Inputs,
                              params: Params,
                              canopy_state_variables: object):
-        self._temperature = inputs.air_temperature,
+        self._temperature = inputs.air_temperature
         self.composed_resistance = component.calc_composed_resistance(
             surface_resistance=self.surface_resistance,
             boundary_layer_resistance=self.boundary_resistance,
@@ -53,7 +53,7 @@ class Component:
                                   canopy_state_variables: object):
         self.composed_conductance = component.calc_composed_conductance(
             composed_boundary_and_surface_resistance=self.composed_resistance,
-            sum_composed_boundary_and_surface_conductances=canopy_state_variables.sum_composed_conductance,
+            sum_composed_boundary_and_surface_conductances=canopy_state_variables.sum_composed_conductances,
             canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance)
 
     def calc_evaporative_energy(self,
@@ -80,8 +80,10 @@ class Component:
 
     def update_temperature(self,
                            params: Params):
+        previous_value = self._temperature
+        self._temperature = self.temperature
         self.temperature += utils.calc_temperature_step(
-            previous_value=self._temperature,
+            previous_value=previous_value,
             actual_value=self.temperature,
             step_fraction=params.numerical_resolution.step_fraction)
 

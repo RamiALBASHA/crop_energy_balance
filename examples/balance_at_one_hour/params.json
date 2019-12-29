@@ -1,4 +1,5 @@
 {
+  "leaves_category": "lumped",
   "vpd_coeff": 7,
   "soil_aerodynamic_resistance_shape_parameter": 2.5,
   "soil_roughness_length_for_momentum": 0.01,
@@ -9,6 +10,7 @@
   "residual_stomatal_conductance": 4.0,
   "global_extinction_coefficient": 0.45,
   "diffuse_extinction_coef": 0.64,
+  "leaf_scattering_coefficient": 0.15,
   "leaf_emissivity": 0.96,
   "soil_emissivity": 0.93,
   "absorbed_par_50": 105,
