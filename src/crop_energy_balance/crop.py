@@ -1,9 +1,9 @@
 from pathlib import Path
+
+from crop_energy_balance import utils
 from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, component, soil
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params, Constants
-
-from crop_energy_balance import utils
 
 constants = Constants()
 
