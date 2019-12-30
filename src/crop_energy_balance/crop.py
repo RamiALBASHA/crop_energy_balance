@@ -8,173 +8,6 @@ from crop_energy_balance.params import Params, Constants
 constants = Constants()
 
 
-class Component:
-    def __init__(self,
-                 index: int):
-        self.index = index
-
-        self.absorbed_irradiance = None
-        self.upper_cumulative_leaf_area_index = None
-        self.lower_cumulative_leaf_area_index = None
-        self.surface_resistance = None
-        self.boundary_resistance = None
-        self.composed_resistance = None
-        self.composed_conductance = None
-        self.net_longwave_radiation = None
-        self.net_radiation = None
-        self.penman_monteith_evaporative_energy = None
-        self._temperature = None
-        self.temperature = None
-
-    def init_state_variables(self,
-                             inputs: Inputs,
-                             params: Params,
-                             canopy_state_variables: object):
-        self._temperature = inputs.air_temperature
-        self.composed_resistance = component.calc_composed_resistance(
-            surface_resistance=self.surface_resistance,
-            boundary_layer_resistance=self.boundary_resistance,
-            vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
-            psychrometric_constant=constants.psychrometric_constant,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.net_longwave_radiation = component.calc_net_longwave_radiation(
-            air_temperature=inputs.air_temperature,
-            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
-            atmospheric_emissivity=inputs.atmospheric_emissivity,
-            extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient,
-            stefan_boltzman_constant=constants.stefan_boltzmann)
-        self.net_radiation = component.calc_net_radiation(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radition_into_global_radiation(
-                self.absorbed_irradiance),
-            net_longwave_radiation=self.net_longwave_radiation,
-            is_soil=False)
-
-    def calc_composed_conductance(self,
-                                  canopy_state_variables: object):
-        self.composed_conductance = component.calc_composed_conductance(
-            composed_boundary_and_surface_resistance=self.composed_resistance,
-            sum_composed_boundary_and_surface_conductances=canopy_state_variables.sum_composed_conductances,
-            canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance)
-
-    def calc_evaporative_energy(self,
-                                canopy_state_variables: object):
-        self.penman_monteith_evaporative_energy = component.calc_evaporative_energy(
-            net_radiation=self.net_radiation,
-            boundary_layer_resistance=self.boundary_resistance,
-            lumped_boundary_and_surface_resistance=self.composed_resistance,
-            canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance,
-            penman_evaporative_energy=canopy_state_variables.penman_energy,
-            penman_monteith_evaporative_energy=canopy_state_variables.total_penman_monteith_evaporative_energy,
-            vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
-            psychrometric_constant=constants.psychrometric_constant)
-
-    def calc_temperature(self,
-                         canopy_state_variables: object):
-        self.temperature = component.calc_temperature(
-            canopy_temperature=canopy_state_variables.source_temperature,
-            boundary_layer_resistance=self.boundary_resistance,
-            component_net_radiation=self.net_radiation,
-            component_evaporative_energy=self.penman_monteith_evaporative_energy,
-            air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity)
-
-    def update_temperature(self,
-                           params: Params):
-        previous_value = self._temperature
-        self._temperature = self.temperature
-        self.temperature += utils.calc_temperature_step(
-            previous_value=previous_value,
-            actual_value=self.temperature,
-            step_fraction=params.numerical_resolution.step_fraction)
-
-
-class SoilComponent(Component):
-    def __init__(self,
-                 index: int,
-                 lower_cumulative_leaf_area_index: float):
-        Component.__init__(self,
-                           index=index)
-
-        self.lower_cumulative_leaf_area_index = lower_cumulative_leaf_area_index
-
-    def init_state_variables(self,
-                             inputs: Inputs,
-                             params: Params,
-                             canopy_state_variables: object):
-        self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
-        self.surface_resistance = soil.calc_surface_resistance(
-            soil_saturation_ratio=inputs.soil_saturation_ratio,
-            shape_parameter_1=params.simulation.soil_resistance_to_vapor_shape_parameter_1,
-            shape_parameter_2=params.simulation.soil_resistance_to_vapor_shape_parameter_2)
-        self.boundary_resistance = soil.calc_boundary_resistance(
-            canopy_height=inputs.canopy_height,
-            wind_speed=inputs.wind_speed,
-            measurement_height=inputs.measurement_height,
-            soil_roughness_length_for_momentum=params.simulation.soil_roughness_length_for_momentum,
-            shape_parameter=params.simulation.soil_aerodynamic_resistance_shape_parameter,
-            von_karman_constant=constants.von_karman)
-
-        Component.init_state_variables(self,
-                                       inputs=inputs,
-                                       params=params,
-                                       canopy_state_variables=canopy_state_variables)
-
-
-class LeafComponent(Component):
-    def __init__(self,
-                 index: int,
-                 upper_cumulative_leaf_area_index: float,
-                 thickness: float):
-        Component.__init__(self,
-                           index=index)
-
-        self.upper_cumulative_leaf_area_index = upper_cumulative_leaf_area_index
-        self.lower_cumulative_leaf_area_index = upper_cumulative_leaf_area_index + thickness
-
-        self.stomatal_sensibility = None
-
-
-class LumpedLeafComponent(LeafComponent):
-    def __init__(self, **kwargs):
-        LeafComponent.__init__(self, **kwargs)
-
-    def init_state_variables(self,
-                             inputs: Inputs,
-                             params: Params,
-                             canopy_state_variables: object):
-        self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
-        self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
-            inputs.vapor_pressure_deficit,
-            params.simulation.vapor_pressure_deficit_coefficient)
-        self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            absorbed_irradiance=inputs.incident_par,
-            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
-            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
-            stomatal_sensibility_to_water_status=self.stomatal_sensibility,
-            global_extinction_coefficient=params.simulation.global_extinction_coefficient,
-            maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
-            residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
-            shape_parameter=params.simulation.absorbed_par_50)
-        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
-            wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
-            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
-            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
-            wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
-            characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
-
-        Component.init_state_variables(self,
-                                       inputs=inputs,
-                                       params=params,
-                                       canopy_state_variables=canopy_state_variables)
-
-
-class SunlitShadedLeafComponent(LeafComponent):
-    def __init__(self, **kwargs):
-        LeafComponent.__init__(self, **kwargs)
-
-
 class CanopyStateVariables:
     def __init__(self,
                  inputs: Inputs):
@@ -253,6 +86,173 @@ class CanopyStateVariables:
                 penman_monteith_evaporative_energy=self.total_penman_monteith_evaporative_energy,
                 air_density=constants.air_density,
                 air_specific_heat_capacity=constants.air_specific_heat_capacity))
+
+
+class Component:
+    def __init__(self,
+                 index: int):
+        self.index = index
+
+        self.absorbed_irradiance = None
+        self.upper_cumulative_leaf_area_index = None
+        self.lower_cumulative_leaf_area_index = None
+        self.surface_resistance = None
+        self.boundary_resistance = None
+        self.composed_resistance = None
+        self.composed_conductance = None
+        self.net_longwave_radiation = None
+        self.net_radiation = None
+        self.penman_monteith_evaporative_energy = None
+        self._temperature = None
+        self.temperature = None
+
+    def init_state_variables(self,
+                             inputs: Inputs,
+                             params: Params,
+                             canopy_state_variables: CanopyStateVariables):
+        self._temperature = inputs.air_temperature
+        self.composed_resistance = component.calc_composed_resistance(
+            surface_resistance=self.surface_resistance,
+            boundary_layer_resistance=self.boundary_resistance,
+            vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
+            psychrometric_constant=constants.psychrometric_constant,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.net_longwave_radiation = component.calc_net_longwave_radiation(
+            air_temperature=inputs.air_temperature,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            atmospheric_emissivity=inputs.atmospheric_emissivity,
+            extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient,
+            stefan_boltzman_constant=constants.stefan_boltzmann)
+        self.net_radiation = component.calc_net_radiation(
+            net_shortwave_radiation=utils.convert_photosynthetically_active_radition_into_global_radiation(
+                self.absorbed_irradiance),
+            net_longwave_radiation=self.net_longwave_radiation,
+            is_soil=False)
+
+    def calc_composed_conductance(self,
+                                  canopy_state_variables: CanopyStateVariables):
+        self.composed_conductance = component.calc_composed_conductance(
+            composed_boundary_and_surface_resistance=self.composed_resistance,
+            sum_composed_boundary_and_surface_conductances=canopy_state_variables.sum_composed_conductances,
+            canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance)
+
+    def calc_evaporative_energy(self,
+                                canopy_state_variables: CanopyStateVariables):
+        self.penman_monteith_evaporative_energy = component.calc_evaporative_energy(
+            net_radiation=self.net_radiation,
+            boundary_layer_resistance=self.boundary_resistance,
+            lumped_boundary_and_surface_resistance=self.composed_resistance,
+            canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance,
+            penman_evaporative_energy=canopy_state_variables.penman_energy,
+            penman_monteith_evaporative_energy=canopy_state_variables.total_penman_monteith_evaporative_energy,
+            vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
+            psychrometric_constant=constants.psychrometric_constant)
+
+    def calc_temperature(self,
+                         canopy_state_variables: CanopyStateVariables):
+        self.temperature = component.calc_temperature(
+            canopy_temperature=canopy_state_variables.source_temperature,
+            boundary_layer_resistance=self.boundary_resistance,
+            component_net_radiation=self.net_radiation,
+            component_evaporative_energy=self.penman_monteith_evaporative_energy,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
+
+    def update_temperature(self,
+                           params: Params):
+        previous_value = self._temperature
+        self._temperature = self.temperature
+        self.temperature += utils.calc_temperature_step(
+            previous_value=previous_value,
+            actual_value=self.temperature,
+            step_fraction=params.numerical_resolution.step_fraction)
+
+
+class SoilComponent(Component):
+    def __init__(self,
+                 index: int,
+                 lower_cumulative_leaf_area_index: float):
+        Component.__init__(self,
+                           index=index)
+
+        self.lower_cumulative_leaf_area_index = lower_cumulative_leaf_area_index
+
+    def init_state_variables(self,
+                             inputs: Inputs,
+                             params: Params,
+                             canopy_state_variables: CanopyStateVariables):
+        self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
+        self.surface_resistance = soil.calc_surface_resistance(
+            soil_saturation_ratio=inputs.soil_saturation_ratio,
+            shape_parameter_1=params.simulation.soil_resistance_to_vapor_shape_parameter_1,
+            shape_parameter_2=params.simulation.soil_resistance_to_vapor_shape_parameter_2)
+        self.boundary_resistance = soil.calc_boundary_resistance(
+            canopy_height=inputs.canopy_height,
+            wind_speed=inputs.wind_speed,
+            measurement_height=inputs.measurement_height,
+            soil_roughness_length_for_momentum=params.simulation.soil_roughness_length_for_momentum,
+            shape_parameter=params.simulation.soil_aerodynamic_resistance_shape_parameter,
+            von_karman_constant=constants.von_karman)
+
+        Component.init_state_variables(self,
+                                       inputs=inputs,
+                                       params=params,
+                                       canopy_state_variables=canopy_state_variables)
+
+
+class LeafComponent(Component):
+    def __init__(self,
+                 index: int,
+                 upper_cumulative_leaf_area_index: float,
+                 thickness: float):
+        Component.__init__(self,
+                           index=index)
+
+        self.upper_cumulative_leaf_area_index = upper_cumulative_leaf_area_index
+        self.lower_cumulative_leaf_area_index = upper_cumulative_leaf_area_index + thickness
+
+        self.stomatal_sensibility = None
+
+
+class LumpedLeafComponent(LeafComponent):
+    def __init__(self, **kwargs):
+        LeafComponent.__init__(self, **kwargs)
+
+    def init_state_variables(self,
+                             inputs: Inputs,
+                             params: Params,
+                             canopy_state_variables: CanopyStateVariables):
+        self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
+        self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
+            inputs.vapor_pressure_deficit,
+            params.simulation.vapor_pressure_deficit_coefficient)
+        self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
+            absorbed_irradiance=inputs.incident_par,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            stomatal_sensibility_to_water_status=self.stomatal_sensibility,
+            global_extinction_coefficient=params.simulation.global_extinction_coefficient,
+            maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
+            residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
+            shape_parameter=params.simulation.absorbed_par_50)
+        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
+            wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
+            characteristic_length=params.simulation.leaf_characteristic_length,
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+
+        Component.init_state_variables(self,
+                                       inputs=inputs,
+                                       params=params,
+                                       canopy_state_variables=canopy_state_variables)
+
+
+class SunlitShadedLeafComponent(LeafComponent):
+    def __init__(self, **kwargs):
+        LeafComponent.__init__(self, **kwargs)
 
 
 class Canopy(dict):
