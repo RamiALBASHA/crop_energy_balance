@@ -1,7 +1,8 @@
 from pathlib import Path
+
+from crop_energy_balance.crop import Canopy
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params
-from crop_energy_balance.crop import Canopy
 from crop_energy_balance.solver import Solver
 
 if __name__ == '__main__':
