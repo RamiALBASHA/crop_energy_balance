@@ -18,5 +18,3 @@ if __name__ == '__main__':
     Solver(canopy=canopy,
            inputs=inputs,
            params=params).run()
-
-    x = 0
