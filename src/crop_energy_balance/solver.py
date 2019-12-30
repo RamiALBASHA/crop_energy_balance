@@ -39,7 +39,7 @@ class Solver:
             self.canopy[index].calc_evaporative_energy(self.canopy.state_variables)
 
         self.canopy.state_variables.calc_source_temperature(crop_components=self.canopy,
-                                            inputs=self.canopy.inputs)
+                                                            inputs=self.canopy.inputs)
         for index in self.canopy.components_keys:
             self.canopy[index].calc_temperature(self.canopy.state_variables)
 
