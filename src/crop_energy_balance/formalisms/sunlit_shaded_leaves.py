@@ -198,7 +198,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
     Returns:
         (float): [h m-1] bulk surface resistance of the leaf layer
     """
-    return 1.0 / max(1.e-6, calc_leaf_layer_surface_resistance_to_vapor(**locals()))
+    return 1.0 / max(1.e-6, calc_leaf_layer_surface_conductance_to_vapor(**locals()))
 
 
 def calc_leaf_layer_boundary_resistance_to_heat(leaf_layer_boundary_conductance: float) -> float:
