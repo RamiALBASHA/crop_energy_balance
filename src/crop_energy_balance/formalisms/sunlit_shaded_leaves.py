@@ -41,7 +41,7 @@ def calc_leaf_layer_boundary_conductance(leaves_category: str,
 
     if leaves_category == 'sunlit':
         return sunlit_layer_boundary_conductance
-    elif leaves_category == 'sunlit-shaded':
+    elif leaves_category == 'shaded':
         lumped_layer_boundary_conductance = lumped_leaves.calc_leaf_layer_boundary_conductance(
             wind_speed_at_canopy_height,
             upper_leaf_area_index,
