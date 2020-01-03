@@ -70,7 +70,7 @@ class Inputs:
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
         self.absorbed_irradiance = self._calc_absorbed_irradiance(inputs)
-        """[W_{PAR} m-2ground] dictionary of absobed photosynthetically active radiation per layer layer
+        """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per layer layer
 
         Notes:
             For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'
