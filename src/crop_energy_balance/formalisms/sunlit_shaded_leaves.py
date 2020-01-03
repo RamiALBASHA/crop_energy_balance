@@ -54,8 +54,8 @@ def calc_leaf_layer_boundary_conductance(leaves_category: str,
 
 def calc_leaf_layer_boundary_resistance_to_vapor(leaves_category: str,
                                                  wind_speed_at_canopy_height: float,
-                                                 upper_leaf_area_index: float,
-                                                 lower_leaf_area_index: float,
+                                                 upper_cumulative_leaf_area_index: float,
+                                                 lower_cumulative_leaf_area_index: float,
                                                  direct_black_extinction_coefficient: float,
                                                  wind_speed_extinction_coefficient: float,
                                                  characteristic_length: float,
@@ -66,8 +66,8 @@ def calc_leaf_layer_boundary_resistance_to_vapor(leaves_category: str,
     Args:
         leaves_category: one of ('sunlit', 'shaded')
         wind_speed_at_canopy_height: [m s-1] local wind speed in the vicinity of the leaf
-        upper_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
-        lower_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
         direct_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of direct (beam) irradiance
             through a canopy of black leaves
         wind_speed_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of wind speed inside the canopy
