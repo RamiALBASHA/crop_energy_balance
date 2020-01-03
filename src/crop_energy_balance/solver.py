@@ -1,12 +1,12 @@
 from crop_energy_balance.crop import Canopy, CanopyStateVariables
-from crop_energy_balance.inputs import Inputs
+from crop_energy_balance.inputs import LumpedInputs
 from crop_energy_balance.params import Params
 
 
 class Solver:
     def __init__(self,
                  canopy: Canopy,
-                 inputs: Inputs,
+                 inputs: LumpedInputs,
                  params: Params):
         self.canopy = canopy
         self.inputs = inputs
