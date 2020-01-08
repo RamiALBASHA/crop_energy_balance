@@ -8,7 +8,7 @@ from crop_energy_balance import utils, params
 constants = params.Constants()
 
 
-class LumpedInputs:
+class Inputs:
     def __init__(self, inputs_path: Path):
         with open(str(inputs_path), mode='r') as f:
             inputs = load(f, encoding='utf-8')
@@ -65,7 +65,7 @@ class LumpedInputs:
             self.inputs['atmospheric_pressure'], constants.air_specific_heat_capacity,
             constants.latent_heat_for_vaporization, constants.vapor_to_dry_air_molecular_weight)
         """[kPa K-1] psychrometric constant
-        
+
         See Also:
             :func:`calc_psychrometric_constant`
         """
@@ -107,8 +107,13 @@ class LumpedInputs:
         return inputs
 
 
-class SunlitShadedInputs(LumpedInputs):
+class LumpedInputs(Inputs):
     def __init__(self, inputs_path: Path):
-        LumpedInputs.__init__(self, inputs_path)
+        Inputs.__init__(self, inputs_path)
+
+
+class SunlitShadedInputs(Inputs):
+    def __init__(self, inputs_path: Path):
+        Inputs.__init__(self, inputs_path)
 
         self.solar_inclination = self.inputs['solar_inclination']
