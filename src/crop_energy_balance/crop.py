@@ -312,15 +312,15 @@ class Canopy(dict):
                  params: Params = None,
                  inputs_path: Path = None,
                  params_path: Path = None):
-        """Creates a class:`Shoot` object having either 'lumped' leaves or 'sunlit-shaded' leaves.
+        """Creates a class:`Canopy` object having either 'lumped' leaves or 'sunlit-shaded' leaves.
         Args:
             leaves_category: one of ('lumped', 'sunlit-shaded')
             inputs: see class`Inputs` and `SunlitShadedInputs`
             params: see class`Params`
         Notes:
-            The created shoot can implicitly be 'big-leaf' or a 'layered'. If the attribute `leaf_layers` of the
-                :Class:`inputs` object has only one layer, then the resulting shoot is a 'big-leaf', otherwise if the
-                dictionary has more than one key, then the shoot is 'layered'.
+            The created canopy can implicitly be 'big-leaf' or a 'layered'. If the attribute `leaf_layers` of the
+                :Class:`inputs` object has only one layer, then the resulting canopy is a 'big-leaf', otherwise if the
+                dictionary has more than one key, then the canopy is 'layered'.
             Leaf layers indexes in `leaf_layers` must be ordered so that the youngest leaf layer has the highest index
                 value, and inversely, the oldest leaf layer has the least value. Not respecting this order will
                 definitely lead to erroneous calculations.
