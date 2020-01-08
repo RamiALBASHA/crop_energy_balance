@@ -227,7 +227,7 @@ class LumpedLeafComponent(LeafComponent):
             inputs.vapor_pressure_deficit,
             params.simulation.vapor_pressure_deficit_coefficient)
         self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            absorbed_irradiance=inputs.absorbed_irradiance['lumped'],
+            absorbed_irradiance=self.absorbed_irradiance,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             stomatal_sensibility_to_water_status=self.stomatal_sensibility,
