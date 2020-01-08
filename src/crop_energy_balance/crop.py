@@ -328,8 +328,9 @@ class Canopy(dict):
 
         dict.__init__(self)
 
+        self.leaves_category = leaves_category
         if inputs_path:
-            if leaves_category == 'lumped':
+            if self.leaves_category == 'lumped':
                 self.inputs = LumpedInputs(inputs_path)
             else:
                 self.inputs = SunlitShadedInputs(inputs_path)
@@ -345,19 +346,17 @@ class Canopy(dict):
 
         self.state_variables = None
 
-        self._set_components(leaves_category)
+        self._set_components()
 
-    def _set_components(self, leaves_category: str):
+    def _set_components(self):
         """Sets canopy's components.
-        Args:
-            leaves_category: one of ('lumped', 'sunlit-shaded')
         """
 
         upper_cumulative_leaf_area_index = 0.0
         for index in reversed(self.components_keys):
             if index != -1:
                 layer_thickness = self.inputs.leaf_layers[index]
-                if leaves_category == 'lumped':
+                if self.leaves_category == 'lumped':
                     self[index] = LumpedLeafComponent(
                         index=index,
                         upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
