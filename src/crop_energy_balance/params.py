@@ -1,6 +1,5 @@
 from json import load
 
-from crop_energy_balance.inputs import LumpedInputs, SunlitShadedInputs
 from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_canopy_reflectance_to_direct_irradiance,
                                                                            calc_diffuse_extinction_coefficient,
                                                                            calc_direct_extinction_coefficient,
@@ -19,7 +18,7 @@ class Params:
         self.numerical_resolution = NumericalResolution(self.user_params)
 
     def update(self,
-               inputs: LumpedInputs or SunlitShadedInputs):
+               inputs):
         self.simulation.update(inputs=inputs)
 
 
@@ -168,7 +167,7 @@ class Simulation:
         """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
 
     def update(self,
-               inputs: LumpedInputs or SunlitShadedInputs):
+               inputs):
         pass
 
 
@@ -180,7 +179,7 @@ class LumpedSimulation(Simulation):
         """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
 
     def update(self,
-               inputs: LumpedInputs):
+               inputs):
         self.diffuse_black_extinction_coefficient = calc_diffuse_extinction_coefficient(
             leaf_area_index=sum(inputs.leaf_layers.values()),
             leaf_scattering_coefficient=self.leaf_scattering_coefficient,
@@ -203,7 +202,7 @@ class SunlitShadedSimulation(Simulation):
     diffuse_extinction_coefficient = None
 
     def update(self,
-               inputs: SunlitShadedInputs):
+               inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
             solar_inclination=inputs.solar_inclination,
             leaf_scattering_coefficient=self.leaf_scattering_coefficient,
