@@ -9,13 +9,22 @@ from crop_energy_balance.utils import convert_kelvin_to_celsius
 
 
 def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
-    component_index, component_temperature = zip(*[(k, convert_kelvin_to_celsius(v.temperature))
-                                                   for k, v in canopy_object.items()])
+    soil_component_key = -1
+    leaf_layer_key = 0
+    soil_component_temperature = convert_kelvin_to_celsius(canopy_object[-1].temperature)
+    leaf_component_temperature = convert_kelvin_to_celsius(canopy_object[0].temperature)
+
     fig, ax = pyplot.subplots()
-    ax.plot(component_temperature, component_index, 'g-', label='canopy')
-    ax.axvline(convert_kelvin_to_celsius(canopy_object.inputs.air_temperature), label='air')
+    ax.grid(zorder=0)
+    ax.scatter(soil_component_temperature, soil_component_key,
+               marker='o', c='brown', edgecolors=None, label='soil', zorder=3)
+    ax.scatter(leaf_component_temperature, leaf_layer_key,
+               marker='o', c='orange', edgecolors=None, label='lumped leaf', zorder=3)
+    ax.axvline(convert_kelvin_to_celsius(canopy_object.inputs.air_temperature),
+               label='air', zorder=3)
     ax.set(xlabel='temperature [°C]', ylabel='Component index [-]', xlim=(20, 30))
-    ax.grid(True)
+    ax.yaxis.set_ticks([-1, 0])
+    ax.legend()
     fig.savefig(fig_path)
     pyplot.close()
 

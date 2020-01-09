@@ -16,12 +16,15 @@ def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
     shaded_component_temperature = convert_kelvin_to_celsius(canopy_object[leaf_layer_key]['shaded'].temperature)
 
     fig, ax = pyplot.subplots()
-    ax.plot(soil_component_temperature, soil_component_key, marker='o', markerfacecolor='brown')
-    ax.plot(sunlit_component_temperature, leaf_layer_key, marker='o', markerfacecolor='yellow')
-    ax.plot(shaded_component_temperature, leaf_layer_key, marker='o', markerfacecolor='orange')
+    ax.grid(True, zorder=0)
+    ax.scatter(soil_component_temperature, soil_component_key,
+               marker='o', c='brown', edgecolors=None, label='soil', zorder=3)
+    ax.scatter(sunlit_component_temperature, leaf_layer_key,
+               marker='o', c='yellow', edgecolors=None, label='sunlit', zorder=3)
+    ax.scatter(shaded_component_temperature, leaf_layer_key,
+               marker='o', c='orange', edgecolors=None, label='shaded', zorder=3)
     ax.axvline(convert_kelvin_to_celsius(canopy_object.inputs.air_temperature), label='air')
     ax.set(xlabel='temperature [°C]', ylabel='Component index [-]', xlim=(20, 30))
-    ax.grid(True)
     fig.savefig(fig_path)
     pyplot.close()
 
