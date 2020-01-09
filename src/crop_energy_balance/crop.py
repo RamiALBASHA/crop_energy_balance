@@ -62,15 +62,14 @@ class CanopyStateVariables:
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
         self.total_penman_monteith_evaporative_energy = canopy.calc_penman_monteith_evaporative_energy(
-            components_indices=list(crop_components.keys()),
             canopy_lumped_aerodynamic_resistance=self.lumped_aerodynamic_resistance,
             penman_evaporative_energy=self.penman_energy,
-            composed_boundary_and_surface_conductances={component_index: crop_component.composed_conductance for
-                                                        component_index, crop_component in crop_components.items()},
-            net_radiation_fluxes={component_index: crop_component.net_radiation for
-                                  component_index, crop_component in crop_components.items()},
-            boundary_layer_resistances={component_index: crop_component.boundary_resistance for
-                                        component_index, crop_component in crop_components.items()},
+            composed_boundary_and_surface_conductances=[crop_component.composed_conductance for
+                                                        crop_component in crop_components.values()],
+            net_radiation_fluxes=[crop_component.net_radiation for
+                                  crop_component in crop_components.values()],
+            boundary_layer_resistances=[crop_component.boundary_resistance for
+                                        crop_component in crop_components.values()],
             vapor_pressure_slope=self.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant)
 

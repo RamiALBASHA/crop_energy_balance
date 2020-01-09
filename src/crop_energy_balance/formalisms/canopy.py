@@ -163,18 +163,16 @@ def calc_canopy_lumped_aerodynamic_resistance(canopy_aerodynamic_resistance: flo
     return (1 + vapor_pressure_slope / psychrometric_constant) * canopy_aerodynamic_resistance
 
 
-def calc_penman_monteith_evaporative_energy(components_indices: list,
-                                            canopy_lumped_aerodynamic_resistance: float,
+def calc_penman_monteith_evaporative_energy(canopy_lumped_aerodynamic_resistance: float,
                                             penman_evaporative_energy: float,
-                                            composed_boundary_and_surface_conductances: dict,
-                                            net_radiation_fluxes: dict,
-                                            boundary_layer_resistances: dict,
+                                            composed_boundary_and_surface_conductances: list,
+                                            net_radiation_fluxes: list,
+                                            boundary_layer_resistances: list,
                                             vapor_pressure_slope: float,
                                             psychrometric_constant: float) -> float:
     """Calculates canopy evaporative energy.
 
     Args:
-        components_indices: [-] list of dictionary keys of all components of the canopy
         canopy_lumped_aerodynamic_resistance: [h m-1] Lhomme's lumped aerodynamic resistance (R0)
         penman_evaporative_energy: [W m-2ground] the evapotranspiration energy flux density according to
             Penman's formula
@@ -193,13 +191,17 @@ def calc_penman_monteith_evaporative_energy(components_indices: list,
             Evaporation from multi-component canopies: Generalized formulations.
             Journal of Hydrology 486, 315 - 320.
             Eq. 12
+
+    Notes:
+        All lists of args`composed_boundary_and_surface_conductances`, args:`net_radiation_fluxes` and
+            args`boundary_layer_resistances` must be equally ordered, that is, their values must refer to the same crop
+            components in the same order. Violating this condition will lead serious to simulation errors.
     """
     sum_p = 0.0
     sum_p_a_r = 0.0
-    for i in components_indices:
-        sum_p += composed_boundary_and_surface_conductances[i]
-        sum_p_a_r += (
-                composed_boundary_and_surface_conductances[i] * net_radiation_fluxes[i] * boundary_layer_resistances[i])
+    for p, a, r in zip(composed_boundary_and_surface_conductances, net_radiation_fluxes, boundary_layer_resistances):
+        sum_p += p
+        sum_p_a_r += (p * a * r)
     return canopy_lumped_aerodynamic_resistance * penman_evaporative_energy * sum_p + (
             vapor_pressure_slope / psychrometric_constant) * sum_p_a_r
 
