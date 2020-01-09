@@ -1,4 +1,5 @@
 from json import load
+from pathlib import Path
 
 from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_canopy_reflectance_to_direct_irradiance,
                                                                            calc_diffuse_extinction_coefficient,
@@ -7,15 +8,11 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_
 
 
 class Params:
-    def __init__(self, params_path):
-        self.user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
+    def __init__(self, params_path: Path):
+        self._user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
+        self.numerical_resolution = NumericalResolution(self._user_params)
 
-        if self.user_params['leaves_category'] == 'lumped':
-            self.simulation = LumpedSimulation(self.user_params)
-        else:
-            self.simulation = SunlitShadedSimulation(self.user_params)
-
-        self.numerical_resolution = NumericalResolution(self.user_params)
+        self.simulation = None
 
     def update(self,
                inputs):
@@ -242,3 +239,15 @@ class NumericalResolution:
 
         self.maximum_iteration_number = data['maximum_iteration_number']
         """[-] maximum number of iterations to solve the energy budget"""
+
+
+class LumpedParams(Params):
+    def __init__(self, params_path: Path):
+        Params.__init__(self, params_path)
+        self.simulation = LumpedSimulation(self._user_params)
+
+
+class SunlitShadedParams(Params):
+    def __init__(self, params_path: Path):
+        Params.__init__(self, params_path)
+        self.simulation = SunlitShadedSimulation(self._user_params)

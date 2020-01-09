@@ -3,7 +3,7 @@ from pathlib import Path
 from crop_energy_balance import utils
 from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, sunlit_shaded_leaves, component, soil
 from crop_energy_balance.inputs import LumpedInputs, SunlitShadedInputs
-from crop_energy_balance.params import Params, Constants
+from crop_energy_balance.params import LumpedParams, SunlitShadedParams, Constants
 
 constants = Constants()
 
@@ -105,7 +105,7 @@ class Component:
 
     def init_state_variables(self,
                              inputs: LumpedInputs or SunlitShadedInputs,
-                             params: Params,
+                             params: LumpedParams or SunlitShadedParams,
                              canopy_state_variables: CanopyStateVariables):
         self._temperature = inputs.air_temperature
         self.composed_resistance = component.calc_composed_resistance(
@@ -156,7 +156,7 @@ class Component:
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
     def update_temperature(self,
-                           params: Params):
+                           params: LumpedParams or SunlitShadedParams):
         previous_value = self._temperature
         self._temperature = self.temperature
         self.temperature += utils.calc_temperature_step(
@@ -176,7 +176,7 @@ class SoilComponent(Component):
 
     def init_state_variables(self,
                              inputs: LumpedInputs or SunlitShadedInputs,
-                             params: Params,
+                             params: LumpedParams or SunlitShadedParams,
                              canopy_state_variables: CanopyStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.surface_resistance = soil.calc_surface_resistance(
@@ -217,7 +217,7 @@ class LumpedLeafComponent(LeafComponent):
 
     def init_state_variables(self,
                              inputs: LumpedInputs,
-                             params: Params,
+                             params: LumpedParams,
                              canopy_state_variables: CanopyStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
@@ -255,7 +255,7 @@ class SunlitShadedLeafComponent(LeafComponent):
 
     def init_state_variables(self,
                              inputs: SunlitShadedInputs,
-                             params: Params,
+                             params: SunlitShadedParams,
                              canopy_state_variables: CanopyStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index][self.leaves_category]
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
@@ -306,14 +306,14 @@ class Canopy(dict):
     def __init__(self,
                  leaves_category: str,
                  inputs: LumpedInputs or SunlitShadedInputs = None,
-                 params: Params = None,
+                 params: LumpedParams or SunlitShadedParams = None,
                  inputs_path: Path = None,
                  params_path: Path = None):
         """Creates a class:`Canopy` object having either 'lumped' leaves or 'sunlit-shaded' leaves.
         Args:
             leaves_category: one of ('lumped', 'sunlit-shaded')
-            inputs: see class`Inputs` and `SunlitShadedInputs`
-            params: see class`Params`
+            inputs: see class`LumpedInputs` and class`SunlitShadedInputs`
+            params: see class`LumpedParams` and class`SunlitShadedParams`
         Notes:
             The created canopy can implicitly be 'big-leaf' or a 'layered'. If the attribute `leaf_layers` of the
                 :Class:`inputs` object has only one layer, then the resulting canopy is a 'big-leaf', otherwise if the
@@ -335,7 +335,10 @@ class Canopy(dict):
             self.inputs = inputs
 
         if params_path:
-            self.params = Params(params_path)
+            if self.leaves_category == 'lumped':
+                self.params = LumpedParams(params_path)
+            else:
+                self.params = SunlitShadedParams(params_path)
         else:
             self.params = params
 
