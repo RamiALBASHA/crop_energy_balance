@@ -1,0 +1,42 @@
+{
+  "measurement_height": 2,
+  "canopy_height": 0.36,
+  "soil_saturation_ratio": 1.0,
+  "leaf_layers": {
+    "4": 0.09,
+    "5": 1.11,
+    "6": 1.92,
+    "7": 3.22
+  },
+  "incident_par": {
+    "direct": 192,
+    "diffuse": 35.27
+  },
+  "absorbed_global_irradiance": {
+    "7": {
+      "sunlit": 328.06,
+      "shaded": 49.33
+    },
+    "6": {
+      "sunlit": 37.02,
+      "shaded": 14.72
+    },
+    "5": {
+      "sunlit": 8.45,
+      "shaded": 4.37
+    },
+    "4": {
+      "sunlit": 0.47,
+      "shaded": 0.27
+    },
+    "-1": {
+      "lumped": 30.8
+    }
+  },
+  "atmospheric_pressure": 101.3,
+  "wind_speed": 31828.5,
+  "air_temperature": 26.51,
+  "vapor_pressure_deficit": 1.91,
+  "vapor_pressure": 1.135,
+  "solar_inclination": 1.0471975511965976
+}
