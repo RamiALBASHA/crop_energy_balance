@@ -5,7 +5,7 @@
   "leaf_layers": {
     "0": 6.34
   },
-  "absorbed_photosynthetically_active_radition": {
+  "absorbed_photosynthetically_active_radiation": {
     "0": {
       "lumped": 214.17
     },
