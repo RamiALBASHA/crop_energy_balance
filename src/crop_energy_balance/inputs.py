@@ -52,6 +52,7 @@ class Inputs:
         See Also:
             :func:`calc_psychrometric_constant`
         """
+
         self.leaf_layers = self._inputs['leaf_layers']
         """[m2leaf m-2ground] dictionary of leaf area index per layer
 
@@ -59,6 +60,7 @@ class Inputs:
             Dictionary keys are integers indicating the order of the leaf layers.
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
+
         self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radition']
         """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per crop component
 
@@ -69,6 +71,7 @@ class Inputs:
             Dictionary keys are integers indicating the order of the leaf layers.
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
+
         self.net_shortwave_radiation = self._calc_net_shortwave_irradiance()
         """[W m-2ground] absorbed net shortwave (global) irradiance per crop component
 
