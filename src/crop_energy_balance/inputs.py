@@ -72,28 +72,11 @@ class Inputs:
                 lowest number which must be equal to -1.
         """
 
-        self.net_shortwave_radiation = self._calc_net_shortwave_irradiance()
-        """[W m-2ground] absorbed net shortwave (global) irradiance per crop component
-
-        Notes:
-            Dictionary keys are integers indicating the order of the crop components.
-            The uppermost component must have the highest number while the lowermost component, i.e. soil, has the
-                lowest number which must be equal to -1.
-        """
-
         self.components_keys = sorted(list(self.leaf_layers.keys()) + [-1])
-
-    def _calc_net_shortwave_irradiance(self) -> dict:
-        res = {}
-        for component_key, photosynthetically_active_radiation in self.absorbed_irradiance.items():
-            for leaves_category, value in photosynthetically_active_radiation.items():
-                res[component_key] = {
-                    leaves_category: utils.convert_photosynthetically_active_radition_into_global_radiation(value)}
-        return res
 
     @staticmethod
     def _fmt_inputs(inputs: dict):
-        for k in ('leaf_layers', 'absorbed_photosynthetically_active_radition'):
+        for k in ('leaf_layers', 'absorbed_photosynthetically_active_radiation'):
             inputs[k] = {int(key): value for key, value in inputs[k].items()}
         return inputs
 
