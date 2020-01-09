@@ -68,8 +68,8 @@ class Inputs:
             For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'
             For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
                 'sunlit' and 'shaded'
-            Dictionary keys are integers indicating the order of the leaf layers.
-            The uppermost layer must have the highest number while the lowermost layer has the lowest number.
+            The uppermost component must have the highest number while the lowermost component, i.e. soil, has the
+                lowest number which must be equal to -1.
         """
 
         self.net_shortwave_radiation = self._calc_net_shortwave_irradiance()
