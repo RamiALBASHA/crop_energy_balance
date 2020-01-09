@@ -47,15 +47,15 @@ class CanopyStateVariables:
         self.source_temperature = None
 
     def calc_total_composed_conductances(self,
-                                         crop_components: dict):
+                                         crop_components: list):
         self.sum_composed_conductances = sum(
-            [1.0 / crop_component.composed_resistance for crop_component in crop_components.values()])
+            [1.0 / crop_component.composed_resistance for crop_component in crop_components])
 
     def calc_total_evaporative_energy(self,
-                                      crop_components: dict):
+                                      crop_components: list):
         self.penman_energy = canopy.calc_penman_evaporative_energy(
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-            canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components.values()]),
+            canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components]),
             vapor_pressure_slope=self.vapor_pressure_slope,
             vapor_pressure_deficit=self.vapor_pressure_deficit,
             psychrometric_constant=constants.psychrometric_constant,
@@ -65,23 +65,21 @@ class CanopyStateVariables:
             canopy_lumped_aerodynamic_resistance=self.lumped_aerodynamic_resistance,
             penman_evaporative_energy=self.penman_energy,
             composed_boundary_and_surface_conductances=[crop_component.composed_conductance for
-                                                        crop_component in crop_components.values()],
-            net_radiation_fluxes=[crop_component.net_radiation for
-                                  crop_component in crop_components.values()],
-            boundary_layer_resistances=[crop_component.boundary_resistance for
-                                        crop_component in crop_components.values()],
+                                                        crop_component in crop_components],
+            net_radiation_fluxes=[crop_component.net_radiation for crop_component in crop_components],
+            boundary_layer_resistances=[crop_component.boundary_resistance for crop_component in crop_components],
             vapor_pressure_slope=self.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant)
 
     def calc_source_temperature(self,
-                                crop_components: dict,
+                                crop_components: list,
                                 inputs: LumpedInputs or SunlitShadedInputs):
         self.source_temperature = max(
             constants.absolute_zero,
             canopy.calc_temperature(
                 air_temperature=inputs.air_temperature,
                 canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-                canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components.values()]),
+                canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components]),
                 penman_monteith_evaporative_energy=self.total_penman_monteith_evaporative_energy,
                 air_density=constants.air_density,
                 air_specific_heat_capacity=constants.air_specific_heat_capacity))
