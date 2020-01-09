@@ -14,8 +14,6 @@ class Solver:
 
         self.components = self.canopy.extract_all_components()
 
-        self.is_acceptable_error = False
-
         self.init_state_variables()
 
     def run(self):
