@@ -121,7 +121,7 @@ class Component:
             extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient,
             stefan_boltzman_constant=constants.stefan_boltzmann)
         self.net_radiation = component.calc_net_radiation(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radition_into_global_radiation(
+            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             is_soil=False)

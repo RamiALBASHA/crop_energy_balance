@@ -83,26 +83,25 @@ def calc_temperature_step(previous_value: float,
     return step_fraction * (actual_value - previous_value)
 
 
-def convert_photosynthetically_active_radition_into_global_radiation(value: float) -> float:
-    """Converts photosynthetically active radition into global radiation.
+def convert_photosynthetically_active_radiation_into_global_radiation(value: float) -> float:
+    """Converts photosynthetically active radiation into global radiation.
 
     Args:
-        value: [W_{PAR} m-2] photosynthetically active radition
+        value: [W_{PAR} m-2] photosynthetically active radiation
 
     Returns:
-        [W_{global} m-2] global radition
+        [W_{global} m-2] global radiation
     """
     return value / 0.48
 
 
-def convert_global_irradiance_into_photosynthetically_active_radition(value: float) -> float:
-    """Converts global radiation into photosynthetically active radition.
+def convert_global_irradiance_into_photosynthetically_active_radiation(value: float) -> float:
+    """Converts global radiation into photosynthetically active radiation.
 
     Args:
-        value: [W_{global} m-2] global radition
+        value: [W_{global} m-2] global radiation
 
     Returns:
-        [W_{PAR} m-2] photosynthetically active radition
+        [W_{PAR} m-2] photosynthetically active radiation
     """
     return value * 0.48
-
