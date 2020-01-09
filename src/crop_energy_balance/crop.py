@@ -375,3 +375,17 @@ class Canopy(dict):
                 self[index] = SoilComponent(
                     index=index,
                     lower_cumulative_leaf_area_index=upper_cumulative_leaf_area_index)
+
+    def extract_all_components(self):
+        """Returns a list of all canopy components."""
+        if self.leaves_category == 'lumped':
+            return [self[key] for key in self.components_keys]
+        else:
+            res = []
+            for component_key in self.components_keys:
+                if component_key != -1:
+                    res.append(self[component_key]['sunlit'])
+                    res.append(self[component_key]['shaded'])
+                else:
+                    res.append(self[component_key])
+            return res

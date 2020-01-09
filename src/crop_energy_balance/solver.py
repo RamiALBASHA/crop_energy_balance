@@ -12,7 +12,7 @@ class Solver:
         self.inputs = inputs
         self.params = params
 
-        self.components = self.extract_all_components()
+        self.components = self.canopy.extract_all_components()
 
         self.is_acceptable_error = False
 
@@ -56,16 +56,3 @@ class Solver:
     def determine_if_acceptable_error(self,
                                       error: float) -> bool:
         return error <= self.params.numerical_resolution.acceptable_temperature_error
-
-    def extract_all_components(self):
-        if self.canopy.leaves_category == 'lumped':
-            return [self.canopy[key] for key in self.canopy.components_keys]
-        else:
-            res = []
-            for component_key in self.canopy.components_keys:
-                if component_key != -1:
-                    res.append(self.canopy[component_key]['sunlit'])
-                    res.append(self.canopy[component_key]['shaded'])
-                else:
-                    res.append(self.canopy[component_key])
-            return res
