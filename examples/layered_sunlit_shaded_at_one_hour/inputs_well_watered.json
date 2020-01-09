@@ -8,29 +8,29 @@
     "6": 1.92,
     "7": 3.22
   },
-  "incident_par": {
+  "incident_photosynthetically_active_radition": {
     "direct": 192,
     "diffuse": 35.27
   },
-  "absorbed_global_irradiance": {
+  "absorbed_photosynthetically_active_radition": {
     "7": {
-      "sunlit": 328.06,
-      "shaded": 49.33
+      "sunlit": 157.47,
+      "shaded": 23.68
     },
     "6": {
-      "sunlit": 37.02,
-      "shaded": 14.72
+      "sunlit": 17.77,
+      "shaded": 7.06
     },
     "5": {
-      "sunlit": 8.45,
-      "shaded": 4.37
+      "sunlit": 4.06,
+      "shaded": 2.10
     },
     "4": {
-      "sunlit": 0.47,
-      "shaded": 0.27
+      "sunlit": 0.22,
+      "shaded": 0.13
     },
     "-1": {
-      "lumped": 30.8
+      "lumped": 14.79
     }
   },
   "atmospheric_pressure": 101.3,

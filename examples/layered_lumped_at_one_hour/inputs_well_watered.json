@@ -8,22 +8,21 @@
     "6": 1.92,
     "7": 3.22
   },
-  "incident_par": 227.27,
-  "absorbed_global_irradiance": {
+  "absorbed_photosynthetically_active_radition": {
     "7": {
-      "lumped": 362.30
+      "lumped": 173.83
     },
     "6": {
-      "lumped": 64.32
+      "lumped": 30.87
     },
     "5": {
-      "lumped": 18.42
+      "lumped": 8.83
     },
     "4": {
-      "lumped": 1.13
+      "lumped": 0.54
     },
     "-1": {
-      "lumped": 27.31
+      "lumped": 13.2
     }
   },
   "atmospheric_pressure": 101.3,

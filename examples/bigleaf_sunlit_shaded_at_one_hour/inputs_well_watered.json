@@ -5,17 +5,17 @@
   "leaf_layers": {
     "0": 6.34
   },
-  "incident_par": {
+  "incident_photosynthetically_active_radition": {
     "direct": 192,
     "diffuse": 35.27
   },
-  "absorbed_global_irradiance": {
+  "absorbed_photosynthetically_active_radition": {
     "0": {
-      "sunlit": 360.91,
-      "shaded": 81.77
+      "sunlit": 173.23,
+      "shaded": 39.25
     },
     "-1": {
-      "lumped": 30.8
+      "lumped": 14.78
     }
   },
   "atmospheric_pressure": 101.3,

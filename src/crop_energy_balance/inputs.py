@@ -40,23 +40,6 @@ class Inputs:
         self.vapor_pressure_deficit = self.inputs['vapor_pressure_deficit']
         """[kPa] vapor pressure deficit of the air"""
 
-        self.incident_par = self.inputs['incident_par']
-        """[W m-2ground] dictionary of incident photosynthetically active radiation.
-
-        Notes:
-            For lumped leaves, the incident irradiance is a dictionary having the unique key 'lumped'
-            For sunlit and shaded leaves, the incident irradiance is a dictionary having two keys, respectively 
-                'sunlit' and 'shaded'
-        """
-
-        self.net_shortwave_radiation = self.inputs['absorbed_global_irradiance']
-        """[W m-2ground] absorbed net shortwave (global) irradiance per leaf layer
-
-        Notes:
-            Dictionary keys are integers indicating the order of the leaf layers.
-            The uppermost layer must have the highest number while the lowermost layer has the lowest number.
-        """
-
         self.atmospheric_emissivity = weather.calc_atmospheric_emissivity(self._air_vapor_pressure,
                                                                           self.air_temperature)
         """[-] sky longwave radiation emissivity"""
@@ -76,7 +59,7 @@ class Inputs:
             Dictionary keys are integers indicating the order of the leaf layers.
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
-        self.absorbed_irradiance = self._calc_absorbed_irradiance(self.inputs)
+        self.absorbed_irradiance = self.inputs['absorbed_photosynthetically_active_radition']
         """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per layer layer
 
         Notes:
@@ -86,24 +69,28 @@ class Inputs:
             Dictionary keys are integers indicating the order of the leaf layers.
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
+        self.net_shortwave_radiation = self._calc_net_shortwave_irradiance()
+        """[W m-2ground] absorbed net shortwave (global) irradiance per leaf layer
+
+        Notes:
+            Dictionary keys are integers indicating the order of the leaf layers.
+            The uppermost layer must have the highest number while the lowermost layer has the lowest number.
+        """
 
         self.components_keys = sorted(list(self.leaf_layers.keys()) + [-1])
 
-    @staticmethod
-    def _calc_absorbed_irradiance(inputs) -> dict:
+    def _calc_net_shortwave_irradiance(self) -> dict:
         res = {}
-        for component_key, global_irradiance in inputs['absorbed_global_irradiance'].items():
-            res[component_key] = {
-                leaves_category: utils.convert_global_irradiance_into_photosynthetically_active_radition(value)
-                for leaves_category, value in global_irradiance.items()}
+        for component_key, photosynthetically_active_radiation in self.absorbed_irradiance.items():
+            for leaves_category, value in photosynthetically_active_radiation.items():
+                res[component_key] = {
+                    leaves_category: utils.convert_photosynthetically_active_radition_into_global_radiation(value)}
         return res
 
     @staticmethod
     def _fmt_inputs(inputs: dict):
-        inputs['leaf_layers'] = {int(key): value for key, value in
-                                 inputs['leaf_layers'].items()}
-        inputs['absorbed_global_irradiance'] = {int(key): value for key, value in
-                                                inputs['absorbed_global_irradiance'].items()}
+        for k in ('leaf_layers', 'absorbed_photosynthetically_active_radition'):
+            inputs[k] = {int(key): value for key, value in inputs[k].items()}
         return inputs
 
 
@@ -116,4 +103,13 @@ class SunlitShadedInputs(Inputs):
     def __init__(self, inputs_path: Path):
         Inputs.__init__(self, inputs_path)
 
+        self.incident_par = self.inputs['incident_photosynthetically_active_radition']
+        """[W m-2ground] dictionary of incident photosynthetically active radiation.
+
+        Notes:
+            This input must be a dictionary having two keys, respectively 'sunlit' and 'shaded'
+        """
+
         self.solar_inclination = self.inputs['solar_inclination']
+        """(Rad) the angle between solar beam and the horizon.
+        """
