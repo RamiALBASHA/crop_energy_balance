@@ -1,0 +1,27 @@
+{
+  "measurement_height": 2,
+  "canopy_height": 0.36,
+  "soil_saturation_ratio": 1.0,
+  "leaf_layers": {
+    "0": 6.34
+  },
+  "incident_par": {
+    "direct": 192,
+    "diffuse": 35.27
+  },
+  "absorbed_global_irradiance": {
+    "0": {
+      "sunlit": 360.91,
+      "shaded": 81.77
+    },
+    "-1": {
+      "lumped": 30.8
+    }
+  },
+  "atmospheric_pressure": 101.3,
+  "wind_speed": 31828.5,
+  "air_temperature": 26.51,
+  "vapor_pressure_deficit": 1.91,
+  "vapor_pressure": 1.135,
+  "solar_inclination": 1.0471975511965976
+}
