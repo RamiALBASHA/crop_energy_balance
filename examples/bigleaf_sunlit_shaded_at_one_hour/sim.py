@@ -20,11 +20,12 @@ def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
     ax.scatter(soil_component_temperature, soil_component_key,
                marker='o', c='brown', edgecolors=None, label='soil', zorder=3)
     ax.scatter(sunlit_component_temperature, leaf_layer_key,
-               marker='o', c='yellow', edgecolors=None, label='sunlit', zorder=3)
+               marker='o', c='yellow', edgecolors=None, label='sunlit leaves', zorder=3)
     ax.scatter(shaded_component_temperature, leaf_layer_key,
-               marker='o', c='orange', edgecolors=None, label='shaded', zorder=3)
+               marker='o', c='orange', edgecolors=None, label='shaded leaves', zorder=3)
     ax.axvline(convert_kelvin_to_celsius(canopy_object.inputs.air_temperature), label='air')
     ax.set(xlabel='temperature [°C]', ylabel='Component index [-]', xlim=(20, 30))
+    ax.legend()
     fig.savefig(fig_path)
     pyplot.close()
 
