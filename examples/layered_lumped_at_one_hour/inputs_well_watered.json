@@ -3,10 +3,10 @@
   "canopy_height": 0.36,
   "soil_saturation_ratio": 1.0,
   "leaf_layers": {
-    "7": 0.09,
-    "6": 1.11,
-    "5": 1.92,
-    "4": 3.22
+    "4": 0.09,
+    "5": 1.11,
+    "6": 1.92,
+    "7": 3.22
   },
   "incident_par": 227.27,
   "absorbed_global_irradiance": {
