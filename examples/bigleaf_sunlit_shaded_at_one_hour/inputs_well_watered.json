@@ -5,11 +5,11 @@
   "leaf_layers": {
     "0": 6.34
   },
-  "incident_photosynthetically_active_radition": {
+  "incident_photosynthetically_active_radiation": {
     "direct": 192,
     "diffuse": 35.27
   },
-  "absorbed_photosynthetically_active_radition": {
+  "absorbed_photosynthetically_active_radiation": {
     "0": {
       "sunlit": 173.23,
       "shaded": 39.25

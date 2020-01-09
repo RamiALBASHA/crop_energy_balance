@@ -61,7 +61,7 @@ class Inputs:
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
 
-        self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radition']
+        self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radiation']
         """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per crop component
 
         Notes:
