@@ -1,0 +1,33 @@
+{
+  "measurement_height": 2,
+  "canopy_height": 0.36,
+  "soil_saturation_ratio": 1.0,
+  "leaf_layers": {
+    "4": 0.09,
+    "5": 1.11,
+    "6": 1.92,
+    "7": 3.22
+  },
+  "absorbed_photosynthetically_active_radiation": {
+    "7": {
+      "lumped": 173.83
+    },
+    "6": {
+      "lumped": 30.87
+    },
+    "5": {
+      "lumped": 8.83
+    },
+    "4": {
+      "lumped": 0.54
+    },
+    "-1": {
+      "lumped": 13.2
+    }
+  },
+  "atmospheric_pressure": 101.3,
+  "wind_speed": 31828.5,
+  "air_temperature": 26.51,
+  "vapor_pressure_deficit": 1.91,
+  "vapor_pressure": 1.135
+}
