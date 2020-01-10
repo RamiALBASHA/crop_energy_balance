@@ -25,6 +25,7 @@ def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
                marker='o', c='orange', edgecolors=None, label='shaded leaves', zorder=3)
     ax.axvline(convert_kelvin_to_celsius(canopy_object.inputs.air_temperature), label='air')
     ax.set(xlabel='temperature [°C]', ylabel='Component index [-]', xlim=(20, 30))
+    ax.yaxis.set_ticks([-1, 0])
     ax.legend()
     fig.savefig(fig_path)
     pyplot.close()

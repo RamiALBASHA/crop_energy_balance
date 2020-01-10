@@ -18,7 +18,7 @@ def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
     ax.grid(zorder=0)
     ax.scatter(soil_component_temperature, soil_component_key,
                marker='o', c='brown', edgecolors=None, label='soil', zorder=3)
-    ax.plot(leaf_component_temperature, leaf_layer_keys, 'g-', label='lumped leaf')
+    ax.plot(leaf_component_temperature, leaf_layer_keys, 'g-', label='lumped leaves')
     ax.axvline(convert_kelvin_to_celsius(canopy_object.inputs.air_temperature), label='air')
     ax.set(xlabel='temperature [°C]', ylabel='Component index [-]', xlim=(20, 30))
     ax.legend()
