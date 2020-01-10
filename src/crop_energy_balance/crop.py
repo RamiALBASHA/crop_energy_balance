@@ -280,7 +280,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             sublayers_number=params.simulation.sublayers_number)
         self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
             leaves_category=self.leaves_category,
-            wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height,
+            wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
