@@ -33,11 +33,9 @@ if __name__ == '__main__':
     params = LumpedParams(root_pth / 'params.json')
     params.update(inputs=inputs)
 
-    canopy = Canopy(leaves_category='lumped',
-                    inputs=inputs,
-                    params=params)
-    Solver(canopy=canopy,
-           inputs=inputs,
-           params=params).run()
+    canopy = Canopy(leaves_category='lumped', inputs=inputs, params=params)
+    solver = Solver(canopy=canopy, inputs=inputs, params=params)
+    solver.run()
 
     plot_temperature_profile(canopy, root_pth / 'temperature_profile.png')
+    print(f'*** iterations = {solver.iterations_number} **')

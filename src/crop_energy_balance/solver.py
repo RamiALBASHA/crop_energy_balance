@@ -14,11 +14,13 @@ class Solver:
 
         self.components = self.canopy.extract_all_components()
 
+        self.iterations_number = 0
         self.init_state_variables()
 
     def run(self):
         is_acceptable_error = False
         while not is_acceptable_error:
+            self.iterations_number += 1
             self.update_state_variables()
             error = self.calc_error()
             self.update_temperature()
