@@ -8,11 +8,11 @@
     "6": 1.92,
     "7": 3.22
   },
-  "incident_photosynthetically_active_radition": {
+  "incident_photosynthetically_active_radiation": {
     "direct": 192,
     "diffuse": 35.27
   },
-  "absorbed_photosynthetically_active_radition": {
+  "absorbed_photosynthetically_active_radiation": {
     "7": {
       "sunlit": 157.47,
       "shaded": 23.68
