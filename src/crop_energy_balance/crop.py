@@ -231,15 +231,15 @@ class LumpedLeafComponent(LeafComponent):
             global_extinction_coefficient=params.simulation.global_extinction_coefficient,
             maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
             residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
-            shape_parameter=params.simulation.absorbed_par_50)
-        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
+            shape_parameter=params.simulation.absorbed_par_50,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(
             wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -277,8 +277,9 @@ class SunlitShadedLeafComponent(LeafComponent):
             maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
             residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
             shape_parameter=params.simulation.absorbed_par_50,
-            sublayers_number=params.simulation.sublayers_number)
-        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
+            sublayers_number=params.simulation.sublayers_number,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_heat(
             leaves_category=self.leaves_category,
             wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -286,8 +287,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
