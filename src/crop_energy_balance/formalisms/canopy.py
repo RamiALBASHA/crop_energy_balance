@@ -193,8 +193,8 @@ def calc_penman_monteith_evaporative_energy(canopy_lumped_aerodynamic_resistance
             Eq. 12
 
     Notes:
-        All lists of args`composed_boundary_and_surface_conductances`, args:`net_radiation_fluxes` and
-            args`boundary_layer_resistances` must be equally ordered, that is, their values must refer to the same crop
+        All lists of :args:`composed_boundary_and_surface_conductances`, :args:`net_radiation_fluxes` and
+            :args:`boundary_layer_resistances` must be equally ordered, that is, their values must refer to the same crop
             components in the same order. Violating this condition will lead serious to simulation errors.
     """
     sum_p = 0.0
