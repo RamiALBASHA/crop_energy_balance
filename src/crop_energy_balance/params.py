@@ -152,7 +152,8 @@ class Simulation:
         """
 
         self.stomatal_density_factor = data['stomatal_density_factor']
-        """ [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2"""
+        """[-] 1 for amphistomatal leaves (stomata on both sides of the blade) or 2 for hypostomatal leaves
+        (stomata on one side of the blade)."""
 
         self.leaf_scattering_coefficient = data['leaf_scattering_coefficient']
         """[-] leaf scattering coefficient"""
