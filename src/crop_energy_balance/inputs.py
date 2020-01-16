@@ -61,13 +61,22 @@ class Inputs:
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
 
-        self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radiation']
-        """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per crop component
+        self.incident_irradiance = self._inputs['incident_photosynthetically_active_radiation']
+        """[W_{PAR} m-2ground] dictionary of incident photosynthetically active radiation.
 
         Notes:
-            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'
+            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'.
             For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
-                'sunlit' and 'shaded'
+                'sunlit' and 'shaded'.
+        """
+
+        self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radiation']
+        """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per crop component.
+
+        Notes:
+            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'.
+            For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
+                'sunlit' and 'shaded'.
             The uppermost component must have the highest number while the lowermost component, i.e. soil, has the
                 lowest number which must be equal to -1.
         """
@@ -89,13 +98,6 @@ class LumpedInputs(Inputs):
 class SunlitShadedInputs(Inputs):
     def __init__(self, inputs_path: Path):
         Inputs.__init__(self, inputs_path)
-
-        self.incident_par = self._inputs['incident_photosynthetically_active_radiation']
-        """[W_{PAR} m-2ground] dictionary of incident photosynthetically active radiation.
-
-        Notes:
-            This input must be a dictionary having two keys, respectively 'sunlit' and 'shaded'
-        """
 
         self.solar_inclination = self._inputs['solar_inclination']
         """(Rad) the angle between solar beam and the horizon.

@@ -54,7 +54,7 @@ def calc_leaf_layer_boundary_resistance_to_heat(wind_speed_at_canopy_height: flo
     return 1.0 / calc_leaf_layer_boundary_conductance_to_vapor(**locals())
 
 
-def calc_leaf_layer_surface_conductance_to_vapor(absorbed_irradiance: float,
+def calc_leaf_layer_surface_conductance_to_vapor(incident_irradiance: float,
                                                  upper_cumulative_leaf_area_index: float,
                                                  lower_cumulative_leaf_area_index: float,
                                                  stomatal_sensibility_to_water_status: float,
@@ -65,7 +65,7 @@ def calc_leaf_layer_surface_conductance_to_vapor(absorbed_irradiance: float,
     """Calculates the bulk surface conductance of a leaf layer for both sides of leaves blade.
 
     Args:
-        absorbed_irradiance: [W m-2ground] absorbed photosynthetically active radiation
+        incident_irradiance: [W m-2ground] incident photosynthetically active radiation above the canopy
         upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
         lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index below the considered layer
         stomatal_sensibility_to_water_status: [-] stomatal closure fraction due to water stress
@@ -80,16 +80,16 @@ def calc_leaf_layer_surface_conductance_to_vapor(absorbed_irradiance: float,
         [m h-1] bulk surface conductance of the leaf layer for both sides of leaves blade
     """
     scaling_factor = 1.0 / global_extinction_coefficient * log(
-        (global_extinction_coefficient * absorbed_irradiance *
+        (global_extinction_coefficient * incident_irradiance *
          exp(-global_extinction_coefficient * upper_cumulative_leaf_area_index) + shape_parameter) /
-        (global_extinction_coefficient * absorbed_irradiance *
+        (global_extinction_coefficient * incident_irradiance *
          exp(-global_extinction_coefficient * lower_cumulative_leaf_area_index) + shape_parameter))
 
     return residual_stomatal_conductance * (
             1 - scaling_factor) + maximum_stomatal_conductance * stomatal_sensibility_to_water_status * scaling_factor
 
 
-def calc_leaf_layer_surface_resistance_to_vapor(absorbed_irradiance: float,
+def calc_leaf_layer_surface_resistance_to_vapor(incident_irradiance: float,
                                                 upper_cumulative_leaf_area_index: float,
                                                 lower_cumulative_leaf_area_index: float,
                                                 stomatal_sensibility_to_water_status: float,
@@ -101,7 +101,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(absorbed_irradiance: float,
     """Calculates the bulk surface conductance of a leaf layer.
 
     Args:
-        absorbed_irradiance: [W m-2ground] absorbed photosynthetically active radiation
+        incident_irradiance: [W m-2ground] incident photosynthetically active radiation above the canopy
         upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
         lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index below the considered layer
         stomatal_sensibility_to_water_status: [-] stomatal closure fraction due to water stress

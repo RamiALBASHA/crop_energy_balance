@@ -8,6 +8,9 @@
     "6": 1.92,
     "7": 3.22
   },
+  "incident_photosynthetically_active_radiation": {
+    "lumped": 227.37
+  },
   "absorbed_photosynthetically_active_radiation": {
     "7": {
       "lumped": 173.83

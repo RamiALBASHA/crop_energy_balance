@@ -11,6 +11,7 @@ constants = Constants()
 class CanopyStateVariables:
     def __init__(self,
                  inputs: LumpedInputs or SunlitShadedInputs):
+        self.incident_irradiance= inputs.incident_irradiance
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
             utils.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
@@ -224,7 +225,7 @@ class LumpedLeafComponent(LeafComponent):
             inputs.vapor_pressure_deficit,
             params.simulation.vapor_pressure_deficit_coefficient)
         self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            absorbed_irradiance=self.absorbed_irradiance,
+            incident_irradiance=canopy_state_variables.incident_irradiance['lumped'],
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             stomatal_sensibility_to_water_status=self.stomatal_sensibility,
@@ -263,8 +264,8 @@ class SunlitShadedLeafComponent(LeafComponent):
             params.simulation.vapor_pressure_deficit_coefficient)
         self.surface_resistance = sunlit_shaded_leaves.calc_leaf_layer_surface_resistance_to_vapor(
             leaves_category=self.leaves_category,
-            incident_direct_irradiance=inputs.incident_par['direct'],
-            incident_diffuse_irradiance=inputs.incident_par['diffuse'],
+            incident_direct_irradiance=inputs.incident_irradiance['direct'],
+            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             stomatal_sensibility_to_water_status=self.stomatal_sensibility,
