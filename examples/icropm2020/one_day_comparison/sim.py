@@ -1,6 +1,10 @@
 from math import radians
+from json import load
 
 from crop_irradiance.uniform_crops import inputs, params, shoot
+
+with open('inputs.json', mode='r') as f:
+    json_inputs = load(f)
 
 hourly_direct_par = [0, 0, 0, 0, 0, 0, 0, 18.428820397314112, 86.779379638514726, 213.23527694182002,
                      332.53550250736947, 379.40012173450828, 359.77089500962774, 277.64770928541054,
@@ -40,6 +44,49 @@ def get_simulated_irradiance(leaves_category: str, hour: int):
     absorbed_irradiance = {index: layer.absorbed_irradiance for index, layer in canopy.items()}
     soil_irradiance = (hourly_direct_par[hour] + hourly_diffuse_par[hour]) - (
         sum([sum(v.absorbed_irradiance.values()) for v in canopy.values()]))
-    absorbed_irradiance.update({-1: soil_irradiance})
+    absorbed_irradiance.update({-1: {'lumped': soil_irradiance}})
 
     return absorbed_irradiance
+
+
+def set_energy_balance_inputs(canopy_category: str,
+                              leaves_category: str,
+                              hour: int,
+                              absorbed_irradiance: list) -> dict:
+    simu_inputs = json_inputs.copy()
+    if canopy_category == 'bigleaf':
+        canopy_layers = {0: sum(leaf_layers.values())}
+    else:
+        canopy_layers = leaf_layers.copy()
+
+    if leaves_category == 'lumped':
+        incident_photosynthetically_active_radiation = {
+            'lumped': hourly_direct_par[hour] + hourly_diffuse_par[hour]}
+        solar_inclination = None
+    else:
+        incident_photosynthetically_active_radiation = {
+            'direct': hourly_direct_par[hour],
+            'diffuse': hourly_diffuse_par[hour]}
+        solar_inclination = hourly_solar_angle[hour]
+
+    simu_inputs.update(
+        {"solar_inclination": solar_inclination,
+         "leaf_layers": canopy_layers,
+         "incident_photosynthetically_active_radiation": incident_photosynthetically_active_radiation,
+         "absorbed_photosynthetically_active_radiation": absorbed_irradiance})
+
+    return simu_inputs
+
+
+abs_lumped_ls = []
+abs_sunshade_ls = []
+for hour in range(24):
+    abs_lumped = get_simulated_irradiance(leaves_category='lumped', hour=hour)
+    abs_sunshade = get_simulated_irradiance(leaves_category='sunlit-shaded', hour=hour)
+    abs_lumped_ls.append(abs_lumped)
+    abs_sunshade_ls.append(abs_sunshade)
+
+    set_energy_balance_inputs(canopy_category='bigleaf',
+                              leaves_category='lumped',
+                              hour=0,
+                              absorbed_irradiance=abs_lumped[0])
