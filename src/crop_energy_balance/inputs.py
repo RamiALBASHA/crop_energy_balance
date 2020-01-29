@@ -9,9 +9,12 @@ constants = params.Constants()
 
 
 class Inputs:
-    def __init__(self, inputs_path: Path):
-        with open(str(inputs_path), mode='r') as f:
-            inputs = load(f, encoding='utf-8')
+    def __init__(self,
+                 inputs: dict = None,
+                 inputs_path: Path = None):
+        if not inputs:
+            with open(str(inputs_path), mode='r') as f:
+                inputs = load(f, encoding='utf-8')
 
         self._inputs = self._fmt_inputs(inputs)
 
@@ -91,13 +94,13 @@ class Inputs:
 
 
 class LumpedInputs(Inputs):
-    def __init__(self, inputs_path: Path):
-        Inputs.__init__(self, inputs_path)
+    def __init__(self, inputs: dict, inputs_path: Path = None):
+        Inputs.__init__(self, inputs, inputs_path)
 
 
 class SunlitShadedInputs(Inputs):
-    def __init__(self, inputs_path: Path):
-        Inputs.__init__(self, inputs_path)
+    def __init__(self, inputs: dict, inputs_path: Path = None):
+        Inputs.__init__(self, inputs, inputs_path)
 
         self.solar_inclination = self._inputs['solar_inclination']
         """(Rad) the angle between solar beam and the horizon.
