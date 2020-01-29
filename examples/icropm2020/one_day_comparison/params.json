@@ -1,0 +1,22 @@
+{
+  "vpd_coeff": 7,
+  "soil_aerodynamic_resistance_shape_parameter": 2.5,
+  "soil_roughness_length_for_momentum": 0.01,
+  "leaf_characteristic_length": 0.01,
+  "leaf_boundary_layer_shape_parameter": 0.01,
+  "wind_speed_extinction_coef": 0.5,
+  "maximum_stomatal_conductance": 39.6,
+  "residual_stomatal_conductance": 4.0,
+  "global_extinction_coefficient": 0.45,
+  "diffuse_extinction_coef": 0.64,
+  "leaf_scattering_coefficient": 0.15,
+  "leaf_emissivity": 0.96,
+  "soil_emissivity": 0.93,
+  "absorbed_par_50": 105,
+  "soil_resistance_to_vapor_shape_parameter_1": 8.206,
+  "soil_resistance_to_vapor_shape_parameter_2": 4.255,
+  "step_fraction": 0.5,
+  "acceptable_temperature_error": 0.02,
+  "maximum_iteration_number": 50,
+  "stomatal_density_factor": 1
+}
