@@ -329,17 +329,17 @@ class Canopy(dict):
         self.leaves_category = leaves_category
         if inputs_path:
             if self.leaves_category == 'lumped':
-                self.inputs = LumpedInputs(inputs_path)
+                self.inputs = LumpedInputs(inputs_path=inputs_path)
             else:
-                self.inputs = SunlitShadedInputs(inputs_path)
+                self.inputs = SunlitShadedInputs(inputs_path=inputs_path)
         else:
             self.inputs = inputs
 
         if params_path:
             if self.leaves_category == 'lumped':
-                self.params = LumpedParams(params_path)
+                self.params = LumpedParams(params_path=params_path)
             else:
-                self.params = SunlitShadedParams(params_path)
+                self.params = SunlitShadedParams(params_path=params_path)
         else:
             self.params = params
 
