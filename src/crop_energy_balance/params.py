@@ -249,12 +249,12 @@ class NumericalResolution:
 
 
 class LumpedParams(Params):
-    def __init__(self, params: dict, params_path: Path = None):
+    def __init__(self, params: dict = None, params_path: Path = None):
         Params.__init__(self, params, params_path)
         self.simulation = LumpedSimulation(self._user_params)
 
 
 class SunlitShadedParams(Params):
-    def __init__(self, params: dict, params_path: Path = None):
+    def __init__(self, params: dict = None, params_path: Path = None):
         Params.__init__(self, params, params_path)
         self.simulation = SunlitShadedSimulation(self._user_params)

@@ -94,12 +94,12 @@ class Inputs:
 
 
 class LumpedInputs(Inputs):
-    def __init__(self, inputs: dict, inputs_path: Path = None):
+    def __init__(self, inputs: dict = None, inputs_path: Path = None):
         Inputs.__init__(self, inputs, inputs_path)
 
 
 class SunlitShadedInputs(Inputs):
-    def __init__(self, inputs: dict, inputs_path: Path = None):
+    def __init__(self, inputs: dict = None, inputs_path: Path = None):
         Inputs.__init__(self, inputs, inputs_path)
 
         self.solar_inclination = self._inputs['solar_inclination']
