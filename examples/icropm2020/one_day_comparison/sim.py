@@ -165,8 +165,8 @@ def get_weather_data(file_name: str) -> pd.DataFrame:
     return raw_data
 
 
-def plot_irradiance_comparison(incident_irradiance: pd.Series,
-                               all_cases_absorbed_irradiance: dict):
+def plot_irradiance_dynamic_comparison(incident_irradiance: pd.Series,
+                                       all_cases_absorbed_irradiance: dict):
     cases = all_cases_absorbed_irradiance.keys()
 
     fig, axes = plt.subplots(ncols=len(cases), sharex='all', sharey='all', figsize=(15, 5))
@@ -181,20 +181,19 @@ def plot_irradiance_comparison(incident_irradiance: pd.Series,
         ax.legend()
         ax.set(xlabel='hour')
         if i == 0:
-            ax.set_ylabel('$\mathregular{W_{PAR} \cdot m^{-2}_{ground}}$')
+            ax.set_ylabel(r'$\mathregular{W_{PAR} \cdot m^{-2}_{ground}}$')
 
     fig.tight_layout()
     fig.savefig('irradiance.png')
     plt.close()
 
 
-def plot_temperature_comparison(temperature_air: pd.Series,
-                                all_cases_temperature: dict):
+def plot_temperature_dynamic_comparison(temperature_air: pd.Series,
+                                        all_cases_temperature: dict):
     cases = all_cases_temperature.keys()
 
     fig, axes = plt.subplots(ncols=len(cases), sharex='all', sharey='all', figsize=(15, 5))
     for i, case in enumerate(cases):
-        print(case)
         plot_temperature_dynamics(
             ax=axes[i],
             temperature_air=temperature_air,
@@ -205,7 +204,7 @@ def plot_temperature_comparison(temperature_air: pd.Series,
         ax.legend()
         ax.set(xlabel='hour')
         if i == 0:
-            ax.set_ylabel('$\mathregular{temperature\/[^\circ C]}$')
+            ax.set_ylabel(r'$\mathregular{temperature\/[^\circ C]}$')
 
     fig.tight_layout()
     fig.savefig('temperature.png')
@@ -249,7 +248,7 @@ def plot_irradiance_dynamics(ax: plt.axis,
     component_indexes = summary_data.keys()
 
     ax.set_title(simulation_case.replace('_', ' '))
-    ax.plot(range(24), incident_par_irradiance, label='incident', color='k', linewidth=2)
+    ax.plot(range(24), incident_par_irradiance, label='incident', color='k', linestyle='--', linewidth=2)
     # ax.plot(range(24), abs_irradiance[-1], label=f'absorbed soil', color='brown', linewidth=2)
 
     if leaf_class == 'lumped':
@@ -276,7 +275,7 @@ def plot_temperature_dynamics(ax: plt.axis,
     component_indexes = summary_data.keys()
 
     ax.set_title(simulation_case.replace('_', ' '))
-    ax.plot(range(24), temperature_air, label='air', color='k', linewidth=2)
+    ax.plot(range(24), temperature_air, label='air', color='k', linestyle='--', linewidth=2)
 
     if leaf_class == 'lumped':
         for component_index in component_indexes:
@@ -296,22 +295,73 @@ def plot_temperature_dynamics(ax: plt.axis,
     pass
 
 
+def plot_temperature_one_hour_comparison(hour: int,
+                                         temperature_air: pd.Series,
+                                         all_cases_temperature: dict):
+    cases = all_cases_temperature.keys()
+
+    fig, axes = plt.subplots(ncols=len(cases), sharex='all', sharey='all', figsize=(15, 5))
+    for i, case in enumerate(cases):
+        plot_temperature_at_one_hour(
+            ax=axes[i],
+            hour=hour,
+            temperature_air=temperature_air,
+            simulation_case=case,
+            all_cases_data=all_cases_temperature)
+
+    for i, ax in enumerate(axes):
+        ax.legend()
+        ax.set(xlabel='hour')
+        if i == 0:
+            ax.set_ylabel(r'$\mathregular{temperature\/[^\circ C]}$')
+
+    fig.tight_layout()
+    fig.savefig('temperature_at_one_hour.png')
+    plt.close()
+
+
+def plot_temperature_at_one_hour(ax: plt.axis,
+                                 hour: int,
+                                 temperature_air: pd.Series,
+                                 simulation_case: str,
+                                 all_cases_data: dict):
+    summary_data = get_summary_data(simulation_case, all_cases_data)
+    _, leaf_class = simulation_case.split('_')
+    component_indexes = summary_data.keys()
+
+    ax.set_title(simulation_case.replace('_', ' '))
+    ax.axvline(temperature_air[hour], label='air', color='k', linestyle='--', linewidth=2)
+
+    if leaf_class == 'lumped':
+        y, x = zip(*[(i, summary_data[i][hour]) for i in component_indexes if i != -1])
+        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x], y, 'o-', label='lumped')
+    else:
+        y, x_sun, x_sh = zip(
+            *[(i, summary_data[i]['sunlit'][hour], summary_data[i]['shaded'][hour]) for i in component_indexes if
+              i != -1])
+
+        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x_sh], y, 'o-', label='shaded')
+        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x_sun], y, 'o-', label='sunlit')
+
+    pass
+
+
 def plot_weather(actual_wather: pd.DataFrame):
     fig, ((ax_irradiance, ax_temperature), (ax_wind_speed, ax_vpd)) = plt.subplots(ncols=2, nrows=2, sharex='all')
 
     day_hours = range(24)
     ax_irradiance.plot(
         day_hours, actual_wather.loc[:, ['incident_direct_irradiance', 'incident_diffuse_irradiance']].sum(axis=1))
-    ax_irradiance.set_ylabel('$\mathregular{irradiance\/[W_{PAR} \cdot m^{-2}_{ground}]}$')
+    ax_irradiance.set_ylabel(r'$\mathregular{irradiance\/[W_{PAR} \cdot m^{-2}_{ground}]}$')
 
     ax_temperature.plot(day_hours, actual_wather.loc[:, 'air_temperature'])
-    ax_temperature.set_ylabel('$\mathregular{temperature\/[^\circ C]}$')
+    ax_temperature.set_ylabel(r'$\mathregular{temperature\/[^\circ C]}$')
 
     ax_wind_speed.plot(day_hours, actual_wather.loc[:, 'wind_speed'] / 3600.)
-    ax_wind_speed.set_ylabel('$\mathregular{wind\/speed\/[m \cdot s^{-1}]}$')
+    ax_wind_speed.set_ylabel(r'$\mathregular{wind\/speed\/[m \cdot s^{-1}]}$')
 
     ax_vpd.plot(day_hours, actual_wather.loc[:, 'vapor_pressure_deficit'])
-    ax_vpd.set_ylabel('VPD\/[kPa]')
+    ax_vpd.set_ylabel('VPD [kPa]')
 
     fig.tight_layout()
     fig.savefig('weather.png')
@@ -362,11 +412,16 @@ if __name__ == '__main__':
 
     plot_weather(weather_data)
 
-    plot_irradiance_comparison(
+    plot_irradiance_dynamic_comparison(
         incident_irradiance=(weather_data.loc[:, ['incident_direct_irradiance', 'incident_diffuse_irradiance']]).sum(
             axis=1),
         all_cases_absorbed_irradiance=irradiance)
 
-    plot_temperature_comparison(
+    plot_temperature_dynamic_comparison(
+        temperature_air=weather_data.loc[:, 'air_temperature'],
+        all_cases_temperature=temperature)
+
+    plot_temperature_one_hour_comparison(
+        hour=12,
         temperature_air=weather_data.loc[:, 'air_temperature'],
         all_cases_temperature=temperature)
