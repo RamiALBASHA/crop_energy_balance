@@ -1,9 +1,10 @@
 from pathlib import Path
 
-from crop_energy_balance import utils
 from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, sunlit_shaded_leaves, component, soil
 from crop_energy_balance.inputs import LumpedInputs, SunlitShadedInputs
 from crop_energy_balance.params import LumpedParams, SunlitShadedParams, Constants
+
+from crop_energy_balance import utils
 
 constants = Constants()
 
@@ -11,7 +12,7 @@ constants = Constants()
 class CanopyStateVariables:
     def __init__(self,
                  inputs: LumpedInputs or SunlitShadedInputs):
-        self.incident_irradiance= inputs.incident_irradiance
+        self.incident_irradiance = inputs.incident_irradiance
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
             utils.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
@@ -90,6 +91,8 @@ class Component:
     def __init__(self,
                  index: int):
         self.index = index
+
+        self.surface_fraction = 1.0
 
         self.absorbed_irradiance = None
         self.upper_cumulative_leaf_area_index = None
@@ -258,6 +261,11 @@ class SunlitShadedLeafComponent(LeafComponent):
                              inputs: SunlitShadedInputs,
                              params: SunlitShadedParams,
                              canopy_state_variables: CanopyStateVariables):
+        self.surface_fraction = sunlit_shaded_leaves.calc_leaf_fraction_per_leaf_layer(
+            leaves_category=self.leaves_category,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient)
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index][self.leaves_category]
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
             inputs.vapor_pressure_deficit,

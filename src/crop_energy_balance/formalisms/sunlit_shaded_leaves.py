@@ -3,6 +3,7 @@ from math import exp
 from crop_energy_balance.formalisms import lumped_leaves, leaf
 from crop_energy_balance.formalisms.irradiance import calc_leaf_fraction, calc_absorbed_irradiance
 from crop_energy_balance.utils import discretize_linearly
+from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_sunlit_fraction_per_leaf_layer
 
 
 def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
@@ -201,3 +202,28 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
     surface_conductance = max(1.e-6, calc_leaf_layer_surface_conductance_to_vapor(**args))
 
     return stomatal_density_factor * (1.0 / surface_conductance)
+
+
+def calc_leaf_fraction_per_leaf_layer(leaves_category: str,
+                                      upper_cumulative_leaf_area_index: float,
+                                      lower_cumulative_leaf_area_index: float,
+                                      direct_black_extinction_coefficient: float) -> float:
+    """Calculates the fraction of sunlit or shaded leaves at a given depth inside the canopy.
+
+    Args:
+        leaves_category: one of ('sunlit', 'shaded')
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        direct_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of direct (beam) irradiance
+            through a canopy of black leaves
+
+    Returns:
+        [-] fraction of sunlit or shaded leaves of the considered layer
+    """
+    leaf_layer_thickness = lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index
+    sunlit_fraction_per_leaf_layer = calc_sunlit_fraction_per_leaf_layer(
+        upper_cumulative_leaf_area_index, leaf_layer_thickness, direct_black_extinction_coefficient)
+    if leaves_category == 'sunlit':
+        return sunlit_fraction_per_leaf_layer
+    else:
+        return 1 - sunlit_fraction_per_leaf_layer
