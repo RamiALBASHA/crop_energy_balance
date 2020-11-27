@@ -1,5 +1,6 @@
 from json import load
 from math import radians
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -159,13 +160,14 @@ def plot_irradiance_dynamic_comparison(incident_irradiance: pd.Series,
             all_cases_data=all_cases_absorbed_irradiance)
 
     for i, ax in enumerate(axes):
+        ax.grid()
         ax.legend()
         ax.set(xlabel='hour')
         if i == 0:
             ax.set_ylabel(r'$\mathregular{W_{PAR} \cdot m^{-2}_{ground}}$')
 
     fig.tight_layout()
-    fig.savefig('irradiance.png')
+    fig.savefig('figs/irradiance.png')
     plt.close()
 
 
@@ -188,7 +190,7 @@ def plot_temperature_dynamic_comparison(temperature_air: pd.Series,
             ax.set_ylabel(r'$\mathregular{temperature\/[^\circ C]}$')
 
     fig.tight_layout()
-    fig.savefig('temperature.png')
+    fig.savefig('figs/temperature.png')
     plt.close()
 
 
@@ -218,6 +220,18 @@ def get_summary_data(simulation_case: str,
                 else:
                     summary_data[component_index].append(data_dynamic[hour][component_index]['lumped'])
     return summary_data
+
+
+def plot_leaf_profile(vegetative_layers: {int, dict}):
+    fig, axs = plt.subplots(ncols=4, figsize=(15, 5))
+    for i, (k, v) in enumerate(vegetative_layers.items()):
+        layer_indices = list(v.keys())
+        axs[i].plot(list(v.values()), layer_indices, 'o-')
+        axs[i].set(title=k, xlabel=r'$\mathregular{m^2_{leaf} \cdot m^{-2}_{ground}}$', ylabel='layer index [-]',
+                   yticks=layer_indices)
+    fig.tight_layout()
+    fig.savefig('figs/layers.png')
+    plt.close()
 
 
 def plot_irradiance_dynamics(ax: plt.axis,
@@ -298,7 +312,7 @@ def plot_temperature_one_hour_comparison(hour: int,
             incident_direct=hourly_weather.loc[:, 'incident_direct_irradiance'],
             incident_diffuse=hourly_weather.loc[:, 'incident_diffuse_irradiance'],
             simulation_case=case,
-            all_cases_data=all_cases_temperature)
+            all_cases_data=all_cases_absorbed_irradiance)
 
     for i, ax in enumerate(axes.flatten()):
         ax.legend()
@@ -307,7 +321,7 @@ def plot_temperature_one_hour_comparison(hour: int,
         ax.set_ylabel('Component index [-]')
 
     fig.tight_layout()
-    fig.savefig('temperature_at_one_hour.png')
+    fig.savefig('figs/temperature_at_one_hour.png')
     plt.close()
 
 
@@ -330,10 +344,10 @@ def plot_temperature_at_one_hour(ax: plt.axis,
             *[(i, summary_data[i]['sunlit'][hour], summary_data[i]['shaded'][hour]) for i in component_indexes if
               i != -1])
 
-        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x_sh], y, 'o-', label='shaded')
-        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x_sun], y, 'o-', label='sunlit')
+        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x_sun], y, 'o-', color='y', label='sunlit')
+        ax.plot([(v - 273.15 if v > 273.15 else None) for v in x_sh], y, 'o-', color='brown', label='shaded')
 
-    ax.set_xlabel('hour')
+    ax.set_xlabel(r'$\mathregular{[^\circ C]}$')
     return
 
 
@@ -359,18 +373,20 @@ def plot_irradiance_at_one_hour(ax: plt.axis,
             *[(i, summary_data[i]['sunlit'][hour], summary_data[i]['shaded'][hour]) for i in component_indexes if
               i != -1])
 
-        ax.plot(x_sun, y, 'o-', label='sunlit')
-        ax.plot(x_sh, y, 'o-', label='shaded')
+        ax.plot(x_sun, y, 'o-', color='y', label='sunlit')
+        ax.plot(x_sh, y, 'o-', color='brown', label='shaded')
 
     ax.set_xlabel(r'$\mathregular{[W \cdot m^{-2}_{ground}]}$')
     return
 
 
 if __name__ == '__main__':
+    (Path(__file__).parent / 'figs').mkdir(exist_ok=True)
     weather_data = get_weather_data()
 
     irradiance = {}
     temperature = {}
+    layers = {}
 
     for canopy_type, leaves_type in (('bigleaf', 'lumped'),
                                      ('bigleaf', 'sunlit-shaded'),
@@ -378,6 +394,7 @@ if __name__ == '__main__':
                                      ('layered', 'sunlit-shaded')):
 
         canopy_layers = {0: sum(leaf_layers.values())} if canopy_type == 'bigleaf' else leaf_layers
+        layers.update({f'{canopy_type} {leaves_type}': canopy_layers})
         hourly_absorbed_irradiance = []
         hourly_temperature = []
 
@@ -407,6 +424,8 @@ if __name__ == '__main__':
 
         irradiance[f'{canopy_type}_{leaves_type}'] = hourly_absorbed_irradiance
         temperature[f'{canopy_type}_{leaves_type}'] = hourly_temperature
+
+    plot_leaf_profile(vegetative_layers=layers)
 
     plot_irradiance_dynamic_comparison(
         incident_irradiance=(weather_data.loc[:, ['incident_direct_irradiance', 'incident_diffuse_irradiance']]).sum(
