@@ -34,8 +34,8 @@ def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
 if __name__ == '__main__':
     root_pth = Path(__file__).parent
 
-    inputs = SunlitShadedInputs(root_pth / 'inputs_well_watered.json')
-    params = SunlitShadedParams(root_pth / 'params.json')
+    inputs = SunlitShadedInputs(inputs_path=root_pth / 'inputs_well_watered.json')
+    params = SunlitShadedParams(params_path=root_pth / 'params.json')
     params.update(inputs=inputs)
 
     canopy = Canopy(leaves_category='sunlit-shaded', inputs=inputs, params=params)

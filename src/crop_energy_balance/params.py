@@ -8,8 +8,14 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_
 
 
 class Params:
-    def __init__(self, params_path: Path):
-        self._user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
+    def __init__(self,
+                 params: dict,
+                 params_path: Path):
+        if params:
+            self._user_params = params
+        else:
+            self._user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
+
         self.numerical_resolution = NumericalResolution(self._user_params)
 
         self.simulation = None
@@ -152,7 +158,8 @@ class Simulation:
         """
 
         self.stomatal_density_factor = data['stomatal_density_factor']
-        """ [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2"""
+        """[-] 1 for amphistomatal leaves (stomata on both sides of the blade) or 2 for hypostomatal leaves
+        (stomata on one side of the blade)."""
 
         self.leaf_scattering_coefficient = data['leaf_scattering_coefficient']
         """[-] leaf scattering coefficient"""
@@ -242,12 +249,12 @@ class NumericalResolution:
 
 
 class LumpedParams(Params):
-    def __init__(self, params_path: Path):
-        Params.__init__(self, params_path)
+    def __init__(self, params: dict = None, params_path: Path = None):
+        Params.__init__(self, params, params_path)
         self.simulation = LumpedSimulation(self._user_params)
 
 
 class SunlitShadedParams(Params):
-    def __init__(self, params_path: Path):
-        Params.__init__(self, params_path)
+    def __init__(self, params: dict = None, params_path: Path = None):
+        Params.__init__(self, params, params_path)
         self.simulation = SunlitShadedSimulation(self._user_params)

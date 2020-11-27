@@ -1,9 +1,10 @@
 from pathlib import Path
 
-from crop_energy_balance import utils
 from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, sunlit_shaded_leaves, component, soil
 from crop_energy_balance.inputs import LumpedInputs, SunlitShadedInputs
 from crop_energy_balance.params import LumpedParams, SunlitShadedParams, Constants
+
+from crop_energy_balance import utils
 
 constants = Constants()
 
@@ -11,6 +12,7 @@ constants = Constants()
 class CanopyStateVariables:
     def __init__(self,
                  inputs: LumpedInputs or SunlitShadedInputs):
+        self.incident_irradiance = inputs.incident_irradiance
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
             utils.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
@@ -89,6 +91,8 @@ class Component:
     def __init__(self,
                  index: int):
         self.index = index
+
+        self.surface_fraction = 1.0
 
         self.absorbed_irradiance = None
         self.upper_cumulative_leaf_area_index = None
@@ -224,22 +228,22 @@ class LumpedLeafComponent(LeafComponent):
             inputs.vapor_pressure_deficit,
             params.simulation.vapor_pressure_deficit_coefficient)
         self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            absorbed_irradiance=self.absorbed_irradiance,
+            incident_irradiance=canopy_state_variables.incident_irradiance['lumped'],
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             stomatal_sensibility_to_water_status=self.stomatal_sensibility,
             global_extinction_coefficient=params.simulation.global_extinction_coefficient,
             maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
             residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
-            shape_parameter=params.simulation.absorbed_par_50)
-        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
+            shape_parameter=params.simulation.absorbed_par_50,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(
             wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -257,14 +261,19 @@ class SunlitShadedLeafComponent(LeafComponent):
                              inputs: SunlitShadedInputs,
                              params: SunlitShadedParams,
                              canopy_state_variables: CanopyStateVariables):
+        self.surface_fraction = sunlit_shaded_leaves.calc_leaf_fraction_per_leaf_layer(
+            leaves_category=self.leaves_category,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient)
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index][self.leaves_category]
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
             inputs.vapor_pressure_deficit,
             params.simulation.vapor_pressure_deficit_coefficient)
         self.surface_resistance = sunlit_shaded_leaves.calc_leaf_layer_surface_resistance_to_vapor(
             leaves_category=self.leaves_category,
-            incident_direct_irradiance=inputs.incident_par['direct'],
-            incident_diffuse_irradiance=inputs.incident_par['diffuse'],
+            incident_direct_irradiance=inputs.incident_irradiance['direct'],
+            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             stomatal_sensibility_to_water_status=self.stomatal_sensibility,
@@ -277,8 +286,9 @@ class SunlitShadedLeafComponent(LeafComponent):
             maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
             residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
             shape_parameter=params.simulation.absorbed_par_50,
-            sublayers_number=params.simulation.sublayers_number)
-        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_vapor(
+            sublayers_number=params.simulation.sublayers_number,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_heat(
             leaves_category=self.leaves_category,
             wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -286,8 +296,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -328,17 +337,17 @@ class Canopy(dict):
         self.leaves_category = leaves_category
         if inputs_path:
             if self.leaves_category == 'lumped':
-                self.inputs = LumpedInputs(inputs_path)
+                self.inputs = LumpedInputs(inputs_path=inputs_path)
             else:
-                self.inputs = SunlitShadedInputs(inputs_path)
+                self.inputs = SunlitShadedInputs(inputs_path=inputs_path)
         else:
             self.inputs = inputs
 
         if params_path:
             if self.leaves_category == 'lumped':
-                self.params = LumpedParams(params_path)
+                self.params = LumpedParams(params_path=params_path)
             else:
-                self.params = SunlitShadedParams(params_path)
+                self.params = SunlitShadedParams(params_path=params_path)
         else:
             self.params = params
 

@@ -6,15 +6,16 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (
     calc_absorbed_scattered_irradiance_at_given_depth)
 
 
-def calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(incident_direct_irradiance: float,
-                                                                            incident_diffuse_irradiance: float,
-                                                                            cumulative_leaf_area_index: float,
-                                                                            leaf_scattering_coefficient: float,
-                                                                            canopy_reflectance_to_direct_irradiance: float,
-                                                                            canopy_reflectance_to_diffuse_irradiance: float,
-                                                                            direct_extinction_coefficient: float,
-                                                                            direct_black_extinction_coefficient: float,
-                                                                            diffuse_extinction_coefficient: float) -> float:
+def calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(
+        incident_direct_irradiance: float,
+        incident_diffuse_irradiance: float,
+        cumulative_leaf_area_index: float,
+        leaf_scattering_coefficient: float,
+        canopy_reflectance_to_direct_irradiance: float,
+        canopy_reflectance_to_diffuse_irradiance: float,
+        direct_extinction_coefficient: float,
+        direct_black_extinction_coefficient: float,
+        diffuse_extinction_coefficient: float) -> float:
     """Calculates the absorbed irradiance by sunlit leaves at a given depth, per unit leaf area (depth-independent).
 
     Args:
@@ -53,15 +54,16 @@ def calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(inci
     return absorbed_direct_irradiance + absorbed_diffuse_irradiance + absorbed_scattered_irradiance
 
 
-def calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(incident_direct_irradiance: float,
-                                                                            incident_diffuse_irradiance: float,
-                                                                            cumulative_leaf_area_index: float,
-                                                                            leaf_scattering_coefficient: float,
-                                                                            canopy_reflectance_to_direct_irradiance: float,
-                                                                            canopy_reflectance_to_diffuse_irradiance: float,
-                                                                            direct_extinction_coefficient: float,
-                                                                            direct_black_extinction_coefficient: float,
-                                                                            diffuse_extinction_coefficient: float) -> float:
+def calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(
+        incident_direct_irradiance: float,
+        incident_diffuse_irradiance: float,
+        cumulative_leaf_area_index: float,
+        leaf_scattering_coefficient: float,
+        canopy_reflectance_to_direct_irradiance: float,
+        canopy_reflectance_to_diffuse_irradiance: float,
+        direct_extinction_coefficient: float,
+        direct_black_extinction_coefficient: float,
+        diffuse_extinction_coefficient: float) -> float:
     """Calculates the absorbed irradiance by shaded leaves at a given depth, per unit leaf area (depth-independent).
 
     Args:

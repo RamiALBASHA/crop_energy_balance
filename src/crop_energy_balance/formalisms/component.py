@@ -10,8 +10,8 @@ def calc_composed_resistance(surface_resistance: float,
     """Calculates Lhomme's lumped boundary and surface resistance (Ri) for a given canopy component.
 
     Args:
-        surface_resistance: [h m-1] surface resistance of the component
-        boundary_layer_resistance: [h m-1] boundary layer resistance of the component
+        surface_resistance: [h m-1] surface resistance to water vapor transfer
+        boundary_layer_resistance: [h m-1] boundary layer resistance to heat transfer
         vapor_pressure_slope: [kPa K-1] the slope of vapor pressure curve at a given air temperature
         psychrometric_constant: [kPa K-1] the psychrometric constant
         stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
@@ -66,7 +66,7 @@ def calc_evaporative_energy(net_radiation: float,
 
     Args:
         net_radiation: [W m-2ground] net radiation flux density of the given component
-        boundary_layer_resistance: [h m-1] component boundary layer resistance to heat transfer
+        boundary_layer_resistance: [h m-1] boundary layer resistance to heat transfer
         lumped_boundary_and_surface_resistance: [h m-1] Lhomme's lumped boundary and surface resistance (Ri)
             for the given component
         canopy_lumped_aerodynamic_resistance: [h m-1] Lhomme's lumped aerodynamic resistance (R0)
@@ -102,7 +102,7 @@ def calc_temperature(canopy_temperature: float,
 
     Args:
         canopy_temperature: [K] air temperature at source height
-        boundary_layer_resistance: [h m-1] resistance to heat transfer at the given component
+        boundary_layer_resistance: [h m-1] boundary layer resistance to heat transfer
         component_net_radiation: [W m-2ground] canopy net radiation
         component_evaporative_energy: [W m-2ground] canopy evaporative energy
         air_density: [g m-3] density of dry air

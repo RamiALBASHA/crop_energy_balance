@@ -3,17 +3,18 @@ from math import exp
 from crop_energy_balance.formalisms import lumped_leaves, leaf
 from crop_energy_balance.formalisms.irradiance import calc_leaf_fraction, calc_absorbed_irradiance
 from crop_energy_balance.utils import discretize_linearly
+from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_sunlit_fraction_per_leaf_layer
 
 
-def calc_leaf_layer_boundary_conductance(leaves_category: str,
-                                         wind_speed_at_canopy_height: float,
-                                         upper_cumulative_leaf_area_index: float,
-                                         lower_cumulative_leaf_area_index: float,
-                                         direct_black_extinction_coefficient: float,
-                                         wind_speed_extinction_coefficient: float = 0.5,
-                                         characteristic_length: float = 0.01,
-                                         shape_parameter: float = 0.01) -> float:
-    """Calculates bulk layer boundary layer conductance (for both sides of leaves).
+def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
+                                                  wind_speed_at_canopy_height: float,
+                                                  upper_cumulative_leaf_area_index: float,
+                                                  lower_cumulative_leaf_area_index: float,
+                                                  direct_black_extinction_coefficient: float,
+                                                  wind_speed_extinction_coefficient: float = 0.5,
+                                                  characteristic_length: float = 0.01,
+                                                  shape_parameter: float = 0.01) -> float:
+    """Calculates bulk layer boundary layer conductance for both sides of leaves blade.
 
     Args:
         leaves_category: one of ('sunlit', 'shaded')
@@ -27,7 +28,7 @@ def calc_leaf_layer_boundary_conductance(leaves_category: str,
         shape_parameter: [m s-0.5] an empirical shape parameter
 
     Returns:
-        [m h-1] bulk layer boundary layer conductance (for both sides of leaves)
+        [m h-1] bulk layer boundary layer conductance to water vapor for both sides of leaves blade
     """
     leaf_boundary_conductance = leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
                                                                     characteristic_length,
@@ -37,12 +38,12 @@ def calc_leaf_layer_boundary_conductance(leaves_category: str,
             exp(-lumped_extinction_coefficient * upper_cumulative_leaf_area_index) -
             exp(-lumped_extinction_coefficient * lower_cumulative_leaf_area_index))
 
-    sunlit_layer_boundary_conductance = leaf_boundary_conductance * sunlit_layer_scaling_factor
+    sunlit_layer_boundary_conductance = leaf_boundary_conductance * max(1.e-6, sunlit_layer_scaling_factor)
 
     if leaves_category == 'sunlit':
         return sunlit_layer_boundary_conductance
     elif leaves_category == 'shaded':
-        lumped_layer_boundary_conductance = lumped_leaves.calc_leaf_layer_boundary_conductance(
+        lumped_layer_boundary_conductance = lumped_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
             wind_speed_at_canopy_height,
             upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index,
@@ -52,16 +53,15 @@ def calc_leaf_layer_boundary_conductance(leaves_category: str,
         return lumped_layer_boundary_conductance - sunlit_layer_boundary_conductance
 
 
-def calc_leaf_layer_boundary_resistance_to_vapor(leaves_category: str,
-                                                 wind_speed_at_canopy_height: float,
-                                                 upper_cumulative_leaf_area_index: float,
-                                                 lower_cumulative_leaf_area_index: float,
-                                                 direct_black_extinction_coefficient: float,
-                                                 wind_speed_extinction_coefficient: float,
-                                                 characteristic_length: float,
-                                                 shape_parameter: float,
-                                                 stomatal_density_factor: int) -> float:
-    """Calculates the bulk leaf layer resistance to water vapor transfer.
+def calc_leaf_layer_boundary_resistance_to_heat(leaves_category: str,
+                                                wind_speed_at_canopy_height: float,
+                                                upper_cumulative_leaf_area_index: float,
+                                                lower_cumulative_leaf_area_index: float,
+                                                direct_black_extinction_coefficient: float,
+                                                wind_speed_extinction_coefficient: float,
+                                                characteristic_length: float,
+                                                shape_parameter: float) -> float:
+    """Calculates the bulk leaf layer resistance to heat transfer.
 
     Args:
         leaves_category: one of ('sunlit', 'shaded')
@@ -73,15 +73,12 @@ def calc_leaf_layer_boundary_resistance_to_vapor(leaves_category: str,
         wind_speed_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of wind speed inside the canopy
         characteristic_length: [m] characteristic leaf length in the direction of the wind
         shape_parameter: [m s-0.5] an empirical shape parameter
-        stomatal_density_factor (int): [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
-        [h m-1] bulk leaf layer resistance to water vapor transfer
+        [h m-1] bulk leaf layer resistance to heat transfer
     """
-    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
-    boundary_conductance = calc_leaf_layer_boundary_conductance(**args)
 
-    return 1.0 / (boundary_conductance / stomatal_density_factor)
+    return 1.0 / calc_leaf_layer_boundary_conductance_to_vapor(**locals())
 
 
 def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
@@ -100,7 +97,7 @@ def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
                                                  residual_stomatal_conductance: float,
                                                  shape_parameter: float = 105,
                                                  sublayers_number: int = 5) -> float:
-    """Calculates the bulk surface conductance of a leaf layer.
+    """Calculates the bulk surface conductance of a leaf layer for both sides of leaves blade.
 
     Args:
         leaves_category: one of ('sunlit', 'shaded')
@@ -124,7 +121,7 @@ def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
             conductance equation
 
     Returns:
-        [m h-1] bulk surface conductance of the leaf layer
+        [m h-1] bulk surface conductance of the leaf layer for both sides of leaves blade
     """
     sublayer_thickness = (lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index) / sublayers_number
 
@@ -170,8 +167,9 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
                                                 diffuse_extinction_coefficient: float,
                                                 maximum_stomatal_conductance: float,
                                                 residual_stomatal_conductance: float,
-                                                shape_parameter: float = 105,
-                                                sublayers_number: int = 5) -> float:
+                                                shape_parameter: float,
+                                                sublayers_number: int,
+                                                stomatal_density_factor: int) -> float:
     """Calculates the bulk surface resistance of a leaf layer.
 
     Args:
@@ -194,21 +192,38 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
             to absorbed photosynthetically active radiation
         sublayers_number: number of sublayers that are used to performe numerical integral of the leaf-layer surface
             conductance equation
+        stomatal_density_factor (int): [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
         (float): [h m-1] bulk surface resistance of the leaf layer
     """
-    return 1.0 / max(1.e-6, calc_leaf_layer_surface_conductance_to_vapor(**locals()))
+
+    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
+    surface_conductance = max(1.e-6, calc_leaf_layer_surface_conductance_to_vapor(**args))
+
+    return stomatal_density_factor * (1.0 / surface_conductance)
 
 
-def calc_leaf_layer_boundary_resistance_to_heat(leaf_layer_boundary_conductance: float) -> float:
-    """Calculates the bulk leaf layer resistance to heat transfer.
+def calc_leaf_fraction_per_leaf_layer(leaves_category: str,
+                                      upper_cumulative_leaf_area_index: float,
+                                      lower_cumulative_leaf_area_index: float,
+                                      direct_black_extinction_coefficient: float) -> float:
+    """Calculates the fraction of sunlit or shaded leaves at a given depth inside the canopy.
 
     Args:
-        leaf_layer_boundary_conductance: [m h-1] Calculates bulk layer boundary layer conductance (for both blade sides)
+        leaves_category: one of ('sunlit', 'shaded')
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        direct_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of direct (beam) irradiance
+            through a canopy of black leaves
 
     Returns:
-        [h m-1] bulk leaf layer resistance to heat transfer
-
+        [-] fraction of sunlit or shaded leaves of the considered layer
     """
-    return 1.0 / max(1.e-6, leaf_layer_boundary_conductance)
+    leaf_layer_thickness = lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index
+    sunlit_fraction_per_leaf_layer = calc_sunlit_fraction_per_leaf_layer(
+        upper_cumulative_leaf_area_index, leaf_layer_thickness, direct_black_extinction_coefficient)
+    if leaves_category == 'sunlit':
+        return sunlit_fraction_per_leaf_layer
+    else:
+        return 1 - sunlit_fraction_per_leaf_layer

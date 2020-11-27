@@ -1,0 +1,14 @@
+{
+  "measurement_height": 2,
+  "canopy_height": 0.36,
+  "soil_saturation_ratio": 1.0,
+  "atmospheric_pressure": 101.3,
+  "leaf_layers": null,
+  "solar_inclination": null,
+  "wind_speed": null,
+  "vapor_pressure": null,
+  "vapor_pressure_deficit": null,
+  "air_temperature": null,
+  "incident_photosynthetically_active_radiation": null,
+  "absorbed_photosynthetically_active_radiation": null
+}

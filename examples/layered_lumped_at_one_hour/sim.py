@@ -29,8 +29,8 @@ def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
 if __name__ == '__main__':
     root_pth = Path(__file__).parent
 
-    inputs = LumpedInputs(root_pth / 'inputs_well_watered.json')
-    params = LumpedParams(root_pth / 'params.json')
+    inputs = LumpedInputs(inputs_path=root_pth / 'inputs_well_watered.json')
+    params = LumpedParams(params_path=root_pth / 'params.json')
     params.update(inputs=inputs)
 
     canopy = Canopy(leaves_category='lumped', inputs=inputs, params=params)

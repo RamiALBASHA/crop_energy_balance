@@ -9,9 +9,12 @@ constants = params.Constants()
 
 
 class Inputs:
-    def __init__(self, inputs_path: Path):
-        with open(str(inputs_path), mode='r') as f:
-            inputs = load(f, encoding='utf-8')
+    def __init__(self,
+                 inputs: dict = None,
+                 inputs_path: Path = None):
+        if not inputs:
+            with open(str(inputs_path), mode='r') as f:
+                inputs = load(f, encoding='utf-8')
 
         self._inputs = self._fmt_inputs(inputs)
 
@@ -61,13 +64,22 @@ class Inputs:
             The uppermost layer must have the highest number while the lowermost layer has the lowest number.
         """
 
-        self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radiation']
-        """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per crop component
+        self.incident_irradiance = self._inputs['incident_photosynthetically_active_radiation']
+        """[W_{PAR} m-2ground] dictionary of incident photosynthetically active radiation.
 
         Notes:
-            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'
+            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'.
             For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
-                'sunlit' and 'shaded'
+                'sunlit' and 'shaded'.
+        """
+
+        self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radiation']
+        """[W_{PAR} m-2ground] dictionary of absorbed photosynthetically active radiation per crop component.
+
+        Notes:
+            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'.
+            For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
+                'sunlit' and 'shaded'.
             The uppermost component must have the highest number while the lowermost component, i.e. soil, has the
                 lowest number which must be equal to -1.
         """
@@ -82,20 +94,13 @@ class Inputs:
 
 
 class LumpedInputs(Inputs):
-    def __init__(self, inputs_path: Path):
-        Inputs.__init__(self, inputs_path)
+    def __init__(self, inputs: dict = None, inputs_path: Path = None):
+        Inputs.__init__(self, inputs, inputs_path)
 
 
 class SunlitShadedInputs(Inputs):
-    def __init__(self, inputs_path: Path):
-        Inputs.__init__(self, inputs_path)
-
-        self.incident_par = self._inputs['incident_photosynthetically_active_radiation']
-        """[W_{PAR} m-2ground] dictionary of incident photosynthetically active radiation.
-
-        Notes:
-            This input must be a dictionary having two keys, respectively 'sunlit' and 'shaded'
-        """
+    def __init__(self, inputs: dict = None, inputs_path: Path = None):
+        Inputs.__init__(self, inputs, inputs_path)
 
         self.solar_inclination = self._inputs['solar_inclination']
         """(Rad) the angle between solar beam and the horizon.

@@ -1,3 +1,6 @@
+from math import exp
+
+
 def convert_kelvin_to_celsius(temperature: float,
                               absolute_zero: float = -273.15) -> float:
     """Converts Kelvin unit to Celsius unit.
@@ -105,3 +108,29 @@ def convert_global_irradiance_into_photosynthetically_active_radiation(value: fl
         [W_{PAR} m-2] photosynthetically active radiation
     """
     return value * 0.48
+
+
+def calc_saturated_air_vapor_pressure(temperature: float) -> float:
+    """Compute saturated air vapor pressure.
+    Args:
+        temperature: [°C] air temperature
+    Returns:
+        [kPa] saturated air vapor pressure
+    """
+    return 0.611 * exp(17.27 * temperature / (237.3 + temperature))
+
+
+def calc_vapor_pressure_deficit(temperature_air: float, temperature_leaf: float, relative_humidity: float) -> float:
+    """Computes leaf-to-air vapour pressure deficit.
+    Args:
+        temperature_air: [°C] air temperature
+        temperature_leaf: [°C] leaf temperature
+        relative_humidity: [-] air relative humidity (%, between 0 and 1)
+    Returns:
+        [kPa] leaf-to-air vapour pressure deficit
+    """
+    es_l = calc_saturated_air_vapor_pressure(temperature_leaf)
+    es_a = calc_saturated_air_vapor_pressure(temperature_air)
+    ea = es_a * relative_humidity / 100
+
+    return es_l - ea
