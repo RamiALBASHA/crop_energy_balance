@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -5,7 +7,8 @@ from crop_energy_balance import utils
 
 
 def get_weather_data() -> pd.DataFrame:
-    raw_data = pd.read_csv('weather.csv', decimal='.', sep=';', skiprows=6).set_index('time')
+    raw_data = pd.read_csv(Path(__file__).parent / 'weather.csv',
+                           decimal='.', sep=';', skiprows=6).set_index('time')
     raw_data.loc[:, 'wind_speed'] = raw_data.apply(lambda x: x['wind_speed'] * 3600.0, axis=1)
     raw_data.loc[:, 'incident_direct_irradiance'] = raw_data['incident_global_irradiance'].apply(
         lambda x: utils.convert_global_irradiance_into_photosynthetically_active_radiation(x * 0.80))
