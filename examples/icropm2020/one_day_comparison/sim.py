@@ -120,24 +120,30 @@ def get_energy_balance_inputs_and_params(
     return energy_balance_inputs, energy_balance_params
 
 
-def calc_temperature(
+def solve_energy_balance(
         vegetative_layers: dict,
         leaf_class_type: str,
         absorbed_par_irradiance: dict,
-        actual_weather_data: pd.Series) -> dict:
+        actual_weather_data: pd.Series) -> eb_solver.Solver:
     inputs, params = get_energy_balance_inputs_and_params(**locals())
 
     canopy = eb_canopy.Canopy(leaves_category=leaf_class_type, inputs=inputs, params=params)
     solver = eb_solver.Solver(canopy=canopy, inputs=inputs, params=params)
     solver.run()
 
+    return solver
+
+
+def calc_temperature(
+        solver: eb_solver.Solver,
+        leaf_class_type: str) -> dict:
     if leaf_class_type == 'lumped':
-        return {index: {'lumped': layer.temperature} for index, layer in canopy.items()}
+        res = {index: {'lumped': layer.temperature} for index, layer in solver.canopy.items()}
     else:
         res = {index: {'sunlit': layer['sunlit'].temperature, 'shaded': layer['shaded'].temperature}
-               for index, layer in canopy.items() if index != -1}
-        res.update({-1: {'lumped': canopy[-1].temperature}})
-        return res
+               for index, layer in solver.canopy.items() if index != -1}
+        res.update({-1: {'lumped': solver.canopy[-1].temperature}})
+    return res
 
 
 # def init_results_dict(leaves_category: str,
@@ -244,20 +250,17 @@ def plot_irradiance_dynamics(ax: plt.axis,
 
     ax.set_title(simulation_case.replace('_', ' '))
     ax.plot(range(24), incident_par_irradiance, label='incident', color='k', linestyle='--', linewidth=2)
-    # ax.plot(range(24), abs_irradiance[-1], label=f'absorbed soil', color='brown', linewidth=2)
 
-    if leaf_class == 'lumped':
-        for component_index in component_indexes:
-            if component_index != -1:
+    for component_index in component_indexes:
+        abs_irradiance = summary_data[component_index]
+        if component_index == -1:
+            ax.plot(range(24), abs_irradiance, label=f'soil', color='k', linewidth=2)
+        else:
+            if leaf_class == 'lumped':
                 ax.plot(range(24), summary_data[component_index], label=f'abs {component_index}')
-    else:
-        for component_index in component_indexes:
-            if component_index != -1:
-                ax.plot(range(24), summary_data[component_index]['sunlit'],
-                        label=f'abs sunlit {component_index}')
-                ax.plot(range(24), summary_data[component_index]['shaded'],
-                        label=f'abs shaded {component_index}')
-
+            else:
+                ax.plot(range(24), summary_data[component_index]['sunlit'], label=f'abs sunlit {component_index}')
+                ax.plot(range(24), summary_data[component_index]['shaded'], label=f'abs shaded {component_index}')
     pass
 
 
@@ -270,20 +273,24 @@ def plot_temperature_dynamics(ax: plt.axis,
     component_indexes = summary_data.keys()
 
     ax.set_title(simulation_case.replace('_', ' '))
-    ax.plot(range(24), temperature_air, label='air', color='k', linestyle='--', linewidth=2)
 
-    if leaf_class == 'lumped':
-        for component_index in component_indexes:
-            if component_index != -1:
-                ax.plot(range(24), [(v - 273.15 if v > 273.15 else None) for v in summary_data[component_index]],
+    hours = range(24)
+    ax.plot(hours, temperature_air, label='air', color='k', linestyle='--', linewidth=2)
+
+    for component_index in component_indexes:
+        component_temperature = summary_data[component_index]
+        if component_index == -1:
+            ax.plot(hours, [(v - 273.15 if v > 273.15 else None) for v in component_temperature],
+                    label=f'soil', color='k', linewidth=2)
+        else:
+            if leaf_class == 'lumped':
+                ax.plot(hours, [(v - 273.15 if v > 273.15 else None) for v in summary_data[component_index]],
                         label=f'{component_index}')
-    else:
-        for component_index in component_indexes:
-            if component_index != -1:
-                ax.plot(range(24),
+            else:
+                ax.plot(hours,
                         [(v - 273.15 if v > 273.15 else None) for v in summary_data[component_index]['sunlit']],
                         label=f'sunlit {component_index}')
-                ax.plot(range(24),
+                ax.plot(hours,
                         [(v - 273.15 if v > 273.15 else None) for v in summary_data[component_index]['shaded']],
                         label=f'shaded {component_index}')
 
@@ -380,6 +387,22 @@ def plot_irradiance_at_one_hour(ax: plt.axis,
     return
 
 
+def plot_canopy_variable(
+        all_cases_solver: eb_canopy,
+        variable_to_plot: str):
+    hours = range(24)
+    cases = all_cases_solver.keys()
+
+    fig, axes = plt.subplots(ncols=len(cases), sharex='all', sharey='all', figsize=(15, 5))
+    for i, case in enumerate(cases):
+        ax = axes[i]
+        ax.plot(hours, [getattr(all_cases_solver[case][h].canopy.state_variables, variable_to_plot) for h in hours])
+        ax.set_xlabel('hours')
+    fig.suptitle(variable_to_plot)
+    fig.savefig(f'figs/{variable_to_plot}.png')
+    plt.close()
+
+
 if __name__ == '__main__':
     (Path(__file__).parent / 'figs').mkdir(exist_ok=True)
     weather_data = get_weather_data()
@@ -387,6 +410,7 @@ if __name__ == '__main__':
     irradiance = {}
     temperature = {}
     layers = {}
+    solver = {}
 
     for canopy_type, leaves_type in (('bigleaf', 'lumped'),
                                      ('bigleaf', 'sunlit-shaded'),
@@ -397,6 +421,7 @@ if __name__ == '__main__':
         layers.update({f'{canopy_type} {leaves_type}': canopy_layers})
         hourly_absorbed_irradiance = []
         hourly_temperature = []
+        hourly_solver = []
 
         for date, w_data in weather_data.iterrows():
             incident_direct_irradiance = w_data['incident_direct_irradiance']
@@ -416,14 +441,20 @@ if __name__ == '__main__':
 
             hourly_absorbed_irradiance.append(absorbed_irradiance)
 
-            hourly_temperature.append(calc_temperature(
+            energy_balance_solver = solve_energy_balance(
                 vegetative_layers=canopy_layers,
                 leaf_class_type=leaves_type,
                 absorbed_par_irradiance=absorbed_irradiance,
-                actual_weather_data=w_data))
+                actual_weather_data=w_data)
+
+            hourly_solver.append(energy_balance_solver)
+            hourly_temperature.append(calc_temperature(
+                solver=energy_balance_solver,
+                leaf_class_type=leaves_type))
 
         irradiance[f'{canopy_type}_{leaves_type}'] = hourly_absorbed_irradiance
         temperature[f'{canopy_type}_{leaves_type}'] = hourly_temperature
+        solver[f'{canopy_type}_{leaves_type}'] = hourly_solver
 
     plot_leaf_profile(vegetative_layers=layers)
 
@@ -441,3 +472,7 @@ if __name__ == '__main__':
         hourly_weather=weather_data,
         all_cases_absorbed_irradiance=irradiance,
         all_cases_temperature=temperature)
+
+    plot_canopy_variable(
+        all_cases_solver=solver,
+        variable_to_plot='source_temperature')
