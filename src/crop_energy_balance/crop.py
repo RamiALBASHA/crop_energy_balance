@@ -122,11 +122,6 @@ class Component:
             vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.net_radiation = component.calc_net_radiation(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
-                self.absorbed_irradiance),
-            net_longwave_radiation=self.net_longwave_radiation,
-            is_soil=False)
 
     def calc_composed_conductance(self,
                                   canopy_state_variables: CanopyStateVariables):
@@ -196,6 +191,11 @@ class SoilComponent(Component):
             canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
             canopy_leaf_area_index=sum(inputs.leaf_layers.values()),
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
+        self.net_radiation = component.calc_net_radiation(
+            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+                self.absorbed_irradiance),
+            net_longwave_radiation=self.net_longwave_radiation,
+            is_soil=True)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -251,6 +251,11 @@ class LumpedLeafComponent(LeafComponent):
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
+        self.net_radiation = component.calc_net_radiation(
+            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+                self.absorbed_irradiance),
+            net_longwave_radiation=self.net_longwave_radiation,
+            is_soil=False)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -311,6 +316,11 @@ class SunlitShadedLeafComponent(LeafComponent):
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
+        self.net_radiation = component.calc_net_radiation(
+            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+                self.absorbed_irradiance),
+            net_longwave_radiation=self.net_longwave_radiation,
+            is_soil=False)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
