@@ -42,6 +42,10 @@ class CanopyStateVariables:
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
             vapor_pressure_slope=self.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant)
+        self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
+            air_temperature=inputs.air_temperature,
+            atmospheric_emissivity=inputs.atmospheric_emissivity,
+            stefan_boltzman_constant=constants.stefan_boltzmann)
 
         self.sum_composed_conductances = None
         self.penman_energy = None
@@ -118,12 +122,6 @@ class Component:
             vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.net_longwave_radiation = component.calc_net_longwave_radiation(
-            air_temperature=inputs.air_temperature,
-            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
-            atmospheric_emissivity=inputs.atmospheric_emissivity,
-            extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient,
-            stefan_boltzman_constant=constants.stefan_boltzmann)
         self.net_radiation = component.calc_net_radiation(
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
@@ -194,6 +192,10 @@ class SoilComponent(Component):
             soil_roughness_length_for_momentum=params.simulation.soil_roughness_length_for_momentum,
             shape_parameter=params.simulation.soil_aerodynamic_resistance_shape_parameter,
             von_karman_constant=constants.von_karman)
+        self.net_longwave_radiation = soil.calc_net_longwave_radiation(
+            canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
+            canopy_leaf_area_index=sum(inputs.leaf_layers.values()),
+            diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -244,6 +246,11 @@ class LumpedLeafComponent(LeafComponent):
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
             shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
+        self.net_longwave_radiation = lumped_leaves.calc_leaf_layer_net_longwave_radiation(
+            canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -297,6 +304,13 @@ class SunlitShadedLeafComponent(LeafComponent):
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
             shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
+        self.net_longwave_radiation = sunlit_shaded_leaves.calc_leaf_layer_net_longwave_radiation(
+            leaves_category=self.leaves_category,
+            canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
+            diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
 
         Component.init_state_variables(self,
                                        inputs=inputs,

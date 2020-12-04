@@ -1,4 +1,3 @@
-from math import exp
 from crop_energy_balance.formalisms.soil import calc_heat_flux
 
 
@@ -113,28 +112,6 @@ def calc_temperature(canopy_temperature: float,
     """
     return canopy_temperature + (boundary_layer_resistance / (air_density * air_specific_heat_capacity)) * (
             component_net_radiation - component_evaporative_energy)
-
-
-def calc_net_longwave_radiation(air_temperature: float,
-                                lower_cumulative_leaf_area_index: float,
-                                atmospheric_emissivity: float,
-                                extinction_coefficient: float,
-                                stefan_boltzman_constant: float) -> float:
-    """Calculates net long wave radiation of a canopy component.
-
-    Args:
-        air_temperature: [K] air temperature
-        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
-        atmospheric_emissivity: [-] atmospheric emissivity to longwave radiation
-        extinction_coefficient: [m2ground m-2leaf] extinction coefficient of longwave radiation, assumed equal to
-            the extinction coefficient of the diffuse photosynthetically active radiation for black leaves
-        stefan_boltzman_constant: [W m-2 K-4] Stefan-Boltzmann constant
-
-    Returns:
-        net long wave radiation of a canopy component
-    """
-    scaling_factor = 1.0 / extinction_coefficient * exp(-extinction_coefficient * lower_cumulative_leaf_area_index)
-    return - (1 - atmospheric_emissivity) * stefan_boltzman_constant * air_temperature ** 4 * scaling_factor
 
 
 def calc_net_radiation(net_shortwave_radiation: float,

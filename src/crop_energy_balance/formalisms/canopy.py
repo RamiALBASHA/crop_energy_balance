@@ -85,6 +85,27 @@ def calc_turbulent_diffusivity(von_karman_constant: float,
         log((measurement_height - zero_displacement_height) / canopy_roughness_length_for_momentum))
 
 
+def calc_net_longwave_radiation(air_temperature: float,
+                                atmospheric_emissivity: float,
+                                stefan_boltzman_constant: float) -> float:
+    """Calculates net long wave radiation at the top of the canopy.
+
+    Args:
+        air_temperature: [K] air temperature
+        atmospheric_emissivity: [-] atmospheric emissivity to longwave radiation
+        stefan_boltzman_constant: [W m-2 K-4] Stefan-Boltzmann constant
+
+    Returns:
+        [W m-2ground] net long wave radiation at the top of the canopy
+
+    References:
+        Leuning et al. 1995
+            Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
+            Plant, Cell and Environment 18, 1183 - 1200.
+    """
+    return (1 - atmospheric_emissivity) * stefan_boltzman_constant * air_temperature ** 4
+
+
 def calc_canopy_aerodynamic_resistance(wind_speed: float,
                                        canopy_height: float,
                                        reference_height: float,

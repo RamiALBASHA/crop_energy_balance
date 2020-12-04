@@ -227,3 +227,45 @@ def calc_leaf_fraction_per_leaf_layer(leaves_category: str,
         return sunlit_fraction_per_leaf_layer
     else:
         return 1 - sunlit_fraction_per_leaf_layer
+
+
+def calc_leaf_layer_net_longwave_radiation(leaves_category: str,
+                                           canopy_top_net_longwave_radiation: float,
+                                           upper_cumulative_leaf_area_index: float,
+                                           lower_cumulative_leaf_area_index: float,
+                                           direct_black_extinction_coefficient: float,
+                                           diffuse_black_extinction_coefficient: float) -> float:
+    """Calculates net long wave radiation exchange of a sunlit or shaded leaf layer.
+
+    Args:
+        leaves_category: one of ('sunlit', 'shaded')
+        canopy_top_net_longwave_radiation: [W m-2ground] net long wave radiation at the top of the canopy
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index below the considered layer
+        direct_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of direct (beam) irradiance
+            through a canopy of black leaves
+        diffuse_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of diffuse irradiance
+            through a canopy of black leaves
+
+    Returns:
+        [W m-2ground]: net long wave radiation exchange of a sunlit or shaded leaf layer
+
+    References:
+        Leuning et al. 1995
+            Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
+            Plant, Cell and Environment 18, 1183 - 1200.
+    """
+    extinction_coefficient = direct_black_extinction_coefficient + diffuse_black_extinction_coefficient
+    sunlit_scaling_factor = (diffuse_black_extinction_coefficient / extinction_coefficient) * (
+            exp(-extinction_coefficient * upper_cumulative_leaf_area_index) -
+            exp(-extinction_coefficient * lower_cumulative_leaf_area_index))
+    sunlit_net_longwave_radiation = canopy_top_net_longwave_radiation * sunlit_scaling_factor
+    if leaves_category == 'sunlit':
+        return sunlit_net_longwave_radiation
+    else:
+        lumped_layer_net_radiation = lumped_leaves.calc_leaf_layer_net_longwave_radiation(
+            canopy_top_net_longwave_radiation=canopy_top_net_longwave_radiation,
+            upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=lower_cumulative_leaf_area_index,
+            diffuse_black_extinction_coefficient=diffuse_black_extinction_coefficient)
+        return lumped_layer_net_radiation - sunlit_net_longwave_radiation
