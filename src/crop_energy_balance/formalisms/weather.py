@@ -27,17 +27,22 @@ def calc_psychrometric_constant(atmospheric_pressure: float,
 
 def calc_atmospheric_emissivity(air_vapor_pressure: float,
                                 air_temperature: float) -> float:
-    """Calculates the atmospheric emissivity to thermal infrared waves.
+    """Calculates the effective atmospheric emissivity of a clear sky
 
     Args:
         air_vapor_pressure: [kPa] air vapor pressure
         air_temperature: [K] air temperature
 
     Returns:
-        [-] atmospheric emissivity
+        [-] effective atmospheric emissivity of a clear sky
+
+    References:
+        Brutsaert, 1975.
+            On a Derivable Formula for Long-Wave Radiation From Clear Skies.
+            Water Resources Research 11, 742 - 744.
     """
 
-    return 1.24 * (10. * air_vapor_pressure / air_temperature) ** (1. / 7.)
+    return 1.24 * (0.1 * air_vapor_pressure / air_temperature) ** (1. / 7.)
 
 
 def calc_vapor_pressure_slope(temperature: float) -> float:
