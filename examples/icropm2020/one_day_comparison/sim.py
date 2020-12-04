@@ -191,7 +191,8 @@ def plot_temperature_dynamic_comparison(temperature_air: pd.Series,
 
     for i, ax in enumerate(axes):
         ax.legend()
-        ax.set(xlabel='hour')
+        ax.grid()
+        ax.set(xlabel='hour', ylim=(-10, 50)),
         if i == 0:
             ax.set_ylabel(r'$\mathregular{temperature\/[^\circ C]}$')
 
