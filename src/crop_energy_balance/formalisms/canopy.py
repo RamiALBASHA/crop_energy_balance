@@ -103,7 +103,7 @@ def calc_net_longwave_radiation(air_temperature: float,
             Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
             Plant, Cell and Environment 18, 1183 - 1200.
     """
-    return - (1 - atmospheric_emissivity) * stefan_boltzman_constant * air_temperature ** 4
+    return (atmospheric_emissivity - 1) * stefan_boltzman_constant * air_temperature ** 4
 
 
 def calc_canopy_aerodynamic_resistance(wind_speed: float,

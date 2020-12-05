@@ -43,7 +43,8 @@ class Inputs:
         self.vapor_pressure_deficit = self._inputs['vapor_pressure_deficit']
         """[kPa] vapor pressure deficit of the air"""
 
-        self.atmospheric_emissivity = weather.calc_atmospheric_emissivity(self._air_vapor_pressure,
+        self.atmospheric_emissivity = weather.calc_atmospheric_emissivity('brutsaert_1975',
+                                                                          self._air_vapor_pressure,
                                                                           self.air_temperature)
         """[-] sky longwave radiation emissivity"""
 
