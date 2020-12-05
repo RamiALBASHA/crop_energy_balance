@@ -116,20 +116,15 @@ def calc_temperature(canopy_temperature: float,
 
 def calc_net_radiation(net_shortwave_radiation: float,
                        net_longwave_radiation: float,
-                       is_soil: bool) -> float:
+                       soil_heat_flux: float) -> float:
     """Calculates the net radiation flux density of a canopy component per unit ground surface area.
 
     Args:
         net_shortwave_radiation: [W m-2ground] net shortwave flux density radiation of the component
         net_longwave_radiation: [W m-2ground] net longwave flux density radiation of the component
-        is_soil: `True` if the calculation is performed for the soil component, otherwise `False`
+        soil_heat_flux: [W m-2ground] the net heat flux density into the soil
 
     Returns:
         [W m-2ground] net radiation flux density of the canopy component per unit ground surface area
-
     """
-    if not is_soil:
-        return net_shortwave_radiation + net_longwave_radiation
-    else:
-        net_above_ground_radiation = net_shortwave_radiation + net_longwave_radiation
-        return net_above_ground_radiation - calc_heat_flux(net_above_ground_radiation, net_shortwave_radiation > 0)
+    return net_shortwave_radiation + net_longwave_radiation - soil_heat_flux

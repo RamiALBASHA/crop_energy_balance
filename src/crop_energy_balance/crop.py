@@ -47,6 +47,10 @@ class CanopyStateVariables:
             atmospheric_emissivity=inputs.atmospheric_emissivity,
             stefan_boltzman_constant=constants.stefan_boltzmann)
 
+        # Canopy net radiation is not initialized to None in oder to be able to initialize the soil heat flux
+        self.net_radiation = utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            sum(self.incident_irradiance.values())) + self.net_longwave_radiation
+
         self.sum_composed_conductances = None
         self.penman_energy = None
         self.total_penman_monteith_evaporative_energy = None
@@ -89,6 +93,10 @@ class CanopyStateVariables:
                 penman_monteith_evaporative_energy=self.total_penman_monteith_evaporative_energy,
                 air_density=constants.air_density,
                 air_specific_heat_capacity=constants.air_specific_heat_capacity))
+
+    def calc_net_radiation(self,
+                           crop_components: list):
+        self.net_radiation = sum(crop_component.net_radiation for crop_component in crop_components)
 
 
 class Component:
@@ -170,6 +178,7 @@ class SoilComponent(Component):
                            index=index)
 
         self.lower_cumulative_leaf_area_index = lower_cumulative_leaf_area_index
+        self.heat_flux = None
 
     def init_state_variables(self,
                              inputs: LumpedInputs or SunlitShadedInputs,
@@ -191,11 +200,14 @@ class SoilComponent(Component):
             canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
             canopy_leaf_area_index=sum(inputs.leaf_layers.values()),
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
+        self.heat_flux = soil.calc_heat_flux(
+            net_above_ground_radiation=canopy_state_variables.net_radiation,
+            is_diurnal=sum(inputs.incident_irradiance.values()) > 0)
         self.net_radiation = component.calc_net_radiation(
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
-            is_soil=True)
+            soil_heat_flux=self.heat_flux)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -255,7 +267,7 @@ class LumpedLeafComponent(LeafComponent):
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
-            is_soil=False)
+            soil_heat_flux=0)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
@@ -320,7 +332,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
-            is_soil=False)
+            soil_heat_flux=0)
 
         Component.init_state_variables(self,
                                        inputs=inputs,
