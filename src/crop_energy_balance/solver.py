@@ -42,6 +42,10 @@ class Solver:
 
         self.canopy.state_variables.calc_source_temperature(crop_components=self.components,
                                                             inputs=self.canopy.inputs)
+
+        self.canopy.state_variables.calc_net_radiation(crop_components=self.components)
+        self.canopy.state_variables.calc_sensible_heat_flux(inputs=self.canopy.inputs)
+
         for crop_components in self.components:
             crop_components.calc_temperature(self.canopy.state_variables)
 

@@ -106,6 +106,28 @@ def calc_net_longwave_radiation(air_temperature: float,
     return (atmospheric_emissivity - 1) * stefan_boltzman_constant * air_temperature ** 4
 
 
+def calc_sensible_heat_flux(source_temperature: float,
+                            air_temperature: float,
+                            aerodynamic_resistance: float,
+                            air_density: float,
+                            air_specific_heat_capacity: float) -> float:
+    """Calculates the sensible heat flux of the canopy.
+
+    Args:
+        source_temperature: [K] air temperature at source height
+        air_temperature: [K] air temperature at reference height
+        aerodynamic_resistance: [h m-1] air resistance to heat transfer between the source height and the reference
+            height
+        air_density: [g m-3] density of dry air
+        air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
+
+    Returns:
+        [W m-2ground]: Sensible heat flux of the canopy.
+    """
+    temperature_difference = source_temperature - air_temperature
+    return air_density * air_specific_heat_capacity * temperature_difference / aerodynamic_resistance
+
+
 def calc_canopy_aerodynamic_resistance(wind_speed: float,
                                        canopy_height: float,
                                        reference_height: float,

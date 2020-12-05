@@ -55,6 +55,7 @@ class CanopyStateVariables:
         self.penman_energy = None
         self.total_penman_monteith_evaporative_energy = None
         self.source_temperature = None
+        self.sensible_heat_flux = None
 
     def calc_total_composed_conductances(self,
                                          crop_components: list):
@@ -97,6 +98,15 @@ class CanopyStateVariables:
     def calc_net_radiation(self,
                            crop_components: list):
         self.net_radiation = sum(crop_component.net_radiation for crop_component in crop_components)
+
+    def calc_sensible_heat_flux(self,
+                                inputs: LumpedInputs or SunlitShadedInputs):
+        self.sensible_heat_flux = canopy.calc_sensible_heat_flux(
+            source_temperature=self.source_temperature,
+            air_temperature=inputs.air_temperature,
+            aerodynamic_resistance=self.aerodynamic_resistance,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
 
 class Component:
