@@ -86,12 +86,14 @@ def calc_turbulent_diffusivity(von_karman_constant: float,
 
 
 def calc_net_longwave_radiation(air_temperature: float,
+                                canopy_temperature: float,
                                 atmospheric_emissivity: float,
                                 stefan_boltzman_constant: float) -> float:
     """Calculates net long wave radiation at the top of the canopy.
 
     Args:
         air_temperature: [K] air temperature
+        canopy_temperature: [K] canopy (source) temperature
         atmospheric_emissivity: [-] atmospheric emissivity to longwave radiation
         stefan_boltzman_constant: [W m-2 K-4] Stefan-Boltzmann constant
 
@@ -103,7 +105,8 @@ def calc_net_longwave_radiation(air_temperature: float,
             Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
             Plant, Cell and Environment 18, 1183 - 1200.
     """
-    return (atmospheric_emissivity - 1) * stefan_boltzman_constant * air_temperature ** 4
+    return (atmospheric_emissivity * stefan_boltzman_constant * air_temperature ** 4 -
+            stefan_boltzman_constant * canopy_temperature ** 4)
 
 
 def calc_sensible_heat_flux(source_temperature: float,

@@ -12,6 +12,8 @@ constants = Constants()
 class CanopyStateVariables:
     def __init__(self,
                  inputs: LumpedInputs or SunlitShadedInputs):
+        self.source_temperature = inputs.air_temperature
+
         self.incident_irradiance = inputs.incident_irradiance
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
@@ -44,6 +46,7 @@ class CanopyStateVariables:
             psychrometric_constant=constants.psychrometric_constant)
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
+            canopy_temperature=self.source_temperature,
             atmospheric_emissivity=inputs.atmospheric_emissivity,
             stefan_boltzman_constant=constants.stefan_boltzmann)
 
@@ -54,7 +57,6 @@ class CanopyStateVariables:
         self.sum_composed_conductances = None
         self.penman_energy = None
         self.total_penman_monteith_evaporative_energy = None
-        self.source_temperature = None
         self.sensible_heat_flux = None
 
     def calc_total_composed_conductances(self,
