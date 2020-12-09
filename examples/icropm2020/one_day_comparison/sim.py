@@ -22,6 +22,12 @@ leaf_layers = {3: 1.0,
                1: 1.0,
                0: 1.0}
 
+UNITS_MAP = {'net_radiation': r'$\mathregular{R_n}$',
+             'sensible_heat_flux': 'H',
+             'total_penman_monteith_evaporative_energy': r'$\mathregular{\lambda E}$',
+             'soil_heat_flux': 'G',
+             'energy_balance': 'balance'}
+
 
 def get_irradiance_sim_inputs_and_params(
         is_bigleaf: bool,
@@ -135,14 +141,14 @@ def solve_energy_balance(
 
 
 def calc_temperature(
-        solver: eb_solver.Solver,
+        one_step_solver: eb_solver.Solver,
         leaf_class_type: str) -> dict:
     if leaf_class_type == 'lumped':
-        res = {index: {'lumped': layer.temperature} for index, layer in solver.canopy.items()}
+        res = {index: {'lumped': layer.temperature} for index, layer in one_step_solver.canopy.items()}
     else:
         res = {index: {'sunlit': layer['sunlit'].temperature, 'shaded': layer['shaded'].temperature}
-               for index, layer in solver.canopy.items() if index != -1}
-        res.update({-1: {'lumped': solver.canopy[-1].temperature}})
+               for index, layer in one_step_solver.canopy.items() if index != -1}
+        res.update({-1: {'lumped': one_step_solver.canopy[-1].temperature}})
     return res
 
 
@@ -404,6 +410,47 @@ def plot_canopy_variable(
     plt.close()
 
 
+def plot_energy_balance_components(
+        h_solver: list,
+        variable_to_plot: str,
+        ax: plt.Subplot,
+        return_ax: bool = False):
+    hours = range(24)
+
+    if variable_to_plot == 'soil_heat_flux':
+        ax.plot(hours, [getattr(h_solver[h].canopy[-1], 'heat_flux') for h in hours], label=UNITS_MAP[variable_to_plot])
+    elif variable_to_plot == 'energy_balance':
+        ax.plot(hours, [h_solver[h].energy_balance for h in hours], 'k--', label=UNITS_MAP[variable_to_plot])
+    else:
+        ax.plot(hours, [getattr(h_solver[h].canopy.state_variables, variable_to_plot) for h in hours],
+                label=UNITS_MAP[variable_to_plot])
+
+    if return_ax:
+        return ax
+    else:
+        ax.set_xlabel('hours')
+        fig = ax.get_figure()
+        fig.suptitle(variable_to_plot)
+        fig.savefig(f'figs/{variable_to_plot}.png')
+        plt.close()
+
+
+def plot_energy_balance(solvers: dict):
+    eb_components = [
+        'net_radiation', 'sensible_heat_flux', 'total_penman_monteith_evaporative_energy', 'soil_heat_flux',
+        'energy_balance']
+    models = solvers.keys()
+    fig, axes = plt.subplots(ncols=len(models), sharex='all', sharey='all', figsize=(15, 5))
+    for model, ax in zip(models, axes):
+        for eb_component in eb_components:
+            ax = plot_energy_balance_components(h_solver=solvers[model], variable_to_plot=eb_component, ax=ax,
+                                                return_ax=True)
+        ax.grid()
+        ax.legend()
+    fig.savefig(f'figs/toto.png')
+    pass
+
+
 if __name__ == '__main__':
     (Path(__file__).parent / 'figs').mkdir(exist_ok=True)
     weather_data = get_weather_data()
@@ -411,7 +458,7 @@ if __name__ == '__main__':
     irradiance = {}
     temperature = {}
     layers = {}
-    solver = {}
+    solver_group = {}
 
     for canopy_type, leaves_type in (('bigleaf', 'lumped'),
                                      ('bigleaf', 'sunlit-shaded'),
@@ -450,12 +497,12 @@ if __name__ == '__main__':
 
             hourly_solver.append(energy_balance_solver)
             hourly_temperature.append(calc_temperature(
-                solver=energy_balance_solver,
+                one_step_solver=energy_balance_solver,
                 leaf_class_type=leaves_type))
 
         irradiance[f'{canopy_type}_{leaves_type}'] = hourly_absorbed_irradiance
         temperature[f'{canopy_type}_{leaves_type}'] = hourly_temperature
-        solver[f'{canopy_type}_{leaves_type}'] = hourly_solver
+        solver_group[f'{canopy_type}_{leaves_type}'] = hourly_solver
 
     plot_leaf_profile(vegetative_layers=layers)
 
@@ -475,5 +522,8 @@ if __name__ == '__main__':
         all_cases_temperature=temperature)
 
     plot_canopy_variable(
-        all_cases_solver=solver,
+        all_cases_solver=solver_group,
         variable_to_plot='source_temperature')
+
+    plot_energy_balance(
+        solvers=solver_group)
