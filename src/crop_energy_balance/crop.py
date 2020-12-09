@@ -90,7 +90,7 @@ class CanopyStateVariables:
             canopy.calc_temperature(
                 air_temperature=inputs.air_temperature,
                 canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-                canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components]),
+                canopy_net_radiation=self.net_radiation,
                 penman_monteith_evaporative_energy=self.total_penman_monteith_evaporative_energy,
                 air_density=constants.air_density,
                 air_specific_heat_capacity=constants.air_specific_heat_capacity))

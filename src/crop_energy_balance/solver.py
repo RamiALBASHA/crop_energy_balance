@@ -17,6 +17,8 @@ class Solver:
         self.iterations_number = 0
         self.init_state_variables()
 
+        self.energy_balance = None
+
     def run(self):
         is_acceptable_error = False
         while not is_acceptable_error:
@@ -24,6 +26,7 @@ class Solver:
             self.update_state_variables()
             error = self.calc_error()
             self.update_temperature()
+            self.calc_energy_balance()
             is_acceptable_error = self.determine_if_acceptable_error(error)
 
     def init_state_variables(self):
@@ -52,6 +55,11 @@ class Solver:
     def update_temperature(self):
         for crop_components in self.components:
             crop_components.update_temperature(self.params)
+
+    def calc_energy_balance(self):
+        self.energy_balance = self.canopy.state_variables.net_radiation - (
+                self.canopy.state_variables.total_penman_monteith_evaporative_energy +
+                self.canopy.state_variables.sensible_heat_flux)
 
     def calc_error(self) -> float:
         return sum(
