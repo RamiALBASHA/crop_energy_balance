@@ -1,6 +1,3 @@
-from crop_energy_balance.formalisms.soil import calc_heat_flux
-
-
 def calc_composed_resistance(surface_resistance: float,
                              boundary_layer_resistance: float,
                              vapor_pressure_slope: float,
