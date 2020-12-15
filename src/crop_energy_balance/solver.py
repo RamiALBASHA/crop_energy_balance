@@ -45,7 +45,8 @@ class Solver:
 
         self.canopy.state_variables.calc_source_temperature(inputs=self.canopy.inputs)
 
-        self.canopy.state_variables.calc_net_radiation(crop_components=self.components)
+        self.canopy.state_variables.calc_available_energy(crop_components=self.components)
+        self.canopy.state_variables.calc_net_radiation(soil_heat_flux=self.components[0].heat_flux)
         self.canopy.state_variables.calc_sensible_heat_flux(inputs=self.canopy.inputs)
 
         for crop_components in self.components:
@@ -58,7 +59,8 @@ class Solver:
     def calc_energy_balance(self):
         self.energy_balance = self.canopy.state_variables.net_radiation - (
                 self.canopy.state_variables.total_penman_monteith_evaporative_energy +
-                self.canopy.state_variables.sensible_heat_flux)
+                self.canopy.state_variables.sensible_heat_flux +
+                self.components[0].heat_flux)
 
     def calc_error(self) -> float:
         return sum(

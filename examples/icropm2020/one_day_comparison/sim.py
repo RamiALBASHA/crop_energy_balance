@@ -447,7 +447,8 @@ def plot_energy_balance(solvers: dict):
                                                 return_ax=True)
         ax.grid()
         ax.legend()
-    fig.savefig(f'figs/toto.png')
+    axes[0].set_ylabel(r'$\mathregular{Energy\/[W\/m^{-2}_{ground}]}$')
+    fig.savefig(f'figs/energy_balance.png')
     pass
 
 

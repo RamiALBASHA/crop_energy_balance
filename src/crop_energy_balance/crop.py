@@ -50,9 +50,10 @@ class CanopyStateVariables:
             atmospheric_emissivity=inputs.atmospheric_emissivity,
             stefan_boltzmann_constant=constants.stefan_boltzmann)
 
-        # Canopy net radiation is not initialized to None in oder to be able to initialize the soil heat flux
-        self.net_radiation = utils.convert_photosynthetically_active_radiation_into_global_radiation(
+        # Canopy available energy and net radiation are not initialized to None so that to initialize the soil heat flux
+        self.available_energy = utils.convert_photosynthetically_active_radiation_into_global_radiation(
             sum(self.incident_irradiance.values())) + self.net_longwave_radiation
+        self.net_radiation = self.available_energy
 
         self.sum_composed_conductances = None
         self.penman_energy = None
@@ -68,7 +69,7 @@ class CanopyStateVariables:
                                       crop_components: list):
         self.penman_energy = canopy.calc_penman_evaporative_energy(
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-            canopy_net_radiation=self.net_radiationsum,
+            canopy_available_energy=self.available_energy,
             vapor_pressure_slope=self.vapor_pressure_slope,
             vapor_pressure_deficit=self.vapor_pressure_deficit,
             psychrometric_constant=constants.psychrometric_constant,
@@ -79,7 +80,7 @@ class CanopyStateVariables:
             penman_evaporative_energy=self.penman_energy,
             composed_boundary_and_surface_conductances=[crop_component.composed_conductance for
                                                         crop_component in crop_components],
-            net_radiation_fluxes=[crop_component.net_radiation for crop_component in crop_components],
+            available_energy_fluxes=[crop_component.available_energy for crop_component in crop_components],
             boundary_layer_resistances=[crop_component.boundary_resistance for crop_component in crop_components],
             vapor_pressure_slope=self.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant)
@@ -91,14 +92,18 @@ class CanopyStateVariables:
             canopy.calc_temperature(
                 air_temperature=inputs.air_temperature,
                 canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-                canopy_net_radiation=self.net_radiation,
+                canopy_available_energy=self.available_energy,
                 penman_monteith_evaporative_energy=self.total_penman_monteith_evaporative_energy,
                 air_density=constants.air_density,
                 air_specific_heat_capacity=constants.air_specific_heat_capacity))
 
+    def calc_available_energy(self,
+                              crop_components: list):
+        self.available_energy = sum(crop_component.available_energy for crop_component in crop_components)
+
     def calc_net_radiation(self,
-                           crop_components: list):
-        self.net_radiation = sum(crop_component.net_radiation for crop_component in crop_components)
+                           soil_heat_flux):
+        self.net_radiation = self.available_energy + soil_heat_flux
 
     def calc_sensible_heat_flux(self,
                                 inputs: LumpedInputs or SunlitShadedInputs):
@@ -125,7 +130,7 @@ class Component:
         self.composed_resistance = None
         self.composed_conductance = None
         self.net_longwave_radiation = None
-        self.net_radiation = None
+        self.available_energy = None
         self.penman_monteith_evaporative_energy = None
         self._temperature = None
         self.temperature = None
@@ -153,7 +158,7 @@ class Component:
     def calc_evaporative_energy(self,
                                 canopy_state_variables: CanopyStateVariables):
         self.penman_monteith_evaporative_energy = component.calc_evaporative_energy(
-            net_radiation=self.net_radiation,
+            available_energy=self.available_energy,
             boundary_layer_resistance=self.boundary_resistance,
             lumped_boundary_and_surface_resistance=self.composed_resistance,
             canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance,
@@ -167,7 +172,7 @@ class Component:
         self.temperature = component.calc_temperature(
             canopy_temperature=canopy_state_variables.source_temperature,
             boundary_layer_resistance=self.boundary_resistance,
-            component_net_radiation=self.net_radiation,
+            component_available_energy=self.available_energy,
             component_evaporative_energy=self.penman_monteith_evaporative_energy,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
@@ -215,7 +220,7 @@ class SoilComponent(Component):
         self.heat_flux = soil.calc_heat_flux(
             net_above_ground_radiation=canopy_state_variables.net_radiation,
             is_diurnal=sum(inputs.incident_irradiance.values()) >= 0)
-        self.net_radiation = component.calc_net_radiation(
+        self.available_energy = component.calc_available_energy(
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
@@ -275,7 +280,7 @@ class LumpedLeafComponent(LeafComponent):
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
-        self.net_radiation = component.calc_net_radiation(
+        self.available_energy = component.calc_available_energy(
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
@@ -340,7 +345,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
-        self.net_radiation = component.calc_net_radiation(
+        self.available_energy = component.calc_available_energy(
             net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,

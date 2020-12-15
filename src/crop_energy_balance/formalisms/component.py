@@ -50,7 +50,7 @@ def calc_composed_conductance(composed_boundary_and_surface_resistance: float,
             1.0 + canopy_lumped_aerodynamic_resistance * sum_composed_boundary_and_surface_conductances))
 
 
-def calc_evaporative_energy(net_radiation: float,
+def calc_evaporative_energy(available_energy: float,
                             boundary_layer_resistance: float,
                             lumped_boundary_and_surface_resistance: float,
                             canopy_lumped_aerodynamic_resistance: float,
@@ -61,7 +61,7 @@ def calc_evaporative_energy(net_radiation: float,
     """Calculates the evaporative energy for a given canopy component.
 
     Args:
-        net_radiation: [W m-2ground] net radiation flux density of the given component
+        available_energy: [W m-2ground] available energy flux density of the given component
         boundary_layer_resistance: [h m-1] boundary layer resistance to heat transfer
         lumped_boundary_and_surface_resistance: [h m-1] Lhomme's lumped boundary and surface resistance (Ri)
             for the given component
@@ -83,14 +83,14 @@ def calc_evaporative_energy(net_radiation: float,
     """
     energy_driven_evaporation = canopy_lumped_aerodynamic_resistance * (
             penman_evaporative_energy - penman_monteith_evaporative_energy)
-    radiation_driven_evaporation = boundary_layer_resistance * net_radiation * (
+    radiation_driven_evaporation = boundary_layer_resistance * available_energy * (
             vapor_pressure_slope / psychrometric_constant)
     return 1.0 / lumped_boundary_and_surface_resistance * (energy_driven_evaporation + radiation_driven_evaporation)
 
 
 def calc_temperature(canopy_temperature: float,
                      boundary_layer_resistance: float,
-                     component_net_radiation: float,
+                     component_available_energy: float,
                      component_evaporative_energy: float,
                      air_density: float,
                      air_specific_heat_capacity: float) -> float:
@@ -99,7 +99,7 @@ def calc_temperature(canopy_temperature: float,
     Args:
         canopy_temperature: [K] air temperature at source height
         boundary_layer_resistance: [h m-1] boundary layer resistance to heat transfer
-        component_net_radiation: [W m-2ground] canopy net radiation
+        component_available_energy: [W m-2ground] available energy to the component
         component_evaporative_energy: [W m-2ground] canopy evaporative energy
         air_density: [g m-3] density of dry air
         air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
@@ -108,13 +108,13 @@ def calc_temperature(canopy_temperature: float,
         [K] air temperature at source height
     """
     return canopy_temperature + (boundary_layer_resistance / (air_density * air_specific_heat_capacity)) * (
-            component_net_radiation - component_evaporative_energy)
+            component_available_energy - component_evaporative_energy)
 
 
-def calc_net_radiation(net_shortwave_radiation: float,
-                       net_longwave_radiation: float,
-                       soil_heat_flux: float) -> float:
-    """Calculates the net radiation flux density of a canopy component per unit ground surface area.
+def calc_available_energy(net_shortwave_radiation: float,
+                          net_longwave_radiation: float,
+                          soil_heat_flux: float) -> float:
+    """Calculates the available energy flux density of a canopy component per unit ground surface area.
 
     Args:
         net_shortwave_radiation: [W m-2ground] net shortwave flux density radiation of the component
@@ -122,6 +122,6 @@ def calc_net_radiation(net_shortwave_radiation: float,
         soil_heat_flux: [W m-2ground] the net heat flux density into the soil
 
     Returns:
-        [W m-2ground] net radiation flux density of the canopy component per unit ground surface area
+        [W m-2ground] available energy flux density of the component per unit ground surface area
     """
     return net_shortwave_radiation + net_longwave_radiation - soil_heat_flux

@@ -263,9 +263,9 @@ def calc_leaf_layer_net_longwave_radiation(leaves_category: str,
     if leaves_category == 'sunlit':
         return sunlit_net_longwave_radiation
     else:
-        lumped_layer_net_radiation = lumped_leaves.calc_leaf_layer_net_longwave_radiation(
+        lumped_layer_net_longwave_radiation = lumped_leaves.calc_leaf_layer_net_longwave_radiation(
             canopy_top_net_longwave_radiation=canopy_top_net_longwave_radiation,
             upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=lower_cumulative_leaf_area_index,
             diffuse_black_extinction_coefficient=diffuse_black_extinction_coefficient)
-        return lumped_layer_net_radiation - sunlit_net_longwave_radiation
+        return lumped_layer_net_longwave_radiation - sunlit_net_longwave_radiation
