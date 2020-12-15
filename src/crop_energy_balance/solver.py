@@ -43,8 +43,7 @@ class Solver:
         for crop_components in self.components:
             crop_components.calc_evaporative_energy(self.canopy.state_variables)
 
-        self.canopy.state_variables.calc_source_temperature(crop_components=self.components,
-                                                            inputs=self.canopy.inputs)
+        self.canopy.state_variables.calc_source_temperature(inputs=self.canopy.inputs)
 
         self.canopy.state_variables.calc_net_radiation(crop_components=self.components)
         self.canopy.state_variables.calc_sensible_heat_flux(inputs=self.canopy.inputs)
@@ -53,8 +52,8 @@ class Solver:
             crop_components.calc_temperature(self.canopy.state_variables)
 
     def update_temperature(self):
-        for crop_components in self.components:
-            crop_components.update_temperature(self.params)
+        for crop_component in self.components:
+            crop_component.update_temperature(self.params)
 
     def calc_energy_balance(self):
         self.energy_balance = self.canopy.state_variables.net_radiation - (

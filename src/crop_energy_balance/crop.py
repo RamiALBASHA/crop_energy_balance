@@ -48,7 +48,7 @@ class CanopyStateVariables:
             air_temperature=inputs.air_temperature,
             canopy_temperature=self.source_temperature,
             atmospheric_emissivity=inputs.atmospheric_emissivity,
-            stefan_boltzman_constant=constants.stefan_boltzmann)
+            stefan_boltzmann_constant=constants.stefan_boltzmann)
 
         # Canopy net radiation is not initialized to None in oder to be able to initialize the soil heat flux
         self.net_radiation = utils.convert_photosynthetically_active_radiation_into_global_radiation(
@@ -68,7 +68,7 @@ class CanopyStateVariables:
                                       crop_components: list):
         self.penman_energy = canopy.calc_penman_evaporative_energy(
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-            canopy_net_radiation=sum([crop_component.net_radiation for crop_component in crop_components]),
+            canopy_net_radiation=self.net_radiationsum,
             vapor_pressure_slope=self.vapor_pressure_slope,
             vapor_pressure_deficit=self.vapor_pressure_deficit,
             psychrometric_constant=constants.psychrometric_constant,
@@ -85,7 +85,6 @@ class CanopyStateVariables:
             psychrometric_constant=constants.psychrometric_constant)
 
     def calc_source_temperature(self,
-                                crop_components: list,
                                 inputs: LumpedInputs or SunlitShadedInputs):
         self.source_temperature = max(
             constants.absolute_zero,
@@ -130,6 +129,7 @@ class Component:
         self.penman_monteith_evaporative_energy = None
         self._temperature = None
         self.temperature = None
+        self.temperature2 = None
 
     def init_state_variables(self,
                              inputs: LumpedInputs or SunlitShadedInputs,
