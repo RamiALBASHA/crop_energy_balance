@@ -37,14 +37,14 @@ class Inputs:
             self.wind_speed, self.canopy_height, self.measurement_height)
         """[m h-1] wind speed at canopy height"""
 
-        self._air_vapor_pressure = self._inputs['vapor_pressure']
+        self.air_vapor_pressure = self._inputs['vapor_pressure']
         """[kPa] vapor pressure of the air"""
 
         self.vapor_pressure_deficit = self._inputs['vapor_pressure_deficit']
         """[kPa] vapor pressure deficit of the air"""
 
         self.atmospheric_emissivity = weather.calc_atmospheric_emissivity('monteith_2013',
-                                                                          self._air_vapor_pressure,
+                                                                          self.air_vapor_pressure,
                                                                           self.air_temperature)
         """[-] sky longwave radiation emissivity"""
 

@@ -86,6 +86,7 @@ def calc_turbulent_diffusivity(von_karman_constant: float,
 
 
 def calc_net_longwave_radiation(air_temperature: float,
+                                air_vapor_pressure: float,
                                 canopy_temperature: float,
                                 atmospheric_emissivity: float,
                                 stefan_boltzmann_constant: float) -> float:
@@ -93,6 +94,7 @@ def calc_net_longwave_radiation(air_temperature: float,
 
     Args:
         air_temperature: [K] air temperature
+        air_vapor_pressure: [kPa] actual vapor pressure
         canopy_temperature: [K] canopy (source) temperature
         atmospheric_emissivity: [-] atmospheric emissivity to longwave radiation
         stefan_boltzmann_constant: [W m-2 K-4] Stefan-Boltzmann constant
@@ -101,12 +103,17 @@ def calc_net_longwave_radiation(air_temperature: float,
         [W m-2ground] net long wave radiation at the top of the canopy
 
     References:
+        Allen et al. 1998
+            Crop Evapotranspiration – Guide-lines for Computing Crop Water Requirements
+            Paper 56. Food and Agricultural Organization of the United Nations.
         Leuning et al. 1995
             Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
             Plant, Cell and Environment 18, 1183 - 1200.
     """
-    return (atmospheric_emissivity * stefan_boltzmann_constant * air_temperature ** 4 -
-            stefan_boltzmann_constant * canopy_temperature ** 4)
+    gross_radiation_loss = (atmospheric_emissivity * stefan_boltzmann_constant * air_temperature ** 4 -
+                            stefan_boltzmann_constant * canopy_temperature ** 4)
+    reduction_factor = 0.34 - 0.14 * air_vapor_pressure ** 0.5
+    return gross_radiation_loss * reduction_factor
 
 
 def calc_sensible_heat_flux(source_temperature: float,

@@ -46,6 +46,7 @@ class CanopyStateVariables:
             psychrometric_constant=constants.psychrometric_constant)
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
+            air_vapor_pressure=inputs.air_vapor_pressure,
             canopy_temperature=self.source_temperature,
             atmospheric_emissivity=inputs.atmospheric_emissivity,
             stefan_boltzmann_constant=constants.stefan_boltzmann)
@@ -134,7 +135,6 @@ class Component:
         self.penman_monteith_evaporative_energy = None
         self._temperature = None
         self.temperature = None
-        self.temperature2 = None
 
     def init_state_variables(self,
                              inputs: LumpedInputs or SunlitShadedInputs,
