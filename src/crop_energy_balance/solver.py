@@ -36,12 +36,12 @@ class Solver:
 
     def update_state_variables(self):
         self.canopy.state_variables.calc_total_composed_conductances(crop_components=self.components)
-        for crop_components in self.components:
-            crop_components.calc_composed_conductance(self.canopy.state_variables)
+        for crop_component in self.components:
+            crop_component.calc_composed_conductance(self.canopy.state_variables)
 
         self.canopy.state_variables.calc_total_evaporative_energy(crop_components=self.components)
-        for crop_components in self.components:
-            crop_components.calc_evaporative_energy(self.canopy.state_variables)
+        for crop_component in self.components:
+            crop_component.calc_evaporative_energy(self.canopy.state_variables)
 
         self.canopy.state_variables.calc_source_temperature(inputs=self.canopy.inputs)
 
@@ -49,8 +49,8 @@ class Solver:
         self.canopy.state_variables.calc_net_radiation(soil_heat_flux=self.components[0].heat_flux)
         self.canopy.state_variables.calc_sensible_heat_flux(inputs=self.canopy.inputs)
 
-        for crop_components in self.components:
-            crop_components.calc_temperature(self.canopy.state_variables)
+        for crop_component in self.components:
+            crop_component.calc_temperature(self.canopy.state_variables)
 
     def update_temperature(self):
         for crop_component in self.components:

@@ -172,8 +172,8 @@ class Component:
         self.temperature = component.calc_temperature(
             canopy_temperature=canopy_state_variables.source_temperature,
             boundary_layer_resistance=self.boundary_resistance,
-            component_available_energy=self.available_energy,
-            component_evaporative_energy=self.penman_monteith_evaporative_energy,
+            available_energy=self.available_energy,
+            evaporative_energy=self.penman_monteith_evaporative_energy,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
 

@@ -90,8 +90,8 @@ def calc_evaporative_energy(available_energy: float,
 
 def calc_temperature(canopy_temperature: float,
                      boundary_layer_resistance: float,
-                     component_available_energy: float,
-                     component_evaporative_energy: float,
+                     available_energy: float,
+                     evaporative_energy: float,
                      air_density: float,
                      air_specific_heat_capacity: float) -> float:
     """Calculates air temperature at source height.
@@ -99,8 +99,8 @@ def calc_temperature(canopy_temperature: float,
     Args:
         canopy_temperature: [K] air temperature at source height
         boundary_layer_resistance: [h m-1] boundary layer resistance to heat transfer
-        component_available_energy: [W m-2ground] available energy to the component
-        component_evaporative_energy: [W m-2ground] canopy evaporative energy
+        available_energy: [W m-2ground] available energy to the component
+        evaporative_energy: [W m-2ground] canopy evaporative energy
         air_density: [g m-3] density of dry air
         air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
 
@@ -108,7 +108,7 @@ def calc_temperature(canopy_temperature: float,
         [K] air temperature at source height
     """
     return canopy_temperature + (boundary_layer_resistance / (air_density * air_specific_heat_capacity)) * (
-            component_available_energy - component_evaporative_energy)
+            available_energy - evaporative_energy)
 
 
 def calc_available_energy(net_shortwave_radiation: float,
