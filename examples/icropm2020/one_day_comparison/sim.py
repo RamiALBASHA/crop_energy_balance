@@ -43,7 +43,7 @@ def get_irradiance_sim_inputs_and_params(
         leaf_layers=vegetative_layers,
         incident_direct_irradiance=incident_direct_par_irradiance,
         incident_diffuse_irradiance=incident_diffuse_par_irradiance,
-        solar_inclination=radians(solar_inclination_angle))
+        solar_inclination=solar_inclination_angle)
     common_params = dict(
         leaf_reflectance=0.08,
         leaf_transmittance=0.07,
