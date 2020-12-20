@@ -25,19 +25,39 @@ def calc_psychrometric_constant(atmospheric_pressure: float,
             vapor_to_dry_air_molecular_weight * latent_heat_for_vaporization)
 
 
-def calc_atmospheric_emissivity(air_vapor_pressure: float,
+def calc_atmospheric_emissivity(model: str,
+                                air_vapor_pressure: float,
                                 air_temperature: float) -> float:
-    """Calculates the atmospheric emissivity to thermal infrared waves.
+    """Calculates the effective atmospheric emissivity of a clear sky
 
     Args:
+        model: model to be used, one of 'brutsaert_1975' and 'monteith_2013'
         air_vapor_pressure: [kPa] air vapor pressure
         air_temperature: [K] air temperature
 
     Returns:
-        [-] atmospheric emissivity
+        [-] effective atmospheric emissivity of a clear sky
+
+    References:
+        Brutsaert, 1975.
+            On a Derivable Formula for Long-Wave Radiation From Clear Skies.
+            Water Resources Research 11, 742 - 744.
+        Monteith and Unsworth, 2013
+            Principals of Environmental Physics. Fourth Edition
+            pp 72
     """
 
-    return 1.24 * (10. * air_vapor_pressure / air_temperature) ** (1. / 7.)
+    if model == 'brutsaert_1975':
+        res = 1.24 * (0.1 * air_vapor_pressure / air_temperature) ** (1. / 7.)
+    elif model == 'monteith_2013':
+        a = 0.10  # kg−1 m−2
+        b = 1.2
+        c = 0.30  # kg−1 m2
+        w = 4.65 * 1.e3 * air_vapor_pressure / air_temperature
+        res = 1 - (1 + a * w) * exp(-(b + c * w) ** 0.5)
+    else:
+        raise ValueError(f'Unknown model name: {model}.')
+    return res
 
 
 def calc_vapor_pressure_slope(temperature: float) -> float:

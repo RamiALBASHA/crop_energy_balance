@@ -85,6 +85,59 @@ def calc_turbulent_diffusivity(von_karman_constant: float,
         log((measurement_height - zero_displacement_height) / canopy_roughness_length_for_momentum))
 
 
+def calc_net_longwave_radiation(air_temperature: float,
+                                air_vapor_pressure: float,
+                                canopy_temperature: float,
+                                atmospheric_emissivity: float,
+                                stefan_boltzmann_constant: float) -> float:
+    """Calculates net long wave radiation at the top of the canopy.
+
+    Args:
+        air_temperature: [K] air temperature
+        air_vapor_pressure: [kPa] actual vapor pressure
+        canopy_temperature: [K] canopy (source) temperature
+        atmospheric_emissivity: [-] atmospheric emissivity to longwave radiation
+        stefan_boltzmann_constant: [W m-2 K-4] Stefan-Boltzmann constant
+
+    Returns:
+        [W m-2ground] net long wave radiation at the top of the canopy
+
+    References:
+        Allen et al. 1998
+            Crop Evapotranspiration – Guide-lines for Computing Crop Water Requirements
+            Paper 56. Food and Agricultural Organization of the United Nations.
+        Leuning et al. 1995
+            Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
+            Plant, Cell and Environment 18, 1183 - 1200.
+    """
+    gross_radiation_loss = (atmospheric_emissivity * stefan_boltzmann_constant * air_temperature ** 4 -
+                            stefan_boltzmann_constant * canopy_temperature ** 4)
+    reduction_factor = 0.34 - 0.14 * air_vapor_pressure ** 0.5
+    return gross_radiation_loss * reduction_factor
+
+
+def calc_sensible_heat_flux(source_temperature: float,
+                            air_temperature: float,
+                            aerodynamic_resistance: float,
+                            air_density: float,
+                            air_specific_heat_capacity: float) -> float:
+    """Calculates the sensible heat flux of the canopy.
+
+    Args:
+        source_temperature: [K] air temperature at source height
+        air_temperature: [K] air temperature at reference height
+        aerodynamic_resistance: [h m-1] air resistance to heat transfer between the source height and the reference
+            height
+        air_density: [g m-3] density of dry air
+        air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
+
+    Returns:
+        [W m-2ground]: Sensible heat flux of the canopy.
+    """
+    temperature_difference = source_temperature - air_temperature
+    return air_density * air_specific_heat_capacity * temperature_difference / aerodynamic_resistance
+
+
 def calc_canopy_aerodynamic_resistance(wind_speed: float,
                                        canopy_height: float,
                                        reference_height: float,
@@ -112,7 +165,7 @@ def calc_canopy_aerodynamic_resistance(wind_speed: float,
 
 
 def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
-                                   canopy_net_radiation: float,
+                                   canopy_available_energy: float,
                                    vapor_pressure_slope: float,
                                    vapor_pressure_deficit: float,
                                    psychrometric_constant: float,
@@ -123,7 +176,7 @@ def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
     Args:
         canopy_aerodynamic_resistance: [h m-1] air resistance to water vapor transfer between the source height
             and the reference height
-        canopy_net_radiation: [W m-2ground] net radiation flux density of the entire canopy per unit ground surface area
+        canopy_available_energy: [W m-2ground] available energy flux density of the entire canopy
         vapor_pressure_slope: [kPa K-1] the slope of vapor pressure curve at a given air temperature
         vapor_pressure_deficit: [kPa] vapor pressure deficit at the reference height
         psychrometric_constant: [kPa K-1] the psychrometric constant
@@ -133,9 +186,13 @@ def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
     Returns:
         [W m-2ground] the evapotranspiration energy flux density according to Penman's formula
 
+    References:
+        Lhomme et al. 2013
+            Evaporation from multi-component canopies: Generalized formulations.
+            Journal of Hydrology 486, 315 - 320.
+            Eq. 10
     """
-    # canopy_net_radiation = max(0.0, canopy_net_radiation)  # to avoid calculating negative transpiration fluxes
-    return (vapor_pressure_slope * canopy_net_radiation + (
+    return (vapor_pressure_slope * canopy_available_energy + (
             air_density * air_specific_heat_capacity * vapor_pressure_deficit) / canopy_aerodynamic_resistance) / (
                    vapor_pressure_slope + psychrometric_constant)
 
@@ -166,7 +223,7 @@ def calc_canopy_lumped_aerodynamic_resistance(canopy_aerodynamic_resistance: flo
 def calc_penman_monteith_evaporative_energy(canopy_lumped_aerodynamic_resistance: float,
                                             penman_evaporative_energy: float,
                                             composed_boundary_and_surface_conductances: list,
-                                            net_radiation_fluxes: list,
+                                            available_energy_fluxes: list,
                                             boundary_layer_resistances: list,
                                             vapor_pressure_slope: float,
                                             psychrometric_constant: float) -> float:
@@ -178,7 +235,7 @@ def calc_penman_monteith_evaporative_energy(canopy_lumped_aerodynamic_resistance
             Penman's formula
         composed_boundary_and_surface_conductances: [m h-1] Lhomme's composed boundary and surface conductance
             (Pi) of all canopy components
-        net_radiation_fluxes: [W m-2ground] net radiation flux densities of all canopy components
+        available_energy_fluxes: [W m-2ground] available energy flux densities of all canopy components
         boundary_layer_resistances: [h m-1] boundary layer reistance to heat transfer of all canopy components
         vapor_pressure_slope: [kPa K-1] the slope of vapor pressure curve at a given air temperature
         psychrometric_constant: [kPa K-1] the psychrometric constant
@@ -193,13 +250,13 @@ def calc_penman_monteith_evaporative_energy(canopy_lumped_aerodynamic_resistance
             Eq. 12
 
     Notes:
-        All lists of :args:`composed_boundary_and_surface_conductances`, :args:`net_radiation_fluxes` and
-            :args:`boundary_layer_resistances` must be equally ordered, that is, their values must refer to the same crop
-            components in the same order. Violating this condition will lead serious to simulation errors.
+        All lists of :args:`composed_boundary_and_surface_conductances`, :args:`available_energy_fluxes` and
+            :args:`boundary_layer_resistances` must be identically ordered, that is, their values must refer to the
+            same crop components in the same order. Violating this condition will lead serious to simulation errors.
     """
     sum_p = 0.0
     sum_p_a_r = 0.0
-    for p, a, r in zip(composed_boundary_and_surface_conductances, net_radiation_fluxes, boundary_layer_resistances):
+    for p, a, r in zip(composed_boundary_and_surface_conductances, available_energy_fluxes, boundary_layer_resistances):
         sum_p += p
         sum_p_a_r += (p * a * r)
     return canopy_lumped_aerodynamic_resistance * penman_evaporative_energy * sum_p + (
@@ -208,7 +265,7 @@ def calc_penman_monteith_evaporative_energy(canopy_lumped_aerodynamic_resistance
 
 def calc_temperature(air_temperature: float,
                      canopy_aerodynamic_resistance: float,
-                     canopy_net_radiation: float,
+                     canopy_available_energy: float,
                      penman_monteith_evaporative_energy: float,
                      air_density: float,
                      air_specific_heat_capacity: float) -> float:
@@ -218,7 +275,7 @@ def calc_temperature(air_temperature: float,
         air_temperature: [K] air temperature at measurement height
         canopy_aerodynamic_resistance: [h m-1] air resistance to water vapor transfer between the source height
             and the reference height
-        canopy_net_radiation: [W m-2ground] canopy net radiation
+        canopy_available_energy: [W m-2ground] canopy available energy
         penman_monteith_evaporative_energy: [W m-2ground] canopy evaporative energy
         air_density: [g m-3] density of dry air
         air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
@@ -227,4 +284,4 @@ def calc_temperature(air_temperature: float,
         [K] air temperature at source height
     """
     return air_temperature + (canopy_aerodynamic_resistance / (air_density * air_specific_heat_capacity)) * (
-            canopy_net_radiation - penman_monteith_evaporative_energy)
+            canopy_available_energy - penman_monteith_evaporative_energy)

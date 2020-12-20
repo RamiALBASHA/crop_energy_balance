@@ -82,3 +82,26 @@ def calc_heat_flux(net_above_ground_radiation: float,
 
     """
     return 0.1 * net_above_ground_radiation if is_diurnal else 0.5 * net_above_ground_radiation
+
+
+def calc_net_longwave_radiation(canopy_top_net_longwave_radiation: float,
+                                canopy_leaf_area_index: float,
+                                diffuse_black_extinction_coefficient: float) -> float:
+    """Calculates net long wave radiation exchange at the soil surface.
+
+    Args:
+        canopy_top_net_longwave_radiation: [W m-2ground] net long wave radiation at the top of the canopy
+        canopy_leaf_area_index: [m2leaf m-2ground] total leaf area index of the canopy
+        diffuse_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of diffuse irradiance
+            through a canopy of black leaves
+
+    Returns:
+        [W m-2ground]: net long wave radiation exchange at the soil surface
+
+    References:
+        Leuning et al. 1995
+            Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
+            Plant, Cell and Environment 18, 1183 - 1200.
+    """
+    scaling_factor = exp(-diffuse_black_extinction_coefficient * canopy_leaf_area_index)
+    return canopy_top_net_longwave_radiation * scaling_factor
