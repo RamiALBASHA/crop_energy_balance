@@ -140,15 +140,16 @@ def solve_energy_balance(
     return solver
 
 
-def calc_temperature(
+def get_variable(
+        var_to_get: str,
         one_step_solver: eb_solver.Solver,
         leaf_class_type: str) -> dict:
     if leaf_class_type == 'lumped':
-        res = {index: {'lumped': layer.temperature} for index, layer in one_step_solver.canopy.items()}
+        res = {index: {'lumped': getattr(layer, var_to_get)} for index, layer in one_step_solver.canopy.items()}
     else:
-        res = {index: {'sunlit': layer['sunlit'].temperature, 'shaded': layer['shaded'].temperature}
+        res = {index: {'sunlit': getattr(layer['sunlit'], var_to_get), 'shaded': getattr(layer['shaded'], var_to_get)}
                for index, layer in one_step_solver.canopy.items() if index != -1}
-        res.update({-1: {'lumped': one_step_solver.canopy[-1].temperature}})
+        res.update({-1: {'lumped': getattr(one_step_solver.canopy[-1], var_to_get)}})
     return res
 
 
@@ -497,7 +498,8 @@ if __name__ == '__main__':
                 actual_weather_data=w_data)
 
             hourly_solver.append(energy_balance_solver)
-            hourly_temperature.append(calc_temperature(
+            hourly_temperature.append(get_variable(
+                var_to_get='temperature',
                 one_step_solver=energy_balance_solver,
                 leaf_class_type=leaves_type))
 
