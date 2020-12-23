@@ -112,7 +112,7 @@ def calc_absorbed_irradiance(leaves_category: str,
         (depth-independent).
 
     Args:
-        leaves_category: one of ('sunlit', 'shaded')
+        leaves_category: one of ('sunlit', 'shaded', 'lumped')
         incident_direct_irradiance: [W m-2ground] incident direct (beam) irradiance at the top of the canopy
         incident_diffuse_irradiance: [W m-2ground] incident diffuse irradiance at the top of the canopy
         cumulative_leaf_area_index: [m2leaf m-2ground] cumulative downwards leaf area index at the top of the
@@ -126,30 +126,20 @@ def calc_absorbed_irradiance(leaves_category: str,
         diffuse_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of diffuse irradiance
 
     Returns:
-        [W m-2leaf] the absorbed irradiance by sunlit or shaded leaves at a given depth, per unit leaf area
+        [W m-2leaf] the absorbed irradiance by sunlit or shaded leaves at a given depth per unit leaf area
     """
+    common_args = {k: v for k, v in locals().items() if k != 'leaves_category'}
+    res = None
     if leaves_category == 'sunlit':
-        return calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(
-            incident_direct_irradiance,
-            incident_diffuse_irradiance,
-            cumulative_leaf_area_index,
-            leaf_scattering_coefficient,
-            canopy_reflectance_to_direct_irradiance,
-            canopy_reflectance_to_diffuse_irradiance,
-            direct_extinction_coefficient,
-            direct_black_extinction_coefficient,
-            diffuse_extinction_coefficient)
+        res = calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(**common_args)
     elif leaves_category == 'shaded':
-        return calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(
-            incident_direct_irradiance,
-            incident_diffuse_irradiance,
-            cumulative_leaf_area_index,
-            leaf_scattering_coefficient,
-            canopy_reflectance_to_direct_irradiance,
-            canopy_reflectance_to_diffuse_irradiance,
-            direct_extinction_coefficient,
-            direct_black_extinction_coefficient,
-            diffuse_extinction_coefficient)
+        res = calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(**common_args)
+    elif leaves_category == 'lumped':
+        res = (calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(**common_args) *
+               calc_sunlit_fraction(cumulative_leaf_area_index, direct_black_extinction_coefficient) +
+               calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(**common_args) *
+               calc_shaded_fraction(cumulative_leaf_area_index, direct_black_extinction_coefficient))
+    return res
 
 
 def calc_leaf_fraction(leaves_category: str,

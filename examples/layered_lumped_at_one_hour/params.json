@@ -7,7 +7,6 @@
   "wind_speed_extinction_coef": 0.5,
   "maximum_stomatal_conductance": 39.6,
   "residual_stomatal_conductance": 4.0,
-  "global_extinction_coefficient": 0.45,
   "diffuse_extinction_coef": 0.64,
   "leaf_scattering_coefficient": 0.15,
   "leaf_emissivity": 0.96,

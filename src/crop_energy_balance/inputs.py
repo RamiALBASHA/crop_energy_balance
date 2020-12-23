@@ -1,5 +1,5 @@
-from pathlib import Path
 from json import load
+from pathlib import Path
 
 from crop_energy_balance.formalisms import canopy, weather
 
@@ -85,6 +85,10 @@ class Inputs:
                 lowest number which must be equal to -1.
         """
 
+        self.solar_inclination = self._inputs['solar_inclination']
+        """(Rad) the angle between solar beam and the horizon.
+        """
+
         self.components_keys = sorted(list(self.leaf_layers.keys()) + [-1])
 
     @staticmethod
@@ -92,17 +96,3 @@ class Inputs:
         for k in ('leaf_layers', 'absorbed_photosynthetically_active_radiation'):
             inputs[k] = {int(key): value for key, value in inputs[k].items()}
         return inputs
-
-
-class LumpedInputs(Inputs):
-    def __init__(self, inputs: dict = None, inputs_path: Path = None):
-        Inputs.__init__(self, inputs, inputs_path)
-
-
-class SunlitShadedInputs(Inputs):
-    def __init__(self, inputs: dict = None, inputs_path: Path = None):
-        Inputs.__init__(self, inputs, inputs_path)
-
-        self.solar_inclination = self._inputs['solar_inclination']
-        """(Rad) the angle between solar beam and the horizon.
-        """

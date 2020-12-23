@@ -116,7 +116,7 @@ def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
         maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
         shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
-            to absorbed photosynthetically active radiation
+            to the absorbed photosynthetically active radiation (PAR)
         sublayers_number: number of sublayers that are used to performe numerical integral of the leaf-layer surface
             conductance equation
 
@@ -139,10 +139,12 @@ def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
                                                        direct_black_extinction_coefficient,
                                                        diffuse_extinction_coefficient)
 
-        stomatal_sensibility_to_absorbed_irradiance = (absorbed_irradiance / (shape_parameter + absorbed_irradiance))
-
-        lumped_leaf_surface_conductance = residual_stomatal_conductance + maximum_stomatal_conductance * (
-                stomatal_sensibility_to_water_status * stomatal_sensibility_to_absorbed_irradiance)
+        lumped_leaf_surface_conductance = leaf.calc_stomatal_conductance(
+            residual_stomatal_conductance=residual_stomatal_conductance,
+            maximum_stomatal_conductance=maximum_stomatal_conductance,
+            absorbed_irradiance=absorbed_irradiance,
+            shape_parameter=shape_parameter,
+            stomatal_sensibility_to_water_status=stomatal_sensibility_to_water_status)
 
         leaf_fraction = calc_leaf_fraction(leaves_category,
                                            cumulative_leaf_area_index,
@@ -190,7 +192,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
         shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
             to absorbed photosynthetically active radiation
-        sublayers_number: number of sublayers that are used to performe numerical integral of the leaf-layer surface
+        sublayers_number: number of sublayers that are used to perform the numerical integral of the leaf-layer surface
             conductance equation
         stomatal_density_factor (int): [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 

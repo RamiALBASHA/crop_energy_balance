@@ -1,6 +1,8 @@
-from math import exp, log
+from math import exp
 
 from crop_energy_balance.formalisms import leaf
+from crop_energy_balance.formalisms.irradiance import calc_absorbed_irradiance
+from crop_energy_balance.utils import discretize_linearly
 
 
 def calc_leaf_layer_boundary_conductance_to_vapor(wind_speed_at_canopy_height: float,
@@ -54,67 +56,115 @@ def calc_leaf_layer_boundary_resistance_to_heat(wind_speed_at_canopy_height: flo
     return 1.0 / calc_leaf_layer_boundary_conductance_to_vapor(**locals())
 
 
-def calc_leaf_layer_surface_conductance_to_vapor(incident_irradiance: float,
+def calc_leaf_layer_surface_conductance_to_vapor(incident_direct_irradiance: float,
+                                                 incident_diffuse_irradiance: float,
                                                  upper_cumulative_leaf_area_index: float,
                                                  lower_cumulative_leaf_area_index: float,
                                                  stomatal_sensibility_to_water_status: float,
-                                                 global_extinction_coefficient: float,
+                                                 leaf_scattering_coefficient: float,
+                                                 canopy_reflectance_to_direct_irradiance: float,
+                                                 canopy_reflectance_to_diffuse_irradiance: float,
+                                                 direct_extinction_coefficient: float,
+                                                 direct_black_extinction_coefficient: float,
+                                                 diffuse_extinction_coefficient: float,
                                                  maximum_stomatal_conductance: float,
                                                  residual_stomatal_conductance: float,
-                                                 shape_parameter: float = 105) -> float:
+                                                 shape_parameter: float = 105,
+                                                 sublayers_number: int = 5) -> float:
     """Calculates the bulk surface conductance of a leaf layer for both sides of leaves blade.
 
     Args:
-        incident_irradiance: [W m-2ground] incident photosynthetically active radiation above the canopy
+        incident_direct_irradiance: [W m-2ground] incident direct photosynthetically active radiation above the canopy
+        incident_diffuse_irradiance: [W m-2ground] incident diffuse irradiance at the top of the canopy
         upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
         lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index below the considered layer
         stomatal_sensibility_to_water_status: [-] stomatal closure fraction due to water stress
-        global_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of the entire PAR wavelength into
-            the canopy
+        leaf_scattering_coefficient: [-] leaf scattering coefficient
+        canopy_reflectance_to_direct_irradiance: [-] canopy reflectance to direct (beam) irradiance
+        canopy_reflectance_to_diffuse_irradiance: [-] canopy reflectance to diffuse irradiance
+        direct_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of direct (beam) irradiance
+        direct_black_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of direct (beam)
+            irradiance for black leaves
+        diffuse_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of diffuse irradiance
         maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
         shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
-            to absorbed absorbed photosynthetically active radiation
+            to the absorbed photosynthetically active radiation (PAR)
+        sublayers_number: number of sublayers that are used to perform the numerical integral of the leaf-layer surface
+            conductance equation
 
     Returns:
         [m h-1] bulk surface conductance of the leaf layer for both sides of leaves blade
     """
-    scaling_factor = 1.0 / global_extinction_coefficient * log(
-        (global_extinction_coefficient * incident_irradiance *
-         exp(-global_extinction_coefficient * upper_cumulative_leaf_area_index) + shape_parameter) /
-        (global_extinction_coefficient * incident_irradiance *
-         exp(-global_extinction_coefficient * lower_cumulative_leaf_area_index) + shape_parameter))
+    sublayer_thickness = (lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index) / sublayers_number
 
-    return residual_stomatal_conductance * (
-            1 - scaling_factor) + maximum_stomatal_conductance * stomatal_sensibility_to_water_status * scaling_factor
+    leaf_layer_surface_conductance = 0
+    for cumulative_leaf_area_index in discretize_linearly(upper_cumulative_leaf_area_index,
+                                                          lower_cumulative_leaf_area_index, sublayers_number):
+        absorbed_irradiance = calc_absorbed_irradiance('lumped',
+                                                       incident_direct_irradiance,
+                                                       incident_diffuse_irradiance,
+                                                       cumulative_leaf_area_index,
+                                                       leaf_scattering_coefficient,
+                                                       canopy_reflectance_to_direct_irradiance,
+                                                       canopy_reflectance_to_diffuse_irradiance,
+                                                       direct_extinction_coefficient,
+                                                       direct_black_extinction_coefficient,
+                                                       diffuse_extinction_coefficient)
+
+        lumped_leaf_surface_conductance = leaf.calc_stomatal_conductance(
+            residual_stomatal_conductance=residual_stomatal_conductance,
+            maximum_stomatal_conductance=maximum_stomatal_conductance,
+            absorbed_irradiance=absorbed_irradiance,
+            shape_parameter=shape_parameter,
+            stomatal_sensibility_to_water_status=stomatal_sensibility_to_water_status)
+
+        leaf_layer_surface_conductance += (lumped_leaf_surface_conductance * sublayer_thickness)
+
+    return leaf_layer_surface_conductance
 
 
-def calc_leaf_layer_surface_resistance_to_vapor(incident_irradiance: float,
+def calc_leaf_layer_surface_resistance_to_vapor(incident_direct_irradiance: float,
+                                                incident_diffuse_irradiance: float,
                                                 upper_cumulative_leaf_area_index: float,
                                                 lower_cumulative_leaf_area_index: float,
                                                 stomatal_sensibility_to_water_status: float,
-                                                global_extinction_coefficient: float,
+                                                leaf_scattering_coefficient: float,
+                                                canopy_reflectance_to_direct_irradiance: float,
+                                                canopy_reflectance_to_diffuse_irradiance: float,
+                                                direct_extinction_coefficient: float,
+                                                direct_black_extinction_coefficient: float,
+                                                diffuse_extinction_coefficient: float,
                                                 maximum_stomatal_conductance: float,
                                                 residual_stomatal_conductance: float,
                                                 shape_parameter: float,
+                                                sublayers_number: int,
                                                 stomatal_density_factor: int) -> float:
-    """Calculates the bulk surface conductance of a leaf layer.
+    """Calculates the bulk surface resistance of a leaf layer.
 
     Args:
-        incident_irradiance: [W m-2ground] incident photosynthetically active radiation above the canopy
+        incident_direct_irradiance: [W m-2ground] incident direct photosynthetically active radiation above the canopy
+        incident_diffuse_irradiance: [W m-2ground] incident diffuse irradiance at the top of the canopy
         upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index above the considered layer
         lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf area index below the considered layer
         stomatal_sensibility_to_water_status: [-] stomatal closure fraction due to water stress
-        global_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of the entire PAR wavelength into
-            the canopy
+        leaf_scattering_coefficient: [-] leaf scattering coefficient
+        canopy_reflectance_to_direct_irradiance: [-] canopy reflectance to direct (beam) irradiance
+        canopy_reflectance_to_diffuse_irradiance: [-] canopy reflectance to diffuse irradiance
+        direct_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of direct (beam) irradiance
+        direct_black_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of direct (beam)
+            irradiance for black leaves
+        diffuse_extinction_coefficient: [m2ground m-2leaf] the extinction coefficient of diffuse irradiance
         maximum_stomatal_conductance: [m h-1] maximum stomatal conductance
         residual_stomatal_conductance: [m h-1] residual (minimum) stomatal conductance
         shape_parameter: [W m-2leaf] an empirical parameter to regulate the shape of stomatal conductance response
             to absorbed photosynthetically active radiation
-        stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
+        sublayers_number: number of sublayers that are used to perform the numerical integral of the leaf-layer surface
+            conductance equation
+        stomatal_density_factor (int): [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
-        [m h-1] bulk surface conductance of the leaf layer
+        (float): [h m-1] bulk surface resistance of the leaf layer
     """
 
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}

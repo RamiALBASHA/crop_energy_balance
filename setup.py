@@ -19,7 +19,7 @@ pkg_data['crop_energy_balance'] = data_files
 
 setup(
     name='crop_energy_balance',
-    version="0.0.1",
+    version="1.0.0",
     description="crop energy balance",
     long_description="A model for simulating energy balance in the soil-crop-atmosphere continuum",
     author="Rami Albasha",

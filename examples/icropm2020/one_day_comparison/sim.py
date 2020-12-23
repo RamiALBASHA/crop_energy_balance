@@ -1,5 +1,4 @@
 from json import load
-from math import radians
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -87,40 +86,26 @@ def calc_absorbed_irradiance(
 
 def get_energy_balance_inputs_and_params(
         vegetative_layers: dict,
-        leaf_class_type: str,
         absorbed_par_irradiance: dict,
         actual_weather_data: pd.Series) -> (
-        eb_inputs.LumpedInputs or eb_inputs.SunlitShadedInputs,
-        eb_params.LumpedParams or eb_params.SunlitShadedParams):
+        eb_inputs.Inputs,
+        eb_params.Params):
     raw_inputs = json_inputs.copy()
-
-    if leaf_class_type == 'lumped':
-        incident_photosynthetically_active_radiation = {
-            'lumped': sum(actual_weather_data[['incident_direct_irradiance', 'incident_diffuse_irradiance']])}
-        solar_inclination_angle = None
-    else:
-        incident_photosynthetically_active_radiation = {
-            'direct': actual_weather_data['incident_direct_irradiance'],
-            'diffuse': actual_weather_data['incident_diffuse_irradiance']}
-        solar_inclination_angle = actual_weather_data['solar_declination']
 
     raw_inputs.update(
         {"leaf_layers": vegetative_layers,
-         "solar_inclination": solar_inclination_angle,
+         "solar_inclination": actual_weather_data['solar_declination'],
          "wind_speed": actual_weather_data['wind_speed'],
          "vapor_pressure": actual_weather_data['vapor_pressure'],
          "vapor_pressure_deficit": actual_weather_data['vapor_pressure_deficit'],
          "air_temperature": actual_weather_data['air_temperature'],
-         "incident_photosynthetically_active_radiation": incident_photosynthetically_active_radiation,
+         "incident_photosynthetically_active_radiation": {
+             'direct': actual_weather_data['incident_direct_irradiance'],
+             'diffuse': actual_weather_data['incident_diffuse_irradiance']},
          "absorbed_photosynthetically_active_radiation": absorbed_par_irradiance})
 
-    if leaf_class_type == 'lumped':
-        energy_balance_inputs = eb_inputs.LumpedInputs(raw_inputs)
-        energy_balance_params = eb_params.LumpedParams(json_params)
-    else:
-        energy_balance_inputs = eb_inputs.SunlitShadedInputs(raw_inputs)
-        energy_balance_params = eb_params.SunlitShadedParams(json_params)
-
+    energy_balance_inputs = eb_inputs.Inputs(raw_inputs)
+    energy_balance_params = eb_params.Params(params=json_params)
     energy_balance_params.update(inputs=energy_balance_inputs)
 
     return energy_balance_inputs, energy_balance_params
@@ -131,7 +116,8 @@ def solve_energy_balance(
         leaf_class_type: str,
         absorbed_par_irradiance: dict,
         actual_weather_data: pd.Series) -> eb_solver.Solver:
-    inputs, params = get_energy_balance_inputs_and_params(**locals())
+    kwargs = {k: v for k, v in locals().items() if k != 'leaf_class_type'}
+    inputs, params = get_energy_balance_inputs_and_params(**kwargs)
 
     canopy = eb_canopy.Canopy(leaves_category=leaf_class_type, inputs=inputs, params=params)
     solver = eb_solver.Solver(canopy=canopy, inputs=inputs, params=params)
@@ -151,13 +137,6 @@ def get_variable(
                for index, layer in one_step_solver.canopy.items() if index != -1}
         res.update({-1: {'lumped': getattr(one_step_solver.canopy[-1], var_to_get)}})
     return res
-
-
-# def init_results_dict(leaves_category: str,
-#                       canopy_layers: dict) -> dict:
-#     value = {'lumped': []} if leaves_category == 'lumped' else {'sunlit': [], 'shaded': []}
-#
-#     return {k: value for k in canopy_layers.keys()}
 
 
 def plot_irradiance_dynamic_comparison(incident_irradiance: pd.Series,
