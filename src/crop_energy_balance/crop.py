@@ -259,14 +259,21 @@ class LumpedLeafComponent(LeafComponent):
             inputs.vapor_pressure_deficit,
             params.simulation.vapor_pressure_deficit_coefficient)
         self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            incident_irradiance=canopy_state_variables.incident_irradiance['lumped'],
+            incident_direct_irradiance=inputs.incident_irradiance['direct'],
+            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             stomatal_sensibility_to_water_status=self.stomatal_sensibility,
-            global_extinction_coefficient=params.simulation.global_extinction_coefficient,
+            leaf_scattering_coefficient=params.simulation.leaf_scattering_coefficient,
+            canopy_reflectance_to_direct_irradiance=params.simulation.canopy_reflectance_to_direct_irradiance,
+            canopy_reflectance_to_diffuse_irradiance=params.simulation.canopy_reflectance_to_diffuse_irradiance,
+            direct_extinction_coefficient=params.simulation.direct_extinction_coefficient,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
+            diffuse_extinction_coefficient=params.simulation.diffuse_extinction_coefficient,
             maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
             residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
             shape_parameter=params.simulation.absorbed_par_50,
+            sublayers_number=params.simulation.sublayers_number,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
         self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(
             wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,

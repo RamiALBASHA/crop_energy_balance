@@ -179,16 +179,37 @@ class LumpedSimulation(Simulation):
     def __init__(self, data):
         Simulation.__init__(self, data)
 
-        self.global_extinction_coefficient = data['global_extinction_coefficient']
-        """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
+    canopy_reflectance_to_diffuse_irradiance = 0.057
+    leaves_to_sun_average_projection = 0.5
+    sublayers_number = 10
+
+    canopy_reflectance_to_direct_irradiance = None
+    direct_extinction_coefficient = None
+    direct_black_extinction_coefficient = None
+    diffuse_extinction_coefficient = None
 
     def update(self,
                inputs):
-        self.diffuse_black_extinction_coefficient = calc_diffuse_extinction_coefficient(
-            leaf_area_index=sum(inputs.leaf_layers.values()),
+        self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
+            solar_inclination=inputs.solar_inclination,
             leaf_scattering_coefficient=self.leaf_scattering_coefficient,
-            sky_sectors_number=3,
-            sky_type='soc')[1]
+            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection
+        )
+        self.direct_black_extinction_coefficient = calc_direct_black_extinction_coefficient(
+            solar_inclination=inputs.solar_inclination,
+            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection
+        )
+        self.diffuse_extinction_coefficient, self.diffuse_black_extinction_coefficient = (
+            calc_diffuse_extinction_coefficient(
+                leaf_area_index=sum(inputs.leaf_layers.values()),
+                leaf_scattering_coefficient=self.leaf_scattering_coefficient,
+                sky_sectors_number=3,
+                sky_type='soc')
+        )
+        self.canopy_reflectance_to_direct_irradiance = calc_canopy_reflectance_to_direct_irradiance(
+            direct_black_extinction_coefficient=self.direct_black_extinction_coefficient,
+            leaf_scattering_coefficient=self.leaf_scattering_coefficient
+        )
 
 
 class SunlitShadedSimulation(Simulation):
