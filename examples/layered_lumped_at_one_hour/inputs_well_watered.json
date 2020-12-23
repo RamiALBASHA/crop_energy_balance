@@ -9,28 +9,30 @@
     "7": 3.22
   },
   "incident_photosynthetically_active_radiation": {
-    "lumped": 227.37
+    "direct": 192,
+    "diffuse": 35.27
   },
   "absorbed_photosynthetically_active_radiation": {
     "7": {
-      "lumped": 173.83
+      "lumped": 181.15
     },
     "6": {
-      "lumped": 30.87
+      "lumped": 24.83
     },
     "5": {
-      "lumped": 8.83
+      "lumped": 6.16
     },
     "4": {
-      "lumped": 0.54
+      "lumped": 0.35
     },
     "-1": {
-      "lumped": 13.2
+      "lumped": 14.79
     }
   },
   "atmospheric_pressure": 101.3,
   "wind_speed": 31828.5,
   "air_temperature": 26.51,
   "vapor_pressure_deficit": 1.91,
-  "vapor_pressure": 1.135
+  "vapor_pressure": 1.135,
+  "solar_inclination": 1.0471975511965976
 }

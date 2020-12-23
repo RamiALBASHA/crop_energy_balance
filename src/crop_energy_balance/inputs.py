@@ -1,5 +1,5 @@
-from pathlib import Path
 from json import load
+from pathlib import Path
 
 from crop_energy_balance.formalisms import canopy, weather
 
@@ -96,13 +96,3 @@ class Inputs:
         for k in ('leaf_layers', 'absorbed_photosynthetically_active_radiation'):
             inputs[k] = {int(key): value for key, value in inputs[k].items()}
         return inputs
-
-
-class LumpedInputs(Inputs):
-    def __init__(self, inputs: dict = None, inputs_path: Path = None):
-        Inputs.__init__(self, inputs, inputs_path)
-
-
-class SunlitShadedInputs(Inputs):
-    def __init__(self, inputs: dict = None, inputs_path: Path = None):
-        Inputs.__init__(self, inputs, inputs_path)

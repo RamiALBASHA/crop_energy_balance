@@ -9,16 +9,16 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_
 
 class Params:
     def __init__(self,
-                 params: dict,
-                 params_path: Path):
+                 params: dict = None,
+                 params_path: Path = None):
         if params:
             self._user_params = params
         else:
             self._user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
 
-        self.numerical_resolution = NumericalResolution(self._user_params)
+        self.simulation = Simulation(self._user_params)
 
-        self.simulation = None
+        self.numerical_resolution = NumericalResolution(self._user_params)
 
     def update(self,
                inputs):
@@ -164,90 +164,53 @@ class Simulation:
         self.leaf_scattering_coefficient = data['leaf_scattering_coefficient']
         """[-] leaf scattering coefficient"""
 
-        self.global_extinction_coefficient = None
-        """[m2ground m-2leaf] extinction coefficient of lumped direct and diffuse irradiance"""
+        self.canopy_reflectance_to_diffuse_irradiance = 0.057
+        """[-] canopy reflectance to diffuse irradiance"""
+
+        self.leaves_to_sun_average_projection = 0.5
+        """[-] average projection of canopy leaves in the direction of the solar beam"""
+
+        self.sublayers_number = 10
+        """[-] number of sublayers that are used to perform the numerical integral of the leaf-layer surface conductance
+        equation
+        """
+
+        self.canopy_reflectance_to_direct_irradiance = None
+        """[-] canopy reflectance to direct (beam) irradiance"""
+
+        self.direct_extinction_coefficient = None
+        """[m2ground m-2leaf] the extinction coefficient of direct (beam) irradiance"""
+
+        self.direct_black_extinction_coefficient = None
+        """[m2ground m-2leaf] the extinction coefficient of direct (beam) irradiance for black leaves"""
+
+        self.diffuse_extinction_coefficient = None
+        """[m2ground m-2leaf] the extinction coefficient of diffuse irradiance"""
 
         self.diffuse_black_extinction_coefficient = None
         """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
 
     def update(self,
                inputs):
-        pass
-
-
-class LumpedSimulation(Simulation):
-    def __init__(self, data):
-        Simulation.__init__(self, data)
-
-    canopy_reflectance_to_diffuse_irradiance = 0.057
-    leaves_to_sun_average_projection = 0.5
-    sublayers_number = 10
-
-    canopy_reflectance_to_direct_irradiance = None
-    direct_extinction_coefficient = None
-    direct_black_extinction_coefficient = None
-    diffuse_extinction_coefficient = None
-
-    def update(self,
-               inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
             solar_inclination=inputs.solar_inclination,
             leaf_scattering_coefficient=self.leaf_scattering_coefficient,
-            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection
-        )
+            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection)
+
         self.direct_black_extinction_coefficient = calc_direct_black_extinction_coefficient(
             solar_inclination=inputs.solar_inclination,
-            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection
-        )
+            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection)
+
         self.diffuse_extinction_coefficient, self.diffuse_black_extinction_coefficient = (
             calc_diffuse_extinction_coefficient(
                 leaf_area_index=sum(inputs.leaf_layers.values()),
                 leaf_scattering_coefficient=self.leaf_scattering_coefficient,
                 sky_sectors_number=3,
-                sky_type='soc')
-        )
+                sky_type='soc'))
+
         self.canopy_reflectance_to_direct_irradiance = calc_canopy_reflectance_to_direct_irradiance(
             direct_black_extinction_coefficient=self.direct_black_extinction_coefficient,
-            leaf_scattering_coefficient=self.leaf_scattering_coefficient
-        )
-
-
-class SunlitShadedSimulation(Simulation):
-    def __init__(self,
-                 data: dict):
-        Simulation.__init__(self, data)
-
-    canopy_reflectance_to_diffuse_irradiance = 0.057
-    leaves_to_sun_average_projection = 0.5
-    sublayers_number = 10
-
-    canopy_reflectance_to_direct_irradiance = None
-    direct_extinction_coefficient = None
-    direct_black_extinction_coefficient = None
-    diffuse_extinction_coefficient = None
-
-    def update(self,
-               inputs):
-        self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
-            solar_inclination=inputs.solar_inclination,
-            leaf_scattering_coefficient=self.leaf_scattering_coefficient,
-            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection
-        )
-        self.direct_black_extinction_coefficient = calc_direct_black_extinction_coefficient(
-            solar_inclination=inputs.solar_inclination,
-            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection
-        )
-        self.diffuse_extinction_coefficient, self.diffuse_black_extinction_coefficient = (
-            calc_diffuse_extinction_coefficient(
-                leaf_area_index=sum(inputs.leaf_layers.values()),
-                leaf_scattering_coefficient=self.leaf_scattering_coefficient,
-                sky_sectors_number=3,
-                sky_type='soc')
-        )
-        self.canopy_reflectance_to_direct_irradiance = calc_canopy_reflectance_to_direct_irradiance(
-            direct_black_extinction_coefficient=self.direct_black_extinction_coefficient,
-            leaf_scattering_coefficient=self.leaf_scattering_coefficient
-        )
+            leaf_scattering_coefficient=self.leaf_scattering_coefficient)
 
 
 class NumericalResolution:
@@ -267,15 +230,3 @@ class NumericalResolution:
 
         self.maximum_iteration_number = data['maximum_iteration_number']
         """[-] maximum number of iterations to solve the energy budget"""
-
-
-class LumpedParams(Params):
-    def __init__(self, params: dict = None, params_path: Path = None):
-        Params.__init__(self, params, params_path)
-        self.simulation = LumpedSimulation(self._user_params)
-
-
-class SunlitShadedParams(Params):
-    def __init__(self, params: dict = None, params_path: Path = None):
-        Params.__init__(self, params, params_path)
-        self.simulation = SunlitShadedSimulation(self._user_params)

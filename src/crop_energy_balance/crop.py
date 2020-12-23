@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, sunlit_shaded_leaves, component, soil
-from crop_energy_balance.inputs import LumpedInputs, SunlitShadedInputs
-from crop_energy_balance.params import LumpedParams, SunlitShadedParams, Constants
+from crop_energy_balance.inputs import Inputs
+from crop_energy_balance.params import Params, Constants
 
 from crop_energy_balance import utils
 
@@ -11,7 +11,7 @@ constants = Constants()
 
 class CanopyStateVariables:
     def __init__(self,
-                 inputs: LumpedInputs or SunlitShadedInputs):
+                 inputs: Inputs):
         self.source_temperature = inputs.air_temperature
 
         self.incident_irradiance = inputs.incident_irradiance
@@ -66,8 +66,7 @@ class CanopyStateVariables:
         self.sum_composed_conductances = sum(
             [1.0 / crop_component.composed_resistance for crop_component in crop_components])
 
-    def calc_total_evaporative_energy(self,
-                                      crop_components: list):
+    def calc_total_evaporative_energy(self, crop_components: list):
         self.penman_energy = canopy.calc_penman_evaporative_energy(
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
             canopy_available_energy=self.available_energy,
@@ -86,8 +85,7 @@ class CanopyStateVariables:
             vapor_pressure_slope=self.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant)
 
-    def calc_source_temperature(self,
-                                inputs: LumpedInputs or SunlitShadedInputs):
+    def calc_source_temperature(self, inputs: Inputs):
         self.source_temperature = max(
             constants.absolute_zero,
             canopy.calc_temperature(
@@ -106,8 +104,7 @@ class CanopyStateVariables:
                            soil_heat_flux):
         self.net_radiation = self.available_energy + soil_heat_flux
 
-    def calc_sensible_heat_flux(self,
-                                inputs: LumpedInputs or SunlitShadedInputs):
+    def calc_sensible_heat_flux(self, inputs: Inputs):
         self.sensible_heat_flux = canopy.calc_sensible_heat_flux(
             source_temperature=self.source_temperature,
             air_temperature=inputs.air_temperature,
@@ -137,8 +134,8 @@ class Component:
         self.temperature = None
 
     def init_state_variables(self,
-                             inputs: LumpedInputs or SunlitShadedInputs,
-                             params: LumpedParams or SunlitShadedParams,
+                             inputs: Inputs,
+                             params: Params,
                              canopy_state_variables: CanopyStateVariables):
         self._temperature = inputs.air_temperature
         self.composed_resistance = component.calc_composed_resistance(
@@ -178,7 +175,7 @@ class Component:
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
     def update_temperature(self,
-                           params: LumpedParams or SunlitShadedParams):
+                           params: Params):
         previous_value = self._temperature
         self._temperature = self.temperature
         self.temperature += utils.calc_temperature_step(
@@ -198,8 +195,8 @@ class SoilComponent(Component):
         self.heat_flux = None
 
     def init_state_variables(self,
-                             inputs: LumpedInputs or SunlitShadedInputs,
-                             params: LumpedParams or SunlitShadedParams,
+                             inputs: Inputs,
+                             params: Params,
                              canopy_state_variables: CanopyStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.surface_resistance = soil.calc_surface_resistance(
@@ -251,8 +248,8 @@ class LumpedLeafComponent(LeafComponent):
         LeafComponent.__init__(self, **kwargs)
 
     def init_state_variables(self,
-                             inputs: LumpedInputs,
-                             params: LumpedParams,
+                             inputs: Inputs,
+                             params: Params,
                              canopy_state_variables: CanopyStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
@@ -306,8 +303,8 @@ class SunlitShadedLeafComponent(LeafComponent):
         self.leaves_category = leaves_category
 
     def init_state_variables(self,
-                             inputs: SunlitShadedInputs,
-                             params: SunlitShadedParams,
+                             inputs: Inputs,
+                             params: Params,
                              canopy_state_variables: CanopyStateVariables):
         self.surface_fraction = sunlit_shaded_leaves.calc_leaf_fraction_per_leaf_layer(
             leaves_category=self.leaves_category,
@@ -374,15 +371,15 @@ class Canopy(dict):
 
     def __init__(self,
                  leaves_category: str,
-                 inputs: LumpedInputs or SunlitShadedInputs = None,
-                 params: LumpedParams or SunlitShadedParams = None,
+                 inputs: Inputs = None,
+                 params: Params = None,
                  inputs_path: Path = None,
                  params_path: Path = None):
         """Creates a class:`Canopy` object having either 'lumped' leaves or 'sunlit-shaded' leaves.
         Args:
             leaves_category: one of ('lumped', 'sunlit-shaded')
-            inputs: see class`LumpedInputs` and class`SunlitShadedInputs`
-            params: see class`LumpedParams` and class`SunlitShadedParams`
+            inputs: see class`Inputs`
+            params: see class`Params`
         Notes:
             The created canopy can implicitly be 'big-leaf' or a 'layered'. If the attribute `leaf_layers` of the
                 :Class:`inputs` object has only one layer, then the resulting canopy is a 'big-leaf', otherwise if the
@@ -396,18 +393,12 @@ class Canopy(dict):
 
         self.leaves_category = leaves_category
         if inputs_path:
-            if self.leaves_category == 'lumped':
-                self.inputs = LumpedInputs(inputs_path=inputs_path)
-            else:
-                self.inputs = SunlitShadedInputs(inputs_path=inputs_path)
+            self.inputs = Inputs(inputs_path=inputs_path)
         else:
             self.inputs = inputs
 
         if params_path:
-            if self.leaves_category == 'lumped':
-                self.params = LumpedParams(params_path=params_path)
-            else:
-                self.params = SunlitShadedParams(params_path=params_path)
+            self.params = Params(params_path=params_path)
         else:
             self.params = params
 
