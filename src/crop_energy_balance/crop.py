@@ -31,9 +31,9 @@ class CanopyStateVariables:
         self.turbulent_diffusivity = canopy.calc_turbulent_diffusivity(
             von_karman_constant=constants.von_karman,
             wind_speed=inputs.wind_speed,
-            canopy_height=inputs.canopy_height,
             zero_displacement_height=self.zero_displacement_height,
-            canopy_roughness_length_for_momentum=self.roughness_length_for_heat_transfer,
+            roughness_length_for_momentum=self.roughness_length_for_momentum,
+            roughness_length_for_heat=self.roughness_length_for_heat_transfer,
             measurement_height=inputs.measurement_height)
         self.aerodynamic_resistance = canopy.calc_canopy_aerodynamic_resistance(
             wind_speed=inputs.wind_speed,

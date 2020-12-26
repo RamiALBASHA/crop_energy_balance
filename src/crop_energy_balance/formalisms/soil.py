@@ -32,13 +32,15 @@ def calc_boundary_resistance(canopy_height: float,
     canopy_height = max(0.1, canopy_height)
     zero_plane_displacement_height = canopy.calc_zero_displacement_height(canopy_height)
     canopy_roughness_length_for_momentum = canopy.calc_canopy_roughness_length_for_momentum(canopy_height)
+    canopy_roughness_length_for_heat = canopy.calc_canopy_roughness_length_for_heat_transfer(canopy_height)
 
-    eddy_diffusivity = canopy.calc_turbulent_diffusivity(von_karman_constant,
-                                                         wind_speed,
-                                                         canopy_height,
-                                                         zero_plane_displacement_height,
-                                                         canopy_roughness_length_for_momentum,
-                                                         measurement_height)
+    eddy_diffusivity = canopy.calc_turbulent_diffusivity(
+        von_karman_constant=von_karman_constant,
+        wind_speed=wind_speed,
+        zero_displacement_height=zero_plane_displacement_height,
+        roughness_length_for_momentum=canopy_roughness_length_for_momentum,
+        roughness_length_for_heat=canopy_roughness_length_for_heat,
+        measurement_height=measurement_height)
 
     scaling_factor = exp(-shape_parameter * soil_roughness_length_for_momentum / canopy_height) - exp(
         -shape_parameter * (zero_plane_displacement_height + canopy_roughness_length_for_momentum) / canopy_height)

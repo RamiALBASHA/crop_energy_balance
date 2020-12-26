@@ -21,6 +21,15 @@ def calc_canopy_roughness_length_for_momentum(canopy_height: float) -> float:
 
     Returns:
         [m] roughness length for momentum
+
+    References:
+        Shuttleworth 2007.
+            Putting the 'vap' into evaporation.
+            Hydrol. Earth Syst. Sci. 11, 210 - 244
+            Eq. 11
+
+    Notes:
+        This formula holds for the reference grass crop.
     """
     return 0.123 * canopy_height
 
@@ -33,8 +42,17 @@ def calc_canopy_roughness_length_for_heat_transfer(canopy_height: float) -> floa
 
     Returns:
         [m] roughness length for heat transfer
+
+    References:
+        Shuttleworth 2007.
+            Putting the 'vap' into evaporation.
+            Hydrol. Earth Syst. Sci. 11, 210 - 244
+            Eq. 11
+
+    Notes:
+        This formula holds for the reference grass crop.
     """
-    return 0.0123 * canopy_height
+    return calc_canopy_roughness_length_for_momentum(canopy_height=canopy_height) / 10.
 
 
 def calc_wind_speed_at_canopy_height(wind_speed: float,
@@ -61,28 +79,28 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
 
 def calc_turbulent_diffusivity(von_karman_constant: float,
                                wind_speed: float,
-                               canopy_height: float,
                                zero_displacement_height: float,
-                               canopy_roughness_length_for_momentum: float,
+                               roughness_length_for_momentum: float,
+                               roughness_length_for_heat: float,
                                measurement_height: float) -> float:
     """Calculates the turbulent (eddy) diffusivity of water vapor at canopy height
 
     Args:
         von_karman_constant: [-] von Karman constant
         wind_speed: [m h-1] wind speed at reference height
-        canopy_height: [m] average height of the canopy
         zero_displacement_height: [m] zero displacement height
-        canopy_roughness_length_for_momentum: [m] roughness length for momentum
+        roughness_length_for_momentum: [m] roughness length for momentum transfer
+        roughness_length_for_heat: [m] roughness length for heat and water vapor transfer
         measurement_height: [m] height at which wind speed in measured
 
     Returns:
         [m2 h-1] turbulent (eddy) diffusivity of water vapor at canopy height
     """
     wind_speed = max(2400., wind_speed)
-    canopy_height = max(0.1, canopy_height)
 
-    return (von_karman_constant ** 2 * wind_speed * (canopy_height - zero_displacement_height)) / (
-        log((measurement_height - zero_displacement_height) / canopy_roughness_length_for_momentum))
+    return (von_karman_constant ** 2 * wind_speed) / (
+            log((measurement_height - zero_displacement_height) / roughness_length_for_momentum) *
+            log((measurement_height - zero_displacement_height) / roughness_length_for_heat))
 
 
 def calc_net_longwave_radiation(air_temperature: float,
