@@ -62,7 +62,7 @@ def discretize_linearly(inclusive_start: float,
         Discretized axis
 
     Notes:
-        This function is intended to replaces numpy.linspace()
+        This function is intended to replace numpy.linspace()
     """
     assert vector_length != 1, 'args:`vector_length` must be greater than 1.'
 
