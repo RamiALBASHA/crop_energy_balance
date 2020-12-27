@@ -2,7 +2,7 @@ from math import log
 
 
 def calc_zero_displacement_height(canopy_height: float) -> float:
-    """Calculates zero displacement height of water vapor between the crop and the atmosphere
+    """Calculates zero displacement height of the canopy.
 
     Args:
         canopy_height: [m] average height of the canopy
@@ -13,8 +13,8 @@ def calc_zero_displacement_height(canopy_height: float) -> float:
     return 0.67 * canopy_height
 
 
-def calc_canopy_roughness_length_for_momentum(canopy_height: float) -> float:
-    """Calculates roughness length for momentum
+def calc_roughness_length_for_momentum_transfer(canopy_height: float) -> float:
+    """Calculates roughness length for momentum transfer of the canopy.
 
     Args:
         canopy_height: [m] average height of the canopy
@@ -34,8 +34,8 @@ def calc_canopy_roughness_length_for_momentum(canopy_height: float) -> float:
     return 0.123 * canopy_height
 
 
-def calc_canopy_roughness_length_for_heat_transfer(canopy_height: float) -> float:
-    """Calculates roughness length for heat transfer
+def calc_roughness_length_for_heat_transfer(canopy_height: float) -> float:
+    """Calculates roughness length for heat and water vapor transfer of the canopy.
 
     Args:
         canopy_height: [m] average height of the canopy
@@ -52,13 +52,13 @@ def calc_canopy_roughness_length_for_heat_transfer(canopy_height: float) -> floa
     Notes:
         This formula holds for the reference grass crop.
     """
-    return calc_canopy_roughness_length_for_momentum(canopy_height=canopy_height) / 10.
+    return calc_roughness_length_for_momentum_transfer(canopy_height=canopy_height) / 10.
 
 
 def calc_wind_speed_at_canopy_height(wind_speed: float,
                                      canopy_height: float,
                                      measurement_height: float) -> float:
-    """Calculates hourly wind speed values at canopy height
+    """Calculates hourly wind speed values at canopy height.
 
     Args:
         wind_speed: [m h-1] hourly wind speed at measurement height
@@ -72,35 +72,9 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
     wind_speed = max(2400.0, wind_speed)
     canopy_height = max(0.1, canopy_height)
     d = calc_zero_displacement_height(canopy_height)
-    z0u = calc_canopy_roughness_length_for_momentum(canopy_height)
+    z0u = calc_roughness_length_for_momentum_transfer(canopy_height)
 
     return max(10.0e-10, wind_speed * log((canopy_height - d) / z0u) / log((measurement_height - d) / z0u))
-
-
-def calc_turbulent_diffusivity(von_karman_constant: float,
-                               wind_speed: float,
-                               zero_displacement_height: float,
-                               roughness_length_for_momentum: float,
-                               roughness_length_for_heat: float,
-                               measurement_height: float) -> float:
-    """Calculates the turbulent (eddy) diffusivity of water vapor at canopy height
-
-    Args:
-        von_karman_constant: [-] von Karman constant
-        wind_speed: [m h-1] wind speed at reference height
-        zero_displacement_height: [m] zero displacement height
-        roughness_length_for_momentum: [m] roughness length for momentum transfer
-        roughness_length_for_heat: [m] roughness length for heat and water vapor transfer
-        measurement_height: [m] height at which wind speed in measured
-
-    Returns:
-        [m2 h-1] turbulent (eddy) diffusivity of water vapor at canopy height
-    """
-    wind_speed = max(2400., wind_speed)
-
-    return (von_karman_constant ** 2 * wind_speed) / (
-            log((measurement_height - zero_displacement_height) / roughness_length_for_momentum) *
-            log((measurement_height - zero_displacement_height) / roughness_length_for_heat))
 
 
 def calc_net_longwave_radiation(air_temperature: float,
@@ -156,30 +130,30 @@ def calc_sensible_heat_flux(source_temperature: float,
     return air_density * air_specific_heat_capacity * temperature_difference / aerodynamic_resistance
 
 
-def calc_canopy_aerodynamic_resistance(wind_speed: float,
-                                       canopy_height: float,
-                                       reference_height: float,
-                                       von_karman_constant: float) -> float:
-    """Calculates air resistance to water vapor transfer between the source height and the reference height.
+def calc_aerodynamic_resistance(wind_speed: float,
+                                measurement_height: float,
+                                zero_displacement_height: float,
+                                roughness_length_for_momentum: float,
+                                roughness_length_for_heat: float,
+                                von_karman_constant: float) -> float:
+    """Calculates the resistance to water vapor and heat transfer between the source height and the reference height.
 
     Args:
         wind_speed: [m h-1] wind speed at measurement height
-        canopy_height: [m] average height of the canopy
-        reference_height: [m] height at which wind speed in measured
+        measurement_height: [m] height at which wind speed in measured
+        zero_displacement_height: [m] zero displacement height
+        roughness_length_for_momentum: [m] roughness length for momentum transfer
+        roughness_length_for_heat: [m] roughness length for heat and water vapor transfer
         von_karman_constant: [-] von Karman constant
 
     Returns:
         [h m-1] air resistance to water vapor transfer between the source height and the reference height
     """
     wind_speed = max(2400.0, wind_speed)
-    canopy_height = max(0.1, canopy_height)
-    zero_displacement_height_ = calc_zero_displacement_height(canopy_height)
-    canopy_roughness_length_for_momentum_ = calc_canopy_roughness_length_for_momentum(canopy_height)
-    canopy_roughness_length_for_heat_transfer_ = calc_canopy_roughness_length_for_heat_transfer(canopy_height)
 
     return 1.0 / (wind_speed * von_karman_constant ** 2) * (
-            log((reference_height - zero_displacement_height_) / canopy_roughness_length_for_momentum_) *
-            log((reference_height - zero_displacement_height_) / canopy_roughness_length_for_heat_transfer_))
+            log((measurement_height - zero_displacement_height) / roughness_length_for_momentum) *
+            log((measurement_height - zero_displacement_height) / roughness_length_for_heat))
 
 
 def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
@@ -215,9 +189,9 @@ def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
                    vapor_pressure_slope + psychrometric_constant)
 
 
-def calc_canopy_lumped_aerodynamic_resistance(canopy_aerodynamic_resistance: float,
-                                              vapor_pressure_slope: float,
-                                              psychrometric_constant: float) -> float:
+def calc_lumped_aerodynamic_resistance(canopy_aerodynamic_resistance: float,
+                                       vapor_pressure_slope: float,
+                                       psychrometric_constant: float) -> float:
     """Calculates Lhomme's lumped aerodynamic resistance (R0).
 
     Args:

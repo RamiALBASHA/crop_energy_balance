@@ -1,21 +1,55 @@
-from math import exp
-
-from crop_energy_balance.formalisms import canopy
+from math import exp, log
 
 
-def calc_boundary_resistance(canopy_height: float,
-                             wind_speed: float,
+def calc_eddy_diffusivity(wind_speed: float,
+                          canopy_height: float,
+                          measurement_height: float,
+                          zero_displacement_height: float,
+                          canopy_roughness_length_for_momentum: float,
+                          von_karman_constant: float) -> float:
+    """Calculates the value of eddy diffusivity of water vapor and heat transfer at canopy height.
+
+    Args:
+        wind_speed: [m h-1] wind speed at reference height
+        canopy_height: [m] average height of the canopy
+        measurement_height: [m] height at which wind speed in measured
+        zero_displacement_height: [m] zero displacement height
+        canopy_roughness_length_for_momentum: [m] roughness length for momentum transfer of the canopy
+        von_karman_constant: [-] von Karman constant
+
+    Returns:
+        [m2 h-1] eddy diffusivity at canopy height
+
+    References:
+        Choudhury and Monteith, 1988
+            A four-layer model for the heat budget of homogeneous land surfaces.
+            Q. J. Roy. Meteor. Soc. 114, 373 – 398.
+        Montes et al. 2014
+            A three-source SVAT modeling of evaporation: Application to the seasonal dynamics of a grassed vineyard.
+            Agricultural and Forest Meteorology 191, 64 – 80.
+            Eq. C5
+    """
+    return (von_karman_constant ** 2 * wind_speed * (canopy_height - zero_displacement_height)) / (
+        log((measurement_height - zero_displacement_height) / canopy_roughness_length_for_momentum))
+
+
+def calc_boundary_resistance(wind_speed: float,
+                             canopy_height: float,
                              measurement_height: float,
+                             zero_displacement_height: float,
+                             canopy_roughness_length_for_momentum: float,
                              soil_roughness_length_for_momentum: float = 0.01,
                              shape_parameter: float = 2.5,
                              von_karman_constant: float = 0.41) -> float:
-    """Calculates the bulk soil boundary layer resistance.
+    """Calculates the bulk aerodynamic resistance resistance between the soil surface and the source height.
 
     Args:
-        canopy_height: [m] average canopy height
         wind_speed: [m h-1] wind speed at a given hour
+        canopy_height: [m] average canopy height
         measurement_height: [m] height at which meteorological measurements are made
-        soil_roughness_length_for_momentum: [m] soil roughness length for momentum
+        zero_displacement_height: [m] zero displacement height
+        canopy_roughness_length_for_momentum: [m] roughness length for momentum transfer of the canopy
+        soil_roughness_length_for_momentum: [m] roughness length for momentum transfer of bare soil
         shape_parameter: [-] a shape parameter
         von_karman_constant: [-] von Karman constant
 
@@ -26,24 +60,22 @@ def calc_boundary_resistance(canopy_height: float,
         Choudhury and Monteith, 1988
             A four-layer model for the heat budget of homogeneous land surfaces.
             Q. J. Roy. Meteor. Soc. 114, 373 – 398.
+        Montes et al. 2014
+            A three-source SVAT modeling of evaporation: Application to the seasonal dynamics of a grassed vineyard.
+            Agricultural and Forest Meteorology 191, 64 – 80.
+            Eq. C4
     """
 
-    wind_speed = max(2400.0, wind_speed)
-    canopy_height = max(0.1, canopy_height)
-    zero_plane_displacement_height = canopy.calc_zero_displacement_height(canopy_height)
-    canopy_roughness_length_for_momentum = canopy.calc_canopy_roughness_length_for_momentum(canopy_height)
-    canopy_roughness_length_for_heat = canopy.calc_canopy_roughness_length_for_heat_transfer(canopy_height)
-
-    eddy_diffusivity = canopy.calc_turbulent_diffusivity(
-        von_karman_constant=von_karman_constant,
+    eddy_diffusivity = calc_eddy_diffusivity(
         wind_speed=wind_speed,
-        zero_displacement_height=zero_plane_displacement_height,
-        roughness_length_for_momentum=canopy_roughness_length_for_momentum,
-        roughness_length_for_heat=canopy_roughness_length_for_heat,
-        measurement_height=measurement_height)
+        canopy_height=canopy_height,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height,
+        canopy_roughness_length_for_momentum=canopy_roughness_length_for_momentum,
+        von_karman_constant=von_karman_constant)
 
     scaling_factor = exp(-shape_parameter * soil_roughness_length_for_momentum / canopy_height) - exp(
-        -shape_parameter * (zero_plane_displacement_height + canopy_roughness_length_for_momentum) / canopy_height)
+        -shape_parameter * (zero_displacement_height + canopy_roughness_length_for_momentum) / canopy_height)
 
     return canopy_height * exp(shape_parameter) / (shape_parameter * eddy_diffusivity) * scaling_factor
 
