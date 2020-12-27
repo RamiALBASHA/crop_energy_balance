@@ -134,3 +134,51 @@ def calc_vapor_pressure_deficit(temperature_air: float, temperature_leaf: float,
     ea = es_a * relative_humidity / 100
 
     return es_l - ea
+
+
+def assert_almost_equal(actual: any([int, float, tuple, list]),
+                        desired: any([int, float, tuple, list]),
+                        decimal: int = 7):
+    """Raises an AssertionError if two items are not equal up to desired precision.
+
+    Args:
+        actual: The object to check
+        desired: The expected object
+        decimal: Desired precision
+
+    Raises:
+        AssertionError if actual and desired are not equal up to specified precision.
+
+    Notes:
+        This function is a simplified version of numpy.testing.assert_almost_equal() and intends to replace the latter.
+        The test verifies that the elements of ``actual`` and ``desired`` satisfy.
+            ``abs(desired-actual) < 1.5 * 10**(-decimal)``
+
+    """
+    __tracebackhide__ = True  # Hide traceback for py.test
+
+    try:
+        any([isinstance(item, (tuple, list)) for item in (actual, desired)])
+        assert len(actual) == len(desired)
+        return [assert_almost_equal(actual=a, desired=d) for a, d in zip(actual, desired)]
+    except TypeError:
+        pass
+
+    if abs(desired - actual) >= 1.5 * 10.0 ** (-decimal):
+        raise AssertionError()
+
+
+def assert_trend(values: list, expected_trend: str) -> None or AssertionError:
+    """Asserts that a vector of values follows a given trend.
+
+    Args:
+        values: values whose trend is to be checked
+        expected_trend: one of '+' (increasing), '-' (decreasing), '+-' (non-monotonic)
+    """
+    if expected_trend == '+':
+        assert all([x <= y for x, y in zip(values, values[1:])])
+    elif expected_trend == '-':
+        assert all([x >= y for x, y in zip(values, values[1:])])
+    elif expected_trend == '+-':
+        assert (not all([x <= y for x, y in zip(values, values[1:])]) and
+                not all([x >= y for x, y in zip(values, values[1:])]))
