@@ -2,8 +2,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
-
-from crop_energy_balance import utils
+from crop_energy_balance.formalisms import weather
 
 
 def get_weather_data() -> pd.DataFrame:
@@ -11,11 +10,12 @@ def get_weather_data() -> pd.DataFrame:
                            decimal='.', sep=';', skiprows=6).set_index('time')
     raw_data.loc[:, 'wind_speed'] = raw_data.apply(lambda x: x['wind_speed'] * 3600.0, axis=1)
     raw_data.loc[:, 'incident_direct_irradiance'] = raw_data['incident_global_irradiance'].apply(
-        lambda x: utils.convert_global_irradiance_into_photosynthetically_active_radiation(x * 0.80))
+        lambda x: weather.convert_global_irradiance_into_photosynthetically_active_radiation(x * 0.80))
     raw_data.loc[:, 'incident_diffuse_irradiance'] = raw_data['incident_global_irradiance'].apply(
-        lambda x: utils.convert_global_irradiance_into_photosynthetically_active_radiation(x * 0.20))
+        lambda x: weather.convert_global_irradiance_into_photosynthetically_active_radiation(x * 0.20))
     raw_data.loc[:, 'vapor_pressure_deficit'] = raw_data.apply(
-        lambda x: utils.calc_vapor_pressure_deficit(x['air_temperature'], x['air_temperature'], x['relative_humidity']),
+        lambda x: weather.calc_vapor_pressure_deficit(
+            x['air_temperature'], x['air_temperature'], x['relative_humidity']),
         axis=1)
     raw_data.loc[:, 'vapor_pressure'] = raw_data.apply(
         lambda x: x['vapor_pressure_deficit'] * x['relative_humidity'] / 100., axis=1)

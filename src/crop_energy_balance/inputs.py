@@ -3,7 +3,7 @@ from pathlib import Path
 
 from crop_energy_balance.formalisms import canopy, weather
 
-from crop_energy_balance import utils, params
+from crop_energy_balance import params
 
 constants = params.Constants()
 
@@ -27,7 +27,8 @@ class Inputs:
         self.soil_saturation_ratio = self._inputs['soil_saturation_ratio']
         """[-] ratio of actual to potential volumetric water content in the soil"""
 
-        self.air_temperature = utils.convert_celsius_to_kelvin(self._inputs['air_temperature'], constants.absolute_zero)
+        self.air_temperature = weather.convert_celsius_to_kelvin(self._inputs['air_temperature'],
+                                                                 constants.absolute_zero)
         """[K] temperature of the air"""
 
         self.wind_speed = self._inputs['wind_speed']

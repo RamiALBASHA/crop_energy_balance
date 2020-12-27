@@ -17,7 +17,7 @@ class CanopyStateVariables:
         self.incident_irradiance = inputs.incident_irradiance
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
-            utils.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
+            weather.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
         self.zero_displacement_height = canopy.calc_zero_displacement_height(
             canopy_height=inputs.canopy_height)
         self.roughness_length_for_momentum = canopy.calc_roughness_length_for_momentum_transfer(
@@ -47,7 +47,7 @@ class CanopyStateVariables:
             stefan_boltzmann_constant=constants.stefan_boltzmann)
 
         # Canopy available energy and net radiation are not initialized to None so that to initialize the soil heat flux
-        self.available_energy = utils.convert_photosynthetically_active_radiation_into_global_radiation(
+        self.available_energy = weather.convert_photosynthetically_active_radiation_into_global_radiation(
             sum(self.incident_irradiance.values())) + self.net_longwave_radiation
         self.net_radiation = self.available_energy
 
@@ -215,7 +215,7 @@ class SoilComponent(Component):
             net_above_ground_radiation=canopy_state_variables.net_radiation,
             is_diurnal=sum(inputs.incident_irradiance.values()) >= 0)
         self.available_energy = component.calc_available_energy(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=self.heat_flux)
@@ -282,7 +282,7 @@ class LumpedLeafComponent(LeafComponent):
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.available_energy = component.calc_available_energy(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=0)
@@ -347,7 +347,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.available_energy = component.calc_available_energy(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=0)
