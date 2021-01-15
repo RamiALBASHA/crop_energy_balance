@@ -1,6 +1,7 @@
 from crop_energy_balance.crop import Canopy, CanopyStateVariables
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params
+from crop_energy_balance.utils import is_almost_equal
 
 
 class Solver:
@@ -14,12 +15,28 @@ class Solver:
 
         self.components = self.canopy.extract_all_components()
 
+        self.stability_iterations_number = 1
         self.iterations_number = 0
         self.init_state_variables()
 
         self.energy_balance = None
 
-    def run(self):
+    def run(self, correct_neutrality=False):
+        self.solve_energy_balance()
+
+        if correct_neutrality:
+            is_acceptable_error = False
+            while not is_acceptable_error:
+                self.stability_iterations_number += 1
+                if self.stability_iterations_number >= 100:
+                    break
+                sensible_heat = self.canopy.state_variables.sensible_heat_flux.copy()
+                self.canopy.state_variables.update(inputs=self.inputs)
+                self.solve_energy_balance()
+                error = abs(self.canopy.state_variables.sensible_heat_flux - sensible_heat)
+                is_acceptable_error = is_almost_equal(actual=error, desired=0, decimal=2)
+
+    def solve_energy_balance(self):
         is_acceptable_error = False
         while not is_acceptable_error:
             self.iterations_number += 1

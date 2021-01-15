@@ -27,6 +27,10 @@ class Params:
 
 class Constants:
     def __init__(self):
+        self.gravitational_acceleration = 9.81 * (3600 ** 2)
+        """[m h-2] gravitational acceleration.
+        """
+
         self.von_karman = 0.41
         """[-] von Karman constant"""
 

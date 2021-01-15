@@ -121,7 +121,7 @@ def solve_energy_balance(
 
     canopy = eb_canopy.Canopy(leaves_category=leaf_class_type, inputs=inputs, params=params)
     solver = eb_solver.Solver(canopy=canopy, inputs=inputs, params=params)
-    solver.run()
+    solver.run(correct_neutrality=True)
 
     return solver
 
@@ -445,7 +445,8 @@ if __name__ == '__main__':
                                      ('bigleaf', 'sunlit-shaded'),
                                      ('layered', 'lumped'),
                                      ('layered', 'sunlit-shaded')):
-
+        print('-' * 50)
+        print(f"{canopy_type} - {leaves_type}")
         canopy_layers = {0: sum(leaf_layers.values())} if canopy_type == 'bigleaf' else leaf_layers
         layers.update({f'{canopy_type} {leaves_type}': canopy_layers})
         hourly_absorbed_irradiance = []
@@ -460,7 +461,7 @@ if __name__ == '__main__':
             vapor_pressure_deficit = w_data['vapor_pressure_deficit']
             vapor_pressure = w_data['vapor_pressure']
             air_temperature = w_data['air_temperature']
-
+            print(date)
             absorbed_irradiance = calc_absorbed_irradiance(
                 is_bigleaf=(canopy_type == 'bigleaf'),
                 is_lumped=(leaves_type == 'lumped'),
