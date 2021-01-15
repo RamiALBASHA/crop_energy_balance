@@ -53,9 +53,9 @@ def discretize_linearly(inclusive_start: float,
     return [inclusive_start + step * i for i in range(vector_length)]
 
 
-def assert_almost_equal(actual: any([int, float, tuple, list]),
-                        desired: any([int, float, tuple, list]),
-                        decimal: int = 7):
+def is_almost_equal(actual: any([int, float, tuple, list]),
+                    desired: any([int, float, tuple, list]),
+                    decimal: int = 7):
     """Raises an AssertionError if two items are not equal up to desired precision.
 
     Args:
@@ -77,12 +77,11 @@ def assert_almost_equal(actual: any([int, float, tuple, list]),
     try:
         any([isinstance(item, (tuple, list)) for item in (actual, desired)])
         assert len(actual) == len(desired)
-        return [assert_almost_equal(actual=a, desired=d) for a, d in zip(actual, desired)]
+        return [is_almost_equal(actual=a, desired=d) for a, d in zip(actual, desired)]
     except TypeError:
         pass
 
-    if abs(desired - actual) >= 1.5 * 10.0 ** (-decimal):
-        raise AssertionError()
+    return abs(desired - actual) <= 1.5 * 10.0 ** (-decimal)
 
 
 def assert_trend(values: list, expected_trend: str) -> None or AssertionError:
