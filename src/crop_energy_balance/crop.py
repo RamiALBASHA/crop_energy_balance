@@ -15,6 +15,7 @@ class CanopyStateVariables:
         self.stability_correction_for_momentum = 0.0
         self.stability_correction_for_heat = 0.0
         self.richardson_number = 0.0
+        self.monin_obukhov_length = None
 
         self.source_temperature = inputs.air_temperature
 
@@ -134,7 +135,7 @@ class CanopyStateVariables:
             von_karman_constant=constants.von_karman)
 
         (self.stability_correction_for_momentum, self.stability_correction_for_heat,
-         self.richardson_number) = weather.calc_stability_correction_functions(
+         self.richardson_number, self.monin_obukhov_length) = weather.calc_stability_correction_functions(
             friction_velocity=self.friction_velocity,
             sensible_heat=self.sensible_heat_flux,
             canopy_temperature=self.source_temperature,

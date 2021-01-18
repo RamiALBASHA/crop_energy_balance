@@ -305,7 +305,7 @@ def calc_stability_correction_functions(friction_velocity: float,
         y = x ** 2
         correction_for_heat = 2.0 * log((1 + y) / 2)  # (Liu et al. 2007, eq. 13)
         # Colaizzi et al. 2004, eq. 12)
-        correction_for_momentum = 2.0 * log((1 + x) / 2) + log((1 + pow(x, 2)) / 2) - 2 * atan(x) + 2 * atan(1)
+        correction_for_momentum = 2.0 * log((1 + x) / 2) + log((1 + x ** 2) / 2) - 2 * atan(x) + 2 * atan(1)
     elif richardson_number < 0.2:
         # ----------------------
         # stable - technically (Thom, 1975)
@@ -322,4 +322,4 @@ def calc_stability_correction_functions(friction_velocity: float,
         correction_for_heat = 0
         correction_for_momentum = correction_for_heat
 
-    return correction_for_momentum, correction_for_heat, richardson_number
+    return correction_for_momentum, correction_for_heat, richardson_number, monin_obukhov_length
