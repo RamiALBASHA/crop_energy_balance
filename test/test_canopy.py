@@ -1,5 +1,6 @@
 from crop_energy_balance.formalisms import canopy
 from crop_energy_balance.params import Params, Constants
+from crop_energy_balance.formalisms import weather
 from crop_energy_balance import utils
 
 constants = Constants()
@@ -38,18 +39,18 @@ def test_calc_wind_speed_at_canopy_height():
 
 def test_calc_net_longwave_radiation():
     vp = 3  # air_vapor_pressure
-    t_air = utils.convert_celsius_to_kelvin(25)  # air_temperature
-    t_can = utils.convert_celsius_to_kelvin(25)  # canopy_temperature
+    t_air = weather.convert_celsius_to_kelvin(25)  # air_temperature
+    t_can = weather.convert_celsius_to_kelvin(25)  # canopy_temperature
     atm = 0.73  # atmospheric_emissivity
     boltzmann = constants.stefan_boltzmann
 
     utils.assert_trend(
-        values=[canopy.calc_net_longwave_radiation(t_air, vp, utils.convert_celsius_to_kelvin(t), atm, boltzmann)
+        values=[canopy.calc_net_longwave_radiation(t_air, vp, weather.convert_celsius_to_kelvin(t), atm, boltzmann)
                 for t in range(-50, 50)],
         expected_trend='-')
 
     utils.assert_trend(
-        values=[canopy.calc_net_longwave_radiation(utils.convert_celsius_to_kelvin(t), vp, t_can, atm, boltzmann)
+        values=[canopy.calc_net_longwave_radiation(weather.convert_celsius_to_kelvin(t), vp, t_can, atm, boltzmann)
                 for t in range(-50, 50)],
         expected_trend='+')
 
@@ -65,8 +66,8 @@ def test_calc_net_longwave_radiation():
 
 
 def test_calc_sensible_heat_flux():
-    t_source = utils.convert_celsius_to_kelvin(25)  # source_temperature
-    t_air = utils.convert_celsius_to_kelvin(25)  # air_temperature
+    t_source = weather.convert_celsius_to_kelvin(25)  # source_temperature
+    t_air = weather.convert_celsius_to_kelvin(25)  # air_temperature
     r0 = 1  # aerodynamic_resistance
     rho = constants.air_density
     cp = constants.air_specific_heat_capacity
@@ -74,7 +75,7 @@ def test_calc_sensible_heat_flux():
     assert canopy.calc_sensible_heat_flux(t_air, t_air, r0, rho, cp) == 0
 
     utils.assert_trend(
-        values=[canopy.calc_sensible_heat_flux(utils.convert_celsius_to_kelvin(t), t_air, r0, rho, cp)
+        values=[canopy.calc_sensible_heat_flux(weather.convert_celsius_to_kelvin(t), t_air, r0, rho, cp)
                 for t in range(25, 50)],
         expected_trend='+')
 
@@ -83,18 +84,36 @@ def test_calc_sensible_heat_flux():
         expected_trend='+')
 
 
-def test_calc_canopy_aerodynamic_resistance():
+def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
     """This test is taken from Box 4 in Allen et al. (1998). FAO Irrigation and Drainage Paper No. 56. Eq. 8
     """
     height = 0.12
-    aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
-        von_karman_constant=constants.von_karman,
+    measurement_height = 2
+    zero_displacement_height = canopy.calc_zero_displacement_height(canopy_height=height)
+    von_karman_constant = constants.von_karman
+
+    friction_velocity = weather.calc_friction_velocity(
         wind_speed=3600,
-        zero_displacement_height=canopy.calc_zero_displacement_height(canopy_height=height),
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height,
         roughness_length_for_momentum=canopy.calc_roughness_length_for_momentum_transfer(canopy_height=height),
+        stability_correction_for_momentum=0,
+        von_karman_constant=von_karman_constant)
+
+    aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
+        richardson_number=0,
+        friction_velocity=friction_velocity,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height,
         roughness_length_for_heat=canopy.calc_roughness_length_for_heat_transfer(canopy_height=height),
-        measurement_height=2)
-    utils.assert_almost_equal(aerodynamic_resistance, 208 / 3600., decimal=1)
+        stability_correction_for_heat=0,
+        canopy_temperature=0,
+        air_temperature=0,
+        von_karman_constant=von_karman_constant,
+        air_density=0,
+        air_specific_heat_capacity=0,
+        n=0)
+    assert utils.is_almost_equal(aerodynamic_resistance, 208 / 3600., decimal=1)
 
 
 def test_calc_penman_evaporative_energy():
@@ -183,7 +202,7 @@ def test_calc_temperature():
     assert canopy.calc_temperature(t_air, r0, a, a, rho, cp) == t_air
 
     utils.assert_trend(
-        values=[canopy.calc_temperature(utils.convert_celsius_to_kelvin(t_air_), r0, a, pm, rho, cp)
+        values=[canopy.calc_temperature(weather.convert_celsius_to_kelvin(t_air_), r0, a, pm, rho, cp)
                 for t_air_ in range(-50, 50)],
         expected_trend='+')
 
