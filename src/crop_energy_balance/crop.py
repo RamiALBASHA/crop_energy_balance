@@ -12,12 +12,17 @@ constants = Constants()
 class CanopyStateVariables:
     def __init__(self,
                  inputs: Inputs):
+        self.stability_correction_for_momentum = 0.0
+        self.stability_correction_for_heat = 0.0
+        self.richardson_number = 0.0
+        self.monin_obukhov_length = None
+
         self.source_temperature = inputs.air_temperature
 
         self.incident_irradiance = inputs.incident_irradiance
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
-            utils.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
+            weather.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
         self.zero_displacement_height = canopy.calc_zero_displacement_height(
             canopy_height=inputs.canopy_height)
         self.roughness_length_for_momentum = canopy.calc_roughness_length_for_momentum_transfer(
@@ -28,13 +33,25 @@ class CanopyStateVariables:
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,
             measurement_height=inputs.measurement_height)
-        self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
+        self.friction_velocity = weather.calc_friction_velocity(
             wind_speed=inputs.wind_speed,
             measurement_height=inputs.measurement_height,
             zero_displacement_height=self.zero_displacement_height,
             roughness_length_for_momentum=self.roughness_length_for_momentum,
-            roughness_length_for_heat=self.roughness_length_for_heat_transfer,
+            stability_correction_for_momentum=self.stability_correction_for_momentum,
             von_karman_constant=constants.von_karman)
+        self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
+            richardson_number=self.richardson_number,
+            friction_velocity=self.friction_velocity,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            roughness_length_for_heat=self.roughness_length_for_heat_transfer,
+            stability_correction_for_heat=self.stability_correction_for_heat,
+            canopy_temperature=self.source_temperature,
+            air_temperature=inputs.air_temperature,
+            von_karman_constant=constants.von_karman,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
         self.lumped_aerodynamic_resistance = canopy.calc_lumped_aerodynamic_resistance(
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
             vapor_pressure_slope=self.vapor_pressure_slope,
@@ -47,14 +64,14 @@ class CanopyStateVariables:
             stefan_boltzmann_constant=constants.stefan_boltzmann)
 
         # Canopy available energy and net radiation are not initialized to None so that to initialize the soil heat flux
-        self.available_energy = utils.convert_photosynthetically_active_radiation_into_global_radiation(
+        self.available_energy = weather.convert_photosynthetically_active_radiation_into_global_radiation(
             sum(self.incident_irradiance.values())) + self.net_longwave_radiation
         self.net_radiation = self.available_energy
 
         self.sum_composed_conductances = None
         self.penman_energy = None
         self.total_penman_monteith_evaporative_energy = None
-        self.sensible_heat_flux = None
+        self.sensible_heat_flux = 0
 
     def calc_total_composed_conductances(self,
                                          crop_components: list):
@@ -104,6 +121,40 @@ class CanopyStateVariables:
             source_temperature=self.source_temperature,
             air_temperature=inputs.air_temperature,
             aerodynamic_resistance=self.aerodynamic_resistance,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
+
+    def update(self, inputs: Inputs):
+        self.friction_velocity = weather.calc_friction_velocity(
+            wind_speed=inputs.wind_speed,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            roughness_length_for_momentum=self.roughness_length_for_momentum,
+            stability_correction_for_momentum=self.stability_correction_for_momentum,
+            von_karman_constant=constants.von_karman)
+
+        (self.stability_correction_for_momentum, self.stability_correction_for_heat,
+         self.richardson_number, self.monin_obukhov_length) = weather.calc_stability_correction_functions(
+            friction_velocity=self.friction_velocity,
+            sensible_heat=self.sensible_heat_flux,
+            canopy_temperature=self.source_temperature,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity,
+            von_karman_constant=constants.von_karman,
+            gravitational_acceleration=constants.gravitational_acceleration)
+
+        self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
+            richardson_number=self.richardson_number,
+            friction_velocity=self.friction_velocity,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            roughness_length_for_heat=self.roughness_length_for_heat_transfer,
+            stability_correction_for_heat=self.stability_correction_for_heat,
+            canopy_temperature=self.source_temperature,
+            air_temperature=inputs.air_temperature,
+            von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
@@ -213,9 +264,9 @@ class SoilComponent(Component):
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.heat_flux = soil.calc_heat_flux(
             net_above_ground_radiation=canopy_state_variables.net_radiation,
-            is_diurnal=sum(inputs.incident_irradiance.values()) >= 0)
+            is_diurnal=sum(inputs.incident_irradiance.values()) > 0)
         self.available_energy = component.calc_available_energy(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=self.heat_flux)
@@ -282,7 +333,7 @@ class LumpedLeafComponent(LeafComponent):
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.available_energy = component.calc_available_energy(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=0)
@@ -347,7 +398,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.available_energy = component.calc_available_energy(
-            net_shortwave_radiation=utils.convert_photosynthetically_active_radiation_into_global_radiation(
+            net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=0)

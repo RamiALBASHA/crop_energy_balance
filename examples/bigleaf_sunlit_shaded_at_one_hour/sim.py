@@ -5,7 +5,7 @@ from crop_energy_balance.crop import Canopy
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params
 from crop_energy_balance.solver import Solver
-from crop_energy_balance.utils import convert_kelvin_to_celsius
+from crop_energy_balance.formalisms.weather import convert_kelvin_to_celsius
 
 
 def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):

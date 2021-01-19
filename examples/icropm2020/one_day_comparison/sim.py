@@ -21,11 +21,17 @@ leaf_layers = {3: 1.0,
                1: 1.0,
                0: 1.0}
 
-UNITS_MAP = {'net_radiation': r'$\mathregular{R_n}$',
-             'sensible_heat_flux': 'H',
-             'total_penman_monteith_evaporative_energy': r'$\mathregular{\lambda E}$',
-             'soil_heat_flux': 'G',
-             'energy_balance': 'balance'}
+UNITS_MAP = {
+    'net_radiation': (r'$\mathregular{R_n}$', r'$\mathregular{[W\/m^{-2}_{ground}]}$'),
+    'sensible_heat_flux': ('H', r'$\mathregular{[W\/m^{-2}_{ground}]}$'),
+    'total_penman_monteith_evaporative_energy': (r'$\mathregular{\lambda E}$', r'$\mathregular{[W\/m^{-2}_{ground}]}$'),
+    'soil_heat_flux': ('G', r'$\mathregular{[W\/m^{-2}_{ground}]}$'),
+    'energy_balance': ('balance', r'$\mathregular{[W\/m^{-2}_{ground}]}$'),
+    'richardson_number': ('Ri', '[-]'),
+    'stability_correction_for_momentum': (r'$\mathregular{\Phi_m}$', '[m]'),
+    'stability_correction_for_heat': (r'$\mathregular{\Phi_h}$', '[m]'),
+    'monin_obukhov_length': ('L', '[m]')
+}
 
 
 def get_irradiance_sim_inputs_and_params(
@@ -121,7 +127,7 @@ def solve_energy_balance(
 
     canopy = eb_canopy.Canopy(leaves_category=leaf_class_type, inputs=inputs, params=params)
     solver = eb_solver.Solver(canopy=canopy, inputs=inputs, params=params)
-    solver.run()
+    solver.run(correct_neutrality=True)
 
     return solver
 
@@ -376,18 +382,25 @@ def plot_irradiance_at_one_hour(ax: plt.axis,
 
 def plot_canopy_variable(
         all_cases_solver: eb_canopy,
-        variable_to_plot: str):
+        variable_to_plot: str,
+        axes: plt.axis = None,
+        return_axes: bool = False):
     hours = range(24)
     cases = all_cases_solver.keys()
 
-    fig, axes = plt.subplots(ncols=len(cases), sharex='all', sharey='all', figsize=(15, 5))
+    if axes is None:
+        _, axes = plt.subplots(ncols=len(cases), sharex='all', sharey='all', figsize=(15, 5))
+
     for i, case in enumerate(cases):
         ax = axes[i]
         ax.plot(hours, [getattr(all_cases_solver[case][h].canopy.state_variables, variable_to_plot) for h in hours])
-        ax.set_xlabel('hours')
-    fig.suptitle(variable_to_plot)
-    fig.savefig(f'figs/{variable_to_plot}.png')
-    plt.close()
+    if return_axes:
+        return axes
+    else:
+        [ax.set_xlabel('hours') for ax in axes[:]]
+        plt.suptitle(variable_to_plot)
+        plt.savefig(f'figs/{variable_to_plot}.png')
+        plt.close()
 
 
 def plot_energy_balance_components(
@@ -398,12 +411,13 @@ def plot_energy_balance_components(
     hours = range(24)
 
     if variable_to_plot == 'soil_heat_flux':
-        ax.plot(hours, [getattr(h_solver[h].canopy[-1], 'heat_flux') for h in hours], label=UNITS_MAP[variable_to_plot])
+        ax.plot(hours, [getattr(h_solver[h].canopy[-1], 'heat_flux') for h in hours],
+                label=UNITS_MAP[variable_to_plot][0])
     elif variable_to_plot == 'energy_balance':
-        ax.plot(hours, [h_solver[h].energy_balance for h in hours], 'k--', label=UNITS_MAP[variable_to_plot])
+        ax.plot(hours, [h_solver[h].energy_balance for h in hours], 'k--', label=UNITS_MAP[variable_to_plot][0])
     else:
         ax.plot(hours, [getattr(h_solver[h].canopy.state_variables, variable_to_plot) for h in hours],
-                label=UNITS_MAP[variable_to_plot])
+                label=UNITS_MAP[variable_to_plot][0])
 
     if return_ax:
         return ax
@@ -432,6 +446,43 @@ def plot_energy_balance(solvers: dict):
     pass
 
 
+def plot_stability_terms(solvers: dict, measurement_height: float = 2):
+    # hourly plots
+    terms = ['sensible_heat_flux', 'monin_obukhov_length', 'stability_correction_for_momentum',
+             'stability_correction_for_heat']
+    models = solvers.keys()
+    fig, axes = plt.subplots(ncols=len(models), nrows=len(terms), sharex='all', sharey='row', figsize=(15, 5))
+
+    for i, term in enumerate(terms):
+        plot_canopy_variable(all_cases_solver=solvers, variable_to_plot=term, axes=axes[i, :], return_axes=True)
+        axes[i, 0].set_ylabel(' '.join(UNITS_MAP[term]))
+
+    [ax.set_xlabel('hour') for ax in axes[-1, :]]
+    fig.savefig(f'figs/stability_terms.png')
+
+    # universal functions plots
+    x = []
+    phi_h = []
+    phi_m = []
+
+    for m_solvers in solvers.values():
+        for h_solver in m_solvers:
+            state = h_solver.canopy.state_variables
+            x.append((measurement_height - state.zero_displacement_height) / state.monin_obukhov_length)
+            phi_h.append(state.stability_correction_for_heat)
+            phi_m.append(state.stability_correction_for_momentum)
+    _, axes = plt.subplots(ncols=2, sharex='all', sharey='all')
+    axes[0].scatter(x, phi_h)
+    axes[0].set_ylabel(' '.join(UNITS_MAP['stability_correction_for_heat']))
+    axes[1].scatter(x, phi_m)
+    axes[1].set_ylabel(' '.join(UNITS_MAP['stability_correction_for_momentum']))
+    for ax in axes:
+        ax.set_xlabel(r'$\mathregular{\frac{z_m-d}{L}\/[m]}$')
+        ax.grid()
+    plt.savefig(f'figs/universal_functions.png')
+    plt.close('all')
+
+
 if __name__ == '__main__':
     (Path(__file__).parent / 'figs').mkdir(exist_ok=True)
     weather_data = get_weather_data()
@@ -445,7 +496,8 @@ if __name__ == '__main__':
                                      ('bigleaf', 'sunlit-shaded'),
                                      ('layered', 'lumped'),
                                      ('layered', 'sunlit-shaded')):
-
+        print('-' * 50)
+        print(f"{canopy_type} - {leaves_type}")
         canopy_layers = {0: sum(leaf_layers.values())} if canopy_type == 'bigleaf' else leaf_layers
         layers.update({f'{canopy_type} {leaves_type}': canopy_layers})
         hourly_absorbed_irradiance = []
@@ -460,7 +512,7 @@ if __name__ == '__main__':
             vapor_pressure_deficit = w_data['vapor_pressure_deficit']
             vapor_pressure = w_data['vapor_pressure']
             air_temperature = w_data['air_temperature']
-
+            print(date)
             absorbed_irradiance = calc_absorbed_irradiance(
                 is_bigleaf=(canopy_type == 'bigleaf'),
                 is_lumped=(leaves_type == 'lumped'),
@@ -509,3 +561,5 @@ if __name__ == '__main__':
 
     plot_energy_balance(
         solvers=solver_group)
+
+    plot_stability_terms(solvers=solver_group)

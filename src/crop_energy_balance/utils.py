@@ -1,36 +1,3 @@
-from math import exp
-
-
-def convert_kelvin_to_celsius(temperature: float,
-                              absolute_zero: float = -273.15) -> float:
-    """Converts Kelvin unit to Celsius unit.
-
-    Args:
-        temperature: [K] temperature
-        absolute_zero: [°C] absolute zero temperature
-
-    Returns:
-        [K] temperature
-
-    """
-    return temperature + absolute_zero
-
-
-def convert_celsius_to_kelvin(temperature: float,
-                              absolute_zero: float = -273.15) -> float:
-    """Converts Kelvin unit to Celsius unit.
-
-    Args:
-        temperature: [°C] temperature
-        absolute_zero: [°C] absolute zero temperature
-
-    Returns:
-        [°C] temperature
-
-    """
-    return temperature - absolute_zero
-
-
 def calc_stomatal_density_factor(amphistomatal_leaf: bool) -> int:
     """Computes an integer that expresses whether stomata are equally present on both faces or on one face of the leaf
         blade
@@ -46,6 +13,22 @@ def calc_stomatal_density_factor(amphistomatal_leaf: bool) -> int:
         return 1
     else:
         return 2
+
+
+def calc_temperature_step(previous_value: float,
+                          actual_value: float,
+                          step_fraction: float = 0.5) -> float:
+    """Calculates the temperature step value between two consecutive energy balance calculations.
+
+    Args:
+        previous_value: [K] previous calculated temperature
+        actual_value: [K] actual calculated temperature
+        step_fraction: [-] fraction of the entire step (`actual_value - previous_value`) to be used
+
+    Returns:
+        [K] the temperature step value between two consecutive energy balance calculations
+    """
+    return step_fraction * (actual_value - previous_value)
 
 
 def discretize_linearly(inclusive_start: float,
@@ -70,67 +53,48 @@ def discretize_linearly(inclusive_start: float,
     return [inclusive_start + step * i for i in range(vector_length)]
 
 
-def calc_temperature_step(previous_value: float,
-                          actual_value: float,
-                          step_fraction: float = 0.5) -> float:
-    """Calculates the temperature step value between two consecutive energy balance calculations.
+def is_almost_equal(actual: any([int, float, tuple, list]),
+                    desired: any([int, float, tuple, list]),
+                    decimal: int = 7):
+    """Raises an AssertionError if two items are not equal up to desired precision.
 
     Args:
-        previous_value: [K] previous calculated temperature
-        actual_value: [K] actual calculated temperature
-        step_fraction: [-] fraction of the entire step (`actual_value - previous_value`) to be used
+        actual: The object to check
+        desired: The expected object
+        decimal: Desired precision
 
-    Returns:
-        [K] the temperature step value between two consecutive energy balance calculations
+    Raises:
+        AssertionError if actual and desired are not equal up to specified precision.
+
+    Notes:
+        This function is a simplified version of numpy.testing.assert_almost_equal() and intends to replace the latter.
+        The test verifies that the elements of ``actual`` and ``desired`` satisfy.
+            ``abs(desired-actual) < 1.5 * 10**(-decimal)``
+
     """
-    return step_fraction * (actual_value - previous_value)
+    __tracebackhide__ = True  # Hide traceback for py.test
+
+    try:
+        any([isinstance(item, (tuple, list)) for item in (actual, desired)])
+        assert len(actual) == len(desired)
+        return [is_almost_equal(actual=a, desired=d) for a, d in zip(actual, desired)]
+    except TypeError:
+        pass
+
+    return abs(desired - actual) <= 1.5 * 10.0 ** (-decimal)
 
 
-def convert_photosynthetically_active_radiation_into_global_radiation(value: float) -> float:
-    """Converts photosynthetically active radiation into global radiation.
+def assert_trend(values: list, expected_trend: str) -> None or AssertionError:
+    """Asserts that a vector of values follows a given trend.
 
     Args:
-        value: [W_{PAR} m-2] photosynthetically active radiation
-
-    Returns:
-        [W_{global} m-2] global radiation
+        values: values whose trend is to be checked
+        expected_trend: one of '+' (increasing), '-' (decreasing), '+-' (non-monotonic)
     """
-    return value / 0.48
-
-
-def convert_global_irradiance_into_photosynthetically_active_radiation(value: float) -> float:
-    """Converts global radiation into photosynthetically active radiation.
-
-    Args:
-        value: [W_{global} m-2] global radiation
-
-    Returns:
-        [W_{PAR} m-2] photosynthetically active radiation
-    """
-    return value * 0.48
-
-
-def calc_saturated_air_vapor_pressure(temperature: float) -> float:
-    """Compute saturated air vapor pressure.
-    Args:
-        temperature: [°C] air temperature
-    Returns:
-        [kPa] saturated air vapor pressure
-    """
-    return 0.611 * exp(17.27 * temperature / (237.3 + temperature))
-
-
-def calc_vapor_pressure_deficit(temperature_air: float, temperature_leaf: float, relative_humidity: float) -> float:
-    """Computes leaf-to-air vapour pressure deficit.
-    Args:
-        temperature_air: [°C] air temperature
-        temperature_leaf: [°C] leaf temperature
-        relative_humidity: [-] air relative humidity (%, between 0 and 1)
-    Returns:
-        [kPa] leaf-to-air vapour pressure deficit
-    """
-    es_l = calc_saturated_air_vapor_pressure(temperature_leaf)
-    es_a = calc_saturated_air_vapor_pressure(temperature_air)
-    ea = es_a * relative_humidity / 100
-
-    return es_l - ea
+    if expected_trend == '+':
+        assert all([x <= y for x, y in zip(values, values[1:])])
+    elif expected_trend == '-':
+        assert all([x >= y for x, y in zip(values, values[1:])])
+    elif expected_trend == '+-':
+        assert (not all([x <= y for x, y in zip(values, values[1:])]) and
+                not all([x >= y for x, y in zip(values, values[1:])]))

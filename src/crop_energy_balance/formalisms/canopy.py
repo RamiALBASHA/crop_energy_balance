@@ -61,7 +61,7 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
     """Calculates hourly wind speed values at canopy height.
 
     Args:
-        wind_speed: [m h-1] hourly wind speed at measurement height
+        wind_speed: [m h-1] wind speed at measurement height
         canopy_height: [m] height of the canopy
         measurement_height: [m] height at which meteorological measurements are made
 
@@ -130,30 +130,68 @@ def calc_sensible_heat_flux(source_temperature: float,
     return air_density * air_specific_heat_capacity * temperature_difference / aerodynamic_resistance
 
 
-def calc_aerodynamic_resistance(wind_speed: float,
+def calc_aerodynamic_resistance(richardson_number: float,
+                                friction_velocity: float,
                                 measurement_height: float,
                                 zero_displacement_height: float,
-                                roughness_length_for_momentum: float,
                                 roughness_length_for_heat: float,
-                                von_karman_constant: float) -> float:
-    """Calculates the resistance to water vapor and heat transfer between the source height and the reference height.
+                                stability_correction_for_heat: float,
+                                canopy_temperature: float,
+                                air_temperature: float,
+                                von_karman_constant: float,
+                                air_density: float,
+                                air_specific_heat_capacity: float):
+    """Calculates the resistance to the transfer of momentum, water vapor and heat between the source height and the
+    reference height.
 
     Args:
-        wind_speed: [m h-1] wind speed at measurement height
-        measurement_height: [m] height at which wind speed in measured
+        friction_velocity: [m h-1] friction velocity
+        richardson_number: [-] Richardson number (indicates stability condition)
+        measurement_height: [m] height at which meteorological measurements are made
         zero_displacement_height: [m] zero displacement height
-        roughness_length_for_momentum: [m] roughness length for momentum transfer
         roughness_length_for_heat: [m] roughness length for heat and water vapor transfer
+        stability_correction_for_heat: [-] stability correction factor for heat transfer
         von_karman_constant: [-] von Karman constant
+        air_temperature: [K] air temperature at reference height
+        canopy_temperature: [K] canopy (source) temperature
+        air_density: [g m-3] density of dry air
+        air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
 
     Returns:
         [h m-1] air resistance to water vapor transfer between the source height and the reference height
-    """
-    wind_speed = max(2400.0, wind_speed)
 
-    return 1.0 / (wind_speed * von_karman_constant ** 2) * (
-            log((measurement_height - zero_displacement_height) / roughness_length_for_momentum) *
-            log((measurement_height - zero_displacement_height) / roughness_length_for_heat))
+    Notes:
+        For richardson_number < -0.8, the aerodynamic resistance is calculated for free convection conditions following
+            Kimball et al. (2015) reported by Webber et al. (2016). The characteristic surface factor
+            (n in Webber et al. 2016) was set to 5.0 as suggested by Kimball et al. (2015, Eq. 28) for open wheat field.
+            Yet, originally, n = 1.52 for large plates (ASHRAE, 2001).
+
+    References:
+        American Society of Heating, Refrigerating, and Air-Conditioning Engineers (2001).
+            ASHRAE Fundamentals Handbook (SI). ASHRAE, New York.
+        Kimball et al. (2015)
+            Predicting Canopy Temperatures and Infrared Heater Energy Requirements for Warming Field Plots.
+            Agronomy Journal 107, 129 - 141.
+        Webber et al. (2016)
+            Simulating canopy temperature for modelling heat stress in cereals.
+            Environmental Modelling and Software 77, 143 - 155
+
+    """
+    if richardson_number < -0.8:
+        # ----------------------
+        # strongly unstable, free convection dominates (Kimball et al. 2015)
+        # (Webber et al. 2016, eq. 11)
+        # ----------------------
+        n = 5.  # surface characteristic shape factor (ASHRAE, 2001, Eq. 11 in Table 5)
+        ra = air_density * air_specific_heat_capacity / (n * abs((canopy_temperature - air_temperature)) ** 0.25)
+    else:
+        # ----------------------
+        # unstable and stable conditions (the general case)
+        # ----------------------
+        ra = 1.0 / (von_karman_constant * friction_velocity) * (
+            (log((measurement_height - zero_displacement_height) / roughness_length_for_heat) -
+             stability_correction_for_heat))
+    return ra
 
 
 def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
