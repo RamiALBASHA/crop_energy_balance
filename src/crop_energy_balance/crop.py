@@ -51,8 +51,7 @@ class CanopyStateVariables:
             air_temperature=inputs.air_temperature,
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity,
-            n=100)
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
         self.lumped_aerodynamic_resistance = canopy.calc_lumped_aerodynamic_resistance(
             canopy_aerodynamic_resistance=self.aerodynamic_resistance,
             vapor_pressure_slope=self.vapor_pressure_slope,
@@ -157,8 +156,7 @@ class CanopyStateVariables:
             air_temperature=inputs.air_temperature,
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity,
-            n=100.0)
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
 
 class Component:

@@ -111,8 +111,7 @@ def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
         air_temperature=0,
         von_karman_constant=von_karman_constant,
         air_density=0,
-        air_specific_heat_capacity=0,
-        n=0)
+        air_specific_heat_capacity=0)
     assert utils.is_almost_equal(aerodynamic_resistance, 208 / 3600., decimal=1)
 
 

@@ -140,8 +140,7 @@ def calc_aerodynamic_resistance(richardson_number: float,
                                 air_temperature: float,
                                 von_karman_constant: float,
                                 air_density: float,
-                                air_specific_heat_capacity: float,
-                                n: float):
+                                air_specific_heat_capacity: float):
     """Calculates the resistance to the transfer of momentum, water vapor and heat between the source height and the
     reference height.
 
@@ -157,10 +156,25 @@ def calc_aerodynamic_resistance(richardson_number: float,
         canopy_temperature: [K] canopy (source) temperature
         air_density: [g m-3] density of dry air
         air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
-        n: [-] characteristic plot length
 
     Returns:
         [h m-1] air resistance to water vapor transfer between the source height and the reference height
+
+    Notes:
+        For richardson_number < -0.8, the aerodynamic resistance is calculated for free convection conditions following
+            Kimball et al. (2015) reported by Webber et al. (2016). The characteristic surface factor
+            (n in Webber et al. 2016) was set to 5.0 as suggested by Kimball et al. (2015, Eq. 28) for open wheat field.
+            Yet, originally, n = 1.52 for large plates (ASHRAE, 2001).
+
+    References:
+        American Society of Heating, Refrigerating, and Air-Conditioning Engineers (2001).
+            ASHRAE Fundamentals Handbook (SI). ASHRAE, New York.
+        Kimball et al. (2015)
+            Predicting Canopy Temperatures and Infrared Heater Energy Requirements for Warming Field Plots.
+            Agronomy Journal 107, 129 - 141.
+        Webber et al. (2016)
+            Simulating canopy temperature for modelling heat stress in cereals.
+            Environmental Modelling and Software 77, 143 - 155
 
     """
     if richardson_number < -0.8:
@@ -168,6 +182,7 @@ def calc_aerodynamic_resistance(richardson_number: float,
         # strongly unstable, free convection dominates (Kimball et al. 2015)
         # (Webber et al. 2016, eq. 11)
         # ----------------------
+        n = 5.  # surface characteristic shape factor (ASHRAE, 2001, Eq. 11 in Table 5)
         ra = air_density * air_specific_heat_capacity / (n * abs((canopy_temperature - air_temperature)) ** 0.25)
     else:
         # ----------------------

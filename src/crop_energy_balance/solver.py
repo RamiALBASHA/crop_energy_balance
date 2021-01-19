@@ -126,8 +126,7 @@ class Solver:
             air_temperature=self.inputs.air_temperature,
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity,
-            n=100)
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
         if self.canopy.state_variables.sensible_heat_flux > 0:
             self.canopy.state_variables.aerodynamic_resistance = 1.2 * neutral_aerodynamic_resistance
         else:

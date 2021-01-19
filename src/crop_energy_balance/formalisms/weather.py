@@ -225,13 +225,18 @@ def calc_richardson_number(is_stable: bool,
         [-] Richardson length
 
     References:
+        Monteith and Unsworth (2013).
+            Principles of Environmental Physics (Fourth Edition)
+            Academic Press, pp 289 - 320
+
         Webb (1970).
             Profile relationships: the log-linear range, and extension to strong stability.
             Quarterly Journal of the Royal Meteorological Society 96, 67 - 90.
 
-        Monteith and Unsworth (2013).
-            Principles of Environmental Physics (Fourth Edition)
-            Academic Press, pp 289 - 320,
+        Webber et al. (2016)
+            Simulating canopy temperature for modelling heat stress in cereals.
+            Environmental Modelling and Software 77, 143 - 155
+
 
     Note:
         according to Webber et al. (2016) turbulence condition is considered stable if canopy's temperature is lower
