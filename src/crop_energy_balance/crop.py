@@ -266,7 +266,7 @@ class SoilComponent(Component):
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.heat_flux = soil.calc_heat_flux(
             net_above_ground_radiation=canopy_state_variables.net_radiation,
-            is_diurnal=sum(inputs.incident_irradiance.values()) >= 0)
+            is_diurnal=sum(inputs.incident_irradiance.values()) > 0)
         self.available_energy = component.calc_available_energy(
             net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
                 self.absorbed_irradiance),
