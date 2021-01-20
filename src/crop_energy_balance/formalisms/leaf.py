@@ -1,6 +1,3 @@
-from math import sqrt
-
-
 def calc_leaf_boundary_conductance(wind_speed_at_canopy_height: float,
                                    characteristic_length: float = 0.01,
                                    shape_parameter: float = 0.01) -> float:
@@ -15,7 +12,7 @@ def calc_leaf_boundary_conductance(wind_speed_at_canopy_height: float,
         [m h-1] bulk boundary layer conductance (for both sides of leaves) at the scale of an individual leaf
 
     """
-    return 3600 * shape_parameter * sqrt(wind_speed_at_canopy_height / characteristic_length)
+    return 3600 * shape_parameter * (wind_speed_at_canopy_height / characteristic_length) ** 0.5
 
 
 def calc_stomatal_sensibility(air_vapor_pressure_deficit: float,
