@@ -105,6 +105,6 @@ def test_calc_net_longwave_radiation():
 
     assert_trend(expected_trend='-',
                  values=[soil.calc_net_longwave_radiation(canopy_top_net_longwave_radiation=rnl,
-                                                          canopy_leaf_area_index=l,
+                                                          canopy_leaf_area_index=lai,
                                                           diffuse_black_extinction_coefficient=k_d)
-                         for l in range(0, 5)])
+                         for lai in range(0, 5)])
