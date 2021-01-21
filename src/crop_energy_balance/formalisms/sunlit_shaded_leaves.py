@@ -38,7 +38,7 @@ def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
             exp(-lumped_extinction_coefficient * upper_cumulative_leaf_area_index) -
             exp(-lumped_extinction_coefficient * lower_cumulative_leaf_area_index))
 
-    sunlit_layer_boundary_conductance = leaf_boundary_conductance * max(1.e-6, sunlit_layer_scaling_factor)
+    sunlit_layer_boundary_conductance = leaf_boundary_conductance * max(1.e-12, sunlit_layer_scaling_factor)
 
     if leaves_category == 'sunlit':
         return sunlit_layer_boundary_conductance
