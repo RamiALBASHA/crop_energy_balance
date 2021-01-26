@@ -67,7 +67,7 @@ def calc_vapor_pressure_slope(temperature: float) -> float:
         temperature: [°C] air temperature
 
     Returns:
-        [kPa °K-1] the slope of vapor pressure curve at the given air temperature
+        [kPa K-1] the slope of vapor pressure curve at the given air temperature
 
     """
     return 4098 * (0.6108 * exp((17.27 * temperature) / (temperature + 237.3))) / ((temperature + 237.3) ** 2)
@@ -82,7 +82,7 @@ def convert_kelvin_to_celsius(temperature: float,
         absolute_zero: [°C] absolute zero temperature
 
     Returns:
-        [K] temperature
+        [°C] temperature
 
     """
     return temperature + absolute_zero
@@ -97,7 +97,7 @@ def convert_celsius_to_kelvin(temperature: float,
         absolute_zero: [°C] absolute zero temperature
 
     Returns:
-        [°C] temperature
+        [K] temperature
 
     """
     return temperature - absolute_zero
@@ -142,7 +142,7 @@ def calc_vapor_pressure_deficit(temperature_air: float, temperature_leaf: float,
     Args:
         temperature_air: [°C] air temperature
         temperature_leaf: [°C] leaf temperature
-        relative_humidity: [-] air relative humidity (%, between 0 and 1)
+        relative_humidity: [-] air relative humidity (%, between 0 and 100)
     Returns:
         [kPa] leaf-to-air vapour pressure deficit
     """
