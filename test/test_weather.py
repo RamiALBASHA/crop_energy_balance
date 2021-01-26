@@ -33,6 +33,11 @@ def test_calc_atmospheric_emissivity():
 def test_calc_vapor_pressure_slope():
     assert_trend(expected_trend='+',
                  values=[weather.calc_vapor_pressure_slope(t) for t in range(-25, 25)])
+    # (Allen et al., 1998, Annex 2, table 2.4)
+    air_temperature = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45]
+    slope = [0.047, 0.061, 0.082, 0.11, 0.145, 0.189, 0.243, 0.311, 0.393, 0.493]
+    assert is_almost_equal(
+        actual=[weather.calc_vapor_pressure_slope(t) for t in air_temperature], desired=slope, decimal=3)
 
 
 def test_convert_kelvin_to_celsius():
