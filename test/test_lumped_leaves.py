@@ -42,8 +42,8 @@ def test_calc_leaf_layer_boundary_resistance_to_heat():
 
 
 def test_calc_leaf_layer_surface_conductance_to_vapor():
-    def set_args():
-        return dict(incident_direct_irradiance=100,
+    def set_args(**kwargs):
+        args = dict(incident_direct_irradiance=100,
                     incident_diffuse_irradiance=100,
                     upper_cumulative_leaf_area_index=0,
                     lower_cumulative_leaf_area_index=1,
@@ -58,24 +58,20 @@ def test_calc_leaf_layer_surface_conductance_to_vapor():
                     residual_stomatal_conductance=0.4,
                     shape_parameter=105,
                     sublayers_number=5)
+        args.update(**kwargs)
+        return args
 
-    args = set_args()
-    args.update({'incident_direct_irradiance': 0, 'incident_diffuse_irradiance': 0})
-    assert is_almost_equal(actual=lumped_leaves.calc_leaf_layer_surface_conductance_to_vapor(**args), desired=0.4)
+    assert is_almost_equal(desired=0.4,
+                           actual=lumped_leaves.calc_leaf_layer_surface_conductance_to_vapor(
+                               **set_args(incident_direct_irradiance=0, incident_diffuse_irradiance=0)))
 
-    args = set_args()
-    g = []
-    for par in range(0, 300, 50):
-        args.update({'incident_direct_irradiance': par, 'incident_diffuse_irradiance': par})
-        g.append(lumped_leaves.calc_leaf_layer_surface_conductance_to_vapor(**args))
-    assert_trend(values=g, expected_trend='+')
+    assert_trend(expected_trend='+',
+                 values=[lumped_leaves.calc_leaf_layer_surface_conductance_to_vapor(**set_args(
+                     incident_direct_irradiance=f, incident_diffuse_irradiance=f)) for f in range(0, 300, 50)])
 
-    args = set_args()
-    g = []
-    for lai in range(10):
-        args.update({'lower_cumulative_leaf_area_index': lai})
-        g.append(lumped_leaves.calc_leaf_layer_surface_conductance_to_vapor(**args))
-    assert_trend(values=g, expected_trend='+')
+    assert_trend(expected_trend='+',
+                 values=[lumped_leaves.calc_leaf_layer_surface_conductance_to_vapor(**set_args(
+                     lower_cumulative_leaf_area_index=lai)) for lai in range(10)])
 
 
 def test_calc_leaf_layer_surface_resistance_to_vapor():
