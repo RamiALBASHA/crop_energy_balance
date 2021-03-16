@@ -239,8 +239,8 @@ def calc_richardson_number(is_stable: bool,
 
 
     Note:
-        according to Webber et al. (2016) turbulence condition is considered stable if canopy's temperature is lower
-            the air's, otherwise unstable)
+        According to Webber et al. (2016) turbulence condition is considered stable if canopy's temperature is lower
+            the air's, otherwise unstable
     """
     if is_stable:
         # Webb (1970) in Monteith and Unsworth (2013)
