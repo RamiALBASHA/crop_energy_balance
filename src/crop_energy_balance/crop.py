@@ -33,29 +33,12 @@ class CanopyStateVariables:
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,
             measurement_height=inputs.measurement_height)
-        self.friction_velocity = weather.calc_friction_velocity(
-            wind_speed=inputs.wind_speed,
-            measurement_height=inputs.measurement_height,
-            zero_displacement_height=self.zero_displacement_height,
-            roughness_length_for_momentum=self.roughness_length_for_momentum,
-            stability_correction_for_momentum=self.stability_correction_for_momentum,
-            von_karman_constant=constants.von_karman)
-        self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
-            richardson_number=self.richardson_number,
-            friction_velocity=self.friction_velocity,
-            measurement_height=inputs.measurement_height,
-            zero_displacement_height=self.zero_displacement_height,
-            roughness_length_for_heat=self.roughness_length_for_heat_transfer,
-            stability_correction_for_heat=self.stability_correction_for_heat,
-            canopy_temperature=self.source_temperature,
-            air_temperature=inputs.air_temperature,
-            von_karman_constant=constants.von_karman,
-            air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity)
-        self.lumped_aerodynamic_resistance = canopy.calc_lumped_aerodynamic_resistance(
-            canopy_aerodynamic_resistance=self.aerodynamic_resistance,
-            vapor_pressure_slope=self.vapor_pressure_slope,
-            psychrometric_constant=constants.psychrometric_constant)
+
+        self.friction_velocity = None
+        self.aerodynamic_resistance = None
+        self.lumped_aerodynamic_resistance = None
+        self.calc_aerodynamic_resistance(inputs=inputs, correct_stability=False)
+
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
             air_vapor_pressure=inputs.air_vapor_pressure,
@@ -124,7 +107,7 @@ class CanopyStateVariables:
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
-    def update(self, inputs: Inputs):
+    def calc_aerodynamic_resistance(self, inputs: Inputs, correct_stability: bool):
         self.friction_velocity = weather.calc_friction_velocity(
             wind_speed=inputs.wind_speed,
             measurement_height=inputs.measurement_height,
@@ -133,17 +116,18 @@ class CanopyStateVariables:
             stability_correction_for_momentum=self.stability_correction_for_momentum,
             von_karman_constant=constants.von_karman)
 
-        (self.stability_correction_for_momentum, self.stability_correction_for_heat,
-         self.richardson_number, self.monin_obukhov_length) = weather.calc_stability_correction_functions(
-            friction_velocity=self.friction_velocity,
-            sensible_heat=self.sensible_heat_flux,
-            canopy_temperature=self.source_temperature,
-            measurement_height=inputs.measurement_height,
-            zero_displacement_height=self.zero_displacement_height,
-            air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity,
-            von_karman_constant=constants.von_karman,
-            gravitational_acceleration=constants.gravitational_acceleration)
+        if correct_stability:
+            (self.stability_correction_for_momentum, self.stability_correction_for_heat,
+             self.richardson_number, self.monin_obukhov_length) = weather.calc_stability_correction_functions(
+                friction_velocity=self.friction_velocity,
+                sensible_heat=self.sensible_heat_flux,
+                canopy_temperature=self.source_temperature,
+                measurement_height=inputs.measurement_height,
+                zero_displacement_height=self.zero_displacement_height,
+                air_density=constants.air_density,
+                air_specific_heat_capacity=constants.air_specific_heat_capacity,
+                von_karman_constant=constants.von_karman,
+                gravitational_acceleration=constants.gravitational_acceleration)
 
         self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=self.richardson_number,
@@ -157,6 +141,11 @@ class CanopyStateVariables:
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
+
+        self.lumped_aerodynamic_resistance = canopy.calc_lumped_aerodynamic_resistance(
+            canopy_aerodynamic_resistance=self.aerodynamic_resistance,
+            vapor_pressure_slope=self.vapor_pressure_slope,
+            psychrometric_constant=constants.psychrometric_constant)
 
 
 class Component:

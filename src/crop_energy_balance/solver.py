@@ -45,7 +45,7 @@ class Solver:
             while not is_acceptable_error and self.stability_iterations_number <= 100:
                 self.stability_iterations_number += 1
                 sensible_heat = self.canopy.state_variables.sensible_heat_flux.copy()
-                self.canopy.state_variables.update(inputs=self.inputs)
+                self.canopy.state_variables.calc_aerodynamic_resistance(inputs=self.inputs, correct_stability=True)
                 self.solve_transient_energy_balance()
                 error = abs(self.canopy.state_variables.sensible_heat_flux - sensible_heat)
                 is_acceptable_error = is_almost_equal(actual=error, desired=0, decimal=2)
