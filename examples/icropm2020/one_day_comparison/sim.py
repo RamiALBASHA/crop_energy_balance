@@ -1,3 +1,4 @@
+import importlib.util
 from json import load
 from pathlib import Path
 
@@ -8,7 +9,19 @@ from crop_irradiance.uniform_crops import (
 
 from crop_energy_balance import (
     inputs as eb_inputs, params as eb_params, crop as eb_canopy, solver as eb_solver)
-from crop_energy_balance.examples.sources.demo import get_weather_data
+
+# import demo.py (outside src)
+spec = importlib.util.spec_from_file_location(
+    name="demo",
+    location=r"../../../examples/sources/demo.py")
+
+# spec = importlib.util.spec_from_file_location(
+#     name="demo",
+#     location=r"C:\Users\ralbasha\Documents\dvlp\crop_energy_balance_2\crop_energy_balance\examples\sources\demo.py")
+foo = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(foo)
+foo.get_weather_data()
+# from crop_energy_balance.examples.sources.demo import get_weather_data
 
 with open('inputs.json', mode='r') as f:
     json_inputs = load(f)
@@ -118,16 +131,17 @@ def get_energy_balance_inputs_and_params(
 
 
 def solve_energy_balance(
+        correct_stability: bool,
         vegetative_layers: dict,
         leaf_class_type: str,
         absorbed_par_irradiance: dict,
         actual_weather_data: pd.Series) -> eb_solver.Solver:
-    kwargs = {k: v for k, v in locals().items() if k != 'leaf_class_type'}
+    kwargs = {k: v for k, v in locals().items() if k not in ('leaf_class_type', 'correct_stability')}
     inputs, params = get_energy_balance_inputs_and_params(**kwargs)
 
     canopy = eb_canopy.Canopy(leaves_category=leaf_class_type, inputs=inputs, params=params)
     solver = eb_solver.Solver(canopy=canopy, inputs=inputs, params=params)
-    solver.run(correct_neutrality=True)
+    solver.run(correct_neutrality=correct_stability)
 
     return solver
 
@@ -446,7 +460,7 @@ def plot_energy_balance(solvers: dict):
     pass
 
 
-def plot_stability_terms(solvers: dict, measurement_height: float = 2):
+def plot_stability_terms(solvers: dict):
     # hourly plots
     terms = ['sensible_heat_flux', 'monin_obukhov_length', 'stability_correction_for_momentum',
              'stability_correction_for_heat']
@@ -459,12 +473,14 @@ def plot_stability_terms(solvers: dict, measurement_height: float = 2):
 
     [ax.set_xlabel('hour') for ax in axes[-1, :]]
     fig.savefig(f'figs/stability_terms.png')
+    plt.close('all')
 
+
+def plot_universal_functions(solvers, measurement_height: float = 2):
     # universal functions plots
     x = []
     phi_h = []
     phi_m = []
-
     for m_solvers in solvers.values():
         for h_solver in m_solvers:
             state = h_solver.canopy.state_variables
@@ -485,8 +501,8 @@ def plot_stability_terms(solvers: dict, measurement_height: float = 2):
 
 if __name__ == '__main__':
     (Path(__file__).parent / 'figs').mkdir(exist_ok=True)
-    weather_data = get_weather_data()
-
+    weather_data = foo.get_weather_data()
+    correct_for_stability = False
     irradiance = {}
     temperature = {}
     layers = {}
@@ -526,7 +542,8 @@ if __name__ == '__main__':
                 vegetative_layers=canopy_layers,
                 leaf_class_type=leaves_type,
                 absorbed_par_irradiance=absorbed_irradiance,
-                actual_weather_data=w_data)
+                actual_weather_data=w_data,
+                correct_stability=correct_for_stability)
 
             hourly_solver.append(energy_balance_solver)
             hourly_temperature.append(get_variable(
@@ -563,3 +580,6 @@ if __name__ == '__main__':
         solvers=solver_group)
 
     plot_stability_terms(solvers=solver_group)
+
+    if correct_for_stability:
+        plot_universal_functions(solvers=solver_group, measurement_height=2)
