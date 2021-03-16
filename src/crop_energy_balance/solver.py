@@ -25,7 +25,7 @@ class Solver:
         self.energy_balance = None
 
     def run(self, correct_neutrality=False):
-        """Solves the energy balance of the crop.
+        """Solves the steady-state energy balance.
 
         Args:
             correct_neutrality: If True then turbulence neutrality conditions are considered following
@@ -37,7 +37,7 @@ class Solver:
                 Environmental Modelling and Software 77, 143 - 155
         """
         # Solves the energy balance for neutral conditions
-        self.solve_energy_balance()
+        self.solve_transient_energy_balance()
 
         # Corrects the energy balance for non-neutral conditions
         if correct_neutrality:
@@ -46,16 +46,16 @@ class Solver:
                 self.stability_iterations_number += 1
                 sensible_heat = self.canopy.state_variables.sensible_heat_flux.copy()
                 self.canopy.state_variables.update(inputs=self.inputs)
-                self.solve_energy_balance()
+                self.solve_transient_energy_balance()
                 error = abs(self.canopy.state_variables.sensible_heat_flux - sensible_heat)
                 is_acceptable_error = is_almost_equal(actual=error, desired=0, decimal=2)
 
             if self.stability_iterations_number > 100:
                 self.force_aerodynamic_resistance()
-                self.solve_energy_balance()
+                self.solve_transient_energy_balance()
 
-    def solve_energy_balance(self):
-        """Solves one-shot energy balance.
+    def solve_transient_energy_balance(self):
+        """Solves energy balance having fixed stability-related variables.
         """
         is_acceptable_error = False
         while not is_acceptable_error:
@@ -68,8 +68,8 @@ class Solver:
 
     def init_state_variables(self):
         self.canopy.state_variables = CanopyStateVariables(self.inputs)
-        for crop_components in self.components:
-            crop_components.init_state_variables(self.canopy.inputs, self.canopy.params, self.canopy.state_variables)
+        for crop_component in self.components:
+            crop_component.init_state_variables(self.canopy.inputs, self.canopy.params, self.canopy.state_variables)
 
     def update_state_variables(self):
         self.canopy.state_variables.calc_total_composed_conductances(crop_components=self.components)
