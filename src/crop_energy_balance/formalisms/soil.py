@@ -114,6 +114,11 @@ def calc_heat_flux(net_above_ground_radiation: float,
     Returns:
         [W m-2ground] the net heat flux density into the soil substrates
 
+    Reference:
+        Allen et al. 1998
+            Crop Evapotranspiration – Guide-lines for Computing Crop Water Requirements
+            Paper 56. Food and Agricultural Organization of the United Nations.
+
     """
     return 0.1 * net_above_ground_radiation if is_diurnal else 0.5 * net_above_ground_radiation
 
