@@ -14,7 +14,8 @@ class Params:
         if params:
             self._user_params = params
         else:
-            self._user_params = load(open(str(params_path), mode='r'), encoding='utf-8')
+            with open(str(params_path), mode='r', encoding='utf-8') as f:
+                self._user_params = load(f)
 
         self.simulation = Simulation(self._user_params)
 

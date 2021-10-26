@@ -13,8 +13,8 @@ class Inputs:
                  inputs: dict = None,
                  inputs_path: Path = None):
         if not inputs:
-            with open(str(inputs_path), mode='r') as f:
-                inputs = load(f, encoding='utf-8')
+            with open(str(inputs_path), mode='r', encoding='utf-8') as f:
+                inputs = load(f)
 
         self._inputs = self._fmt_inputs(inputs)
 
