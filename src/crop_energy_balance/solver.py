@@ -1,4 +1,4 @@
-from crop_energy_balance.crop import Canopy, CanopyStateVariables
+from crop_energy_balance.crop import Crop, CropStateVariables
 from crop_energy_balance.formalisms import canopy, weather
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params, Constants
@@ -9,7 +9,7 @@ constants = Constants()
 
 class Solver:
     def __init__(self,
-                 canopy: Canopy,
+                 canopy: Crop,
                  inputs: Inputs,
                  params: Params):
         self.canopy = canopy
@@ -67,7 +67,7 @@ class Solver:
             is_acceptable_error = self.determine_if_acceptable_error(error)
 
     def init_state_variables(self):
-        self.canopy.state_variables = CanopyStateVariables(self.inputs)
+        self.canopy.state_variables = CropStateVariables(self.inputs)
         for crop_component in self.components:
             crop_component.init_state_variables(self.canopy.inputs, self.canopy.params, self.canopy.state_variables)
 

@@ -9,7 +9,7 @@ from crop_energy_balance import utils
 constants = Constants()
 
 
-class CanopyStateVariables:
+class CropStateVariables:
     def __init__(self,
                  inputs: Inputs):
         self.stability_correction_for_momentum = 0.0
@@ -171,38 +171,38 @@ class Component:
     def init_state_variables(self,
                              inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             crop_state_variables: CropStateVariables):
         self._temperature = inputs.air_temperature
         self.composed_resistance = component.calc_composed_resistance(
             surface_resistance=self.surface_resistance,
             boundary_layer_resistance=self.boundary_resistance,
-            vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
+            vapor_pressure_slope=crop_state_variables.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
 
     def calc_composed_conductance(self,
-                                  canopy_state_variables: CanopyStateVariables):
+                                  crop_state_variables: CropStateVariables):
         self.composed_conductance = component.calc_composed_conductance(
             composed_boundary_and_surface_resistance=self.composed_resistance,
-            sum_composed_boundary_and_surface_conductances=canopy_state_variables.sum_composed_conductances,
-            canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance)
+            sum_composed_boundary_and_surface_conductances=crop_state_variables.sum_composed_conductances,
+            canopy_lumped_aerodynamic_resistance=crop_state_variables.lumped_aerodynamic_resistance)
 
     def calc_evaporative_energy(self,
-                                canopy_state_variables: CanopyStateVariables):
+                                crop_state_variables: CropStateVariables):
         self.penman_monteith_evaporative_energy = component.calc_evaporative_energy(
             available_energy=self.available_energy,
             boundary_layer_resistance=self.boundary_resistance,
             lumped_boundary_and_surface_resistance=self.composed_resistance,
-            canopy_lumped_aerodynamic_resistance=canopy_state_variables.lumped_aerodynamic_resistance,
-            penman_evaporative_energy=canopy_state_variables.penman_energy,
-            penman_monteith_evaporative_energy=canopy_state_variables.total_penman_monteith_evaporative_energy,
-            vapor_pressure_slope=canopy_state_variables.vapor_pressure_slope,
+            canopy_lumped_aerodynamic_resistance=crop_state_variables.lumped_aerodynamic_resistance,
+            penman_evaporative_energy=crop_state_variables.penman_energy,
+            penman_monteith_evaporative_energy=crop_state_variables.total_penman_monteith_evaporative_energy,
+            vapor_pressure_slope=crop_state_variables.vapor_pressure_slope,
             psychrometric_constant=constants.psychrometric_constant)
 
     def calc_temperature(self,
-                         canopy_state_variables: CanopyStateVariables):
+                         crop_state_variables: CropStateVariables):
         self.temperature = component.calc_temperature(
-            canopy_temperature=canopy_state_variables.source_temperature,
+            canopy_temperature=crop_state_variables.source_temperature,
             boundary_layer_resistance=self.boundary_resistance,
             available_energy=self.available_energy,
             evaporative_energy=self.penman_monteith_evaporative_energy,
@@ -232,7 +232,7 @@ class SoilComponent(Component):
     def init_state_variables(self,
                              inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             crop_state_variables: CropStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.surface_resistance = soil.calc_surface_resistance(
             soil_saturation_ratio=inputs.soil_saturation_ratio,
@@ -242,17 +242,17 @@ class SoilComponent(Component):
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,
             measurement_height=inputs.measurement_height,
-            zero_displacement_height=canopy_state_variables.zero_displacement_height,
-            canopy_roughness_length_for_momentum=canopy_state_variables.roughness_length_for_momentum,
+            zero_displacement_height=crop_state_variables.zero_displacement_height,
+            canopy_roughness_length_for_momentum=crop_state_variables.roughness_length_for_momentum,
             soil_roughness_length_for_momentum=params.simulation.soil_roughness_length_for_momentum,
             shape_parameter=params.simulation.soil_aerodynamic_resistance_shape_parameter,
             von_karman_constant=constants.von_karman)
         self.net_longwave_radiation = soil.calc_net_longwave_radiation(
-            canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
+            canopy_top_net_longwave_radiation=crop_state_variables.net_longwave_radiation,
             canopy_leaf_area_index=sum(inputs.leaf_layers.values()),
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
         self.heat_flux = soil.calc_heat_flux(
-            net_above_ground_radiation=canopy_state_variables.net_radiation,
+            net_above_ground_radiation=crop_state_variables.net_radiation,
             is_diurnal=sum(inputs.incident_irradiance.values()) > 0)
         self.available_energy = component.calc_available_energy(
             net_shortwave_radiation=weather.convert_photosynthetically_active_radiation_into_global_radiation(
@@ -263,7 +263,7 @@ class SoilComponent(Component):
         Component.init_state_variables(self,
                                        inputs=inputs,
                                        params=params,
-                                       canopy_state_variables=canopy_state_variables)
+                                       crop_state_variables=crop_state_variables)
 
 
 class LeafComponent(Component):
@@ -287,7 +287,7 @@ class LumpedLeafComponent(LeafComponent):
     def init_state_variables(self,
                              inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             crop_state_variables: CropStateVariables):
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
             inputs.vapor_pressure_deficit,
@@ -317,7 +317,7 @@ class LumpedLeafComponent(LeafComponent):
             characteristic_length=params.simulation.leaf_characteristic_length,
             shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
         self.net_longwave_radiation = lumped_leaves.calc_leaf_layer_net_longwave_radiation(
-            canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
+            canopy_top_net_longwave_radiation=crop_state_variables.net_longwave_radiation,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             diffuse_black_extinction_coefficient=params.simulation.diffuse_black_extinction_coefficient)
@@ -330,7 +330,7 @@ class LumpedLeafComponent(LeafComponent):
         Component.init_state_variables(self,
                                        inputs=inputs,
                                        params=params,
-                                       canopy_state_variables=canopy_state_variables)
+                                       crop_state_variables=crop_state_variables)
 
 
 class SunlitShadedLeafComponent(LeafComponent):
@@ -342,7 +342,7 @@ class SunlitShadedLeafComponent(LeafComponent):
     def init_state_variables(self,
                              inputs: Inputs,
                              params: Params,
-                             canopy_state_variables: CanopyStateVariables):
+                             crop_state_variables: CropStateVariables):
         self.surface_fraction = sunlit_shaded_leaves.calc_leaf_fraction_per_leaf_layer(
             leaves_category=self.leaves_category,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -381,7 +381,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
         self.net_longwave_radiation = sunlit_shaded_leaves.calc_leaf_layer_net_longwave_radiation(
             leaves_category=self.leaves_category,
-            canopy_top_net_longwave_radiation=canopy_state_variables.net_longwave_radiation,
+            canopy_top_net_longwave_radiation=crop_state_variables.net_longwave_radiation,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
@@ -395,10 +395,10 @@ class SunlitShadedLeafComponent(LeafComponent):
         Component.init_state_variables(self,
                                        inputs=inputs,
                                        params=params,
-                                       canopy_state_variables=canopy_state_variables)
+                                       crop_state_variables=crop_state_variables)
 
 
-class Canopy(dict):
+class Crop(dict):
     def __getitem__(self, key):
         val = dict.__getitem__(self, key)
         return val

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from crop_energy_balance.crop import Canopy
+from crop_energy_balance.crop import Crop
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params
 from crop_energy_balance.solver import Solver
@@ -8,7 +8,7 @@ from crop_energy_balance.formalisms.weather import convert_kelvin_to_celsius
 from matplotlib import pyplot
 
 
-def plot_temperature_profile(canopy_object: Canopy, fig_path: Path):
+def plot_temperature_profile(canopy_object: Crop, fig_path: Path):
     soil_component_key = -1
     leaf_layer_keys = list(canopy_object.inputs.leaf_layers.keys())
     soil_component_temperature = convert_kelvin_to_celsius(canopy_object[-1].temperature)
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     params = Params(params_path=root_pth / 'params.json')
     params.update(inputs=inputs)
 
-    canopy = Canopy(leaves_category='sunlit-shaded', inputs=inputs, params=params)
+    canopy = Crop(leaves_category='sunlit-shaded', inputs=inputs, params=params)
     solver = Solver(canopy=canopy, inputs=inputs, params=params)
     solver.run()
 
