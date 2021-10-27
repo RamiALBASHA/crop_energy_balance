@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from crop_energy_balance.crop import Crop, CropStateVariables
 from crop_energy_balance.formalisms import canopy, weather
 from crop_energy_balance.inputs import Inputs
@@ -10,26 +12,35 @@ constants = Constants()
 class Solver:
     def __init__(self,
                  leaves_category: str,
-                 inputs: Inputs,
-                 params: Params):
+                 inputs_path: Path = None,
+                 inputs_dict: dict = None,
+                 params_path: Path = None,
+                 params_dict: dict = None):
+
         self.leaves_category = leaves_category
-        self.inputs = inputs
-        self.params = params
+
+        self.inputs = Inputs(inputs_path=inputs_path) if inputs_path is not None else Inputs(inputs_dict=inputs_dict)
+        self.params = Params(params_path=params_path) if params_path is not None else Params(params_dict=params_dict)
+        self.params.update(inputs=self.inputs)
+
         self.crop = Crop(leaves_category=self.leaves_category, inputs=self.inputs, params=self.params)
 
         self.components = self.crop.extract_all_components()
 
         self.stability_iterations_number = 1
         self.iterations_number = 0
+        self.error_temperature = None
+        self.error_sensible_heat_flux = None
+
         self.init_state_variables()
 
         self.energy_balance = None
 
-    def run(self, correct_neutrality=False):
+    def run(self, is_stability_considered=False):
         """Solves the steady-state energy balance.
 
         Args:
-            correct_neutrality: If True then turbulence neutrality conditions are considered following
+            is_stability_considered: If True then turbulence neutrality conditions are considered following
                 Webber et al. (2016), otherwise False (default)
 
         References:
@@ -41,7 +52,7 @@ class Solver:
         self.solve_transient_energy_balance()
 
         # Corrects the energy balance for non-neutral conditions
-        if correct_neutrality:
+        if is_stability_considered:
             is_acceptable_error = False
             while not is_acceptable_error and self.stability_iterations_number <= 100:
                 self.stability_iterations_number += 1
@@ -49,8 +60,8 @@ class Solver:
                 self.crop.state_variables.calc_aerodynamic_resistance(
                     inputs=self.crop.inputs, correct_stability=True)
                 self.solve_transient_energy_balance()
-                error = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
-                is_acceptable_error = is_almost_equal(actual=error, desired=0, decimal=2)
+                self.error_sensible_heat_flux = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
+                is_acceptable_error = is_almost_equal(actual=self.error_sensible_heat_flux, desired=0, decimal=2)
 
             if self.stability_iterations_number > 100:
                 self.force_aerodynamic_resistance()
@@ -63,10 +74,10 @@ class Solver:
         while not is_acceptable_error:
             self.iterations_number += 1
             self.update_state_variables()
-            error = self.calc_error()
+            self.error_temperature = self.calc_error()
             self.update_temperature()
             self.calc_energy_balance()
-            is_acceptable_error = self.determine_if_acceptable_error(error)
+            is_acceptable_error = self.determine_if_acceptable_error()
 
     def init_state_variables(self):
         self.crop.state_variables = CropStateVariables(self.crop.inputs)
@@ -138,6 +149,5 @@ class Solver:
         return sum(
             [abs(crop_component.temperature - crop_component._temperature) for crop_component in self.components])
 
-    def determine_if_acceptable_error(self,
-                                      error: float) -> bool:
-        return error <= self.params.numerical_resolution.acceptable_temperature_error
+    def determine_if_acceptable_error(self) -> bool:
+        return self.error_temperature <= self.params.numerical_resolution.acceptable_temperature_error

@@ -6,7 +6,7 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (
     calc_absorbed_scattered_irradiance_at_given_depth)
 
 
-def calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(
+def calc_absorbed_irradiance_by_sunlit_leaves(
         incident_direct_irradiance: float,
         incident_diffuse_irradiance: float,
         cumulative_leaf_area_index: float,
@@ -54,7 +54,7 @@ def calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(
     return absorbed_direct_irradiance + absorbed_diffuse_irradiance + absorbed_scattered_irradiance
 
 
-def calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(
+def calc_absorbed_irradiance_by_shaded_leaves(
         incident_direct_irradiance: float,
         incident_diffuse_irradiance: float,
         cumulative_leaf_area_index: float,
@@ -131,13 +131,13 @@ def calc_absorbed_irradiance(leaves_category: str,
     common_args = {k: v for k, v in locals().items() if k != 'leaves_category'}
     res = None
     if leaves_category == 'sunlit':
-        res = calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(**common_args)
+        res = calc_absorbed_irradiance_by_sunlit_leaves(**common_args)
     elif leaves_category == 'shaded':
-        res = calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(**common_args)
+        res = calc_absorbed_irradiance_by_shaded_leaves(**common_args)
     elif leaves_category == 'lumped':
-        res = (calc_absorbed_irradiance_by_sunlit_leaves_per_leaf_layer_at_given_depth(**common_args) *
+        res = (calc_absorbed_irradiance_by_sunlit_leaves(**common_args) *
                calc_sunlit_fraction(cumulative_leaf_area_index, direct_black_extinction_coefficient) +
-               calc_absorbed_irradiance_by_shaded_leaves_per_leaf_layer_at_given_depth(**common_args) *
+               calc_absorbed_irradiance_by_shaded_leaves(**common_args) *
                calc_shaded_fraction(cumulative_leaf_area_index, direct_black_extinction_coefficient))
     return res
 

@@ -123,11 +123,7 @@ def get_energy_balance_inputs_and_params(
              'diffuse': actual_weather_data['incident_diffuse_irradiance']},
          "absorbed_photosynthetically_active_radiation": absorbed_par_irradiance})
 
-    energy_balance_inputs = eb_inputs.Inputs(raw_inputs)
-    energy_balance_params = eb_params.Params(params=json_params)
-    energy_balance_params.update(inputs=energy_balance_inputs)
-
-    return energy_balance_inputs, energy_balance_params
+    return raw_inputs, json_params
 
 
 def solve_energy_balance(
@@ -137,10 +133,12 @@ def solve_energy_balance(
         absorbed_par_irradiance: dict,
         actual_weather_data: pd.Series) -> eb_solver.Solver:
     kwargs = {k: v for k, v in locals().items() if k not in ('leaf_class_type', 'correct_stability')}
-    inputs, params = get_energy_balance_inputs_and_params(**kwargs)
+    inputs_dict, params_dict = get_energy_balance_inputs_and_params(**kwargs)
 
-    solver = eb_solver.Solver(leaves_category=leaf_class_type, inputs=inputs, params=params)
-    solver.run(correct_neutrality=correct_stability)
+    solver = eb_solver.Solver(leaves_category=leaf_class_type,
+                              inputs_dict=inputs_dict,
+                              params_dict=params_dict)
+    solver.run(is_stability_considered=correct_stability)
 
     return solver
 
