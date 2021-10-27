@@ -10,13 +10,13 @@ constants = params.Constants()
 
 class Inputs:
     def __init__(self,
-                 inputs: dict = None,
+                 inputs_dict: dict = None,
                  inputs_path: Path = None):
-        if not inputs:
+        if inputs_dict is None:
             with open(str(inputs_path), mode='r', encoding='utf-8') as f:
-                inputs = load(f)
+                inputs_dict = load(f)
 
-        self._inputs = self._fmt_inputs(inputs)
+        self._inputs = self._fmt_inputs(inputs_dict)
 
         self.measurement_height = self._inputs['measurement_height']
         """[m] height at which the meteorological variables are measured"""

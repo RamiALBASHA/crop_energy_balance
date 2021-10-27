@@ -1,11 +1,10 @@
 from pathlib import Path
 
-from crop_energy_balance.crop import Crop
-from crop_energy_balance.inputs import Inputs
-from crop_energy_balance.params import Params
-from crop_energy_balance.solver import Solver
-from crop_energy_balance.formalisms.weather import convert_kelvin_to_celsius
 from matplotlib import pyplot
+
+from crop_energy_balance.crop import Crop
+from crop_energy_balance.formalisms.weather import convert_kelvin_to_celsius
+from crop_energy_balance.solver import Solver
 
 
 def plot_temperature_profile(canopy_object: Crop, fig_path: Path):
@@ -35,11 +34,9 @@ def plot_temperature_profile(canopy_object: Crop, fig_path: Path):
 if __name__ == '__main__':
     root_pth = Path(__file__).parent
 
-    inputs = Inputs(inputs_path=root_pth / 'inputs_well_watered.json')
-    params = Params(params_path=root_pth / 'params.json')
-    params.update(inputs=inputs)
-
-    solver = Solver(leaves_category='sunlit-shaded', inputs=inputs, params=params)
+    solver = Solver(leaves_category='sunlit-shaded',
+                    inputs_path=root_pth / 'inputs_well_watered.json',
+                    params_path=root_pth / 'params.json')
     solver.run()
 
     plot_temperature_profile(solver.crop, root_pth / 'temperature_profile.png')

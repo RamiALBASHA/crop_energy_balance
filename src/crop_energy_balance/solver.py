@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from crop_energy_balance.crop import Crop, CropStateVariables
 from crop_energy_balance.formalisms import canopy, weather
 from crop_energy_balance.inputs import Inputs
@@ -10,11 +12,17 @@ constants = Constants()
 class Solver:
     def __init__(self,
                  leaves_category: str,
-                 inputs: Inputs,
-                 params: Params):
+                 inputs_path: Path = None,
+                 inputs_dict: dict = None,
+                 params_path: Path = None,
+                 params_dict: dict = None):
+
         self.leaves_category = leaves_category
-        self.inputs = inputs
-        self.params = params
+
+        self.inputs = Inputs(inputs_path=inputs_path) if inputs_path is not None else Inputs(inputs_dict=inputs_dict)
+        self.params = Params(params_path=params_path) if params_path is not None else Params(params_dict=params_dict)
+        self.params.update(inputs=self.inputs)
+
         self.crop = Crop(leaves_category=self.leaves_category, inputs=self.inputs, params=self.params)
 
         self.components = self.crop.extract_all_components()
@@ -23,6 +31,7 @@ class Solver:
         self.iterations_number = 0
         self.error_temperature = None
         self.error_sensible_heat_flux = None
+
         self.init_state_variables()
 
         self.energy_balance = None

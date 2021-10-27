@@ -9,10 +9,10 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_
 
 class Params:
     def __init__(self,
-                 params: dict = None,
+                 params_dict: dict = None,
                  params_path: Path = None):
-        if params:
-            self._user_params = params
+        if params_dict:
+            self._user_params = params_dict
         else:
             with open(str(params_path), mode='r', encoding='utf-8') as f:
                 self._user_params = load(f)
