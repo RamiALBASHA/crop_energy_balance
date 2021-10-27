@@ -42,5 +42,5 @@ if __name__ == '__main__':
     solver = Solver(leaves_category='sunlit-shaded', inputs=inputs, params=params)
     solver.run()
 
-    plot_temperature_profile(solver.canopy, root_pth / 'temperature_profile.png')
+    plot_temperature_profile(solver.crop, root_pth / 'temperature_profile.png')
     print(f'*** iterations = {solver.iterations_number} **')

@@ -150,11 +150,11 @@ def get_variable(
         one_step_solver: eb_solver.Solver,
         leaf_class_type: str) -> dict:
     if leaf_class_type == 'lumped':
-        res = {index: {'lumped': getattr(layer, var_to_get)} for index, layer in one_step_solver.canopy.items()}
+        res = {index: {'lumped': getattr(layer, var_to_get)} for index, layer in one_step_solver.crop.items()}
     else:
         res = {index: {'sunlit': getattr(layer['sunlit'], var_to_get), 'shaded': getattr(layer['shaded'], var_to_get)}
-               for index, layer in one_step_solver.canopy.items() if index != -1}
-        res.update({-1: {'lumped': getattr(one_step_solver.canopy[-1], var_to_get)}})
+               for index, layer in one_step_solver.crop.items() if index != -1}
+        res.update({-1: {'lumped': getattr(one_step_solver.crop[-1], var_to_get)}})
     return res
 
 
@@ -406,7 +406,7 @@ def plot_canopy_variable(
 
     for i, case in enumerate(cases):
         ax = axes[i]
-        ax.plot(hours, [getattr(all_cases_solver[case][h].canopy.state_variables, variable_to_plot) for h in hours])
+        ax.plot(hours, [getattr(all_cases_solver[case][h].crop.state_variables, variable_to_plot) for h in hours])
     if return_axes:
         return axes
     else:
@@ -424,12 +424,12 @@ def plot_energy_balance_components(
     hours = range(24)
 
     if variable_to_plot == 'soil_heat_flux':
-        ax.plot(hours, [getattr(h_solver[h].canopy[-1], 'heat_flux') for h in hours],
+        ax.plot(hours, [getattr(h_solver[h].crop[-1], 'heat_flux') for h in hours],
                 label=UNITS_MAP[variable_to_plot][0])
     elif variable_to_plot == 'energy_balance':
         ax.plot(hours, [h_solver[h].energy_balance for h in hours], 'k--', label=UNITS_MAP[variable_to_plot][0])
     else:
-        ax.plot(hours, [getattr(h_solver[h].canopy.state_variables, variable_to_plot) for h in hours],
+        ax.plot(hours, [getattr(h_solver[h].crop.state_variables, variable_to_plot) for h in hours],
                 label=UNITS_MAP[variable_to_plot][0])
 
     if return_ax:
@@ -482,7 +482,7 @@ def plot_universal_functions(solvers, measurement_height: float = 2):
     phi_m = []
     for m_solvers in solvers.values():
         for h_solver in m_solvers:
-            state = h_solver.canopy.state_variables
+            state = h_solver.crop.state_variables
             x.append((measurement_height - state.zero_displacement_height) / state.monin_obukhov_length)
             phi_h.append(state.stability_correction_for_heat)
             phi_m.append(state.stability_correction_for_momentum)
