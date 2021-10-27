@@ -1,5 +1,5 @@
 major = 0
-minor = 0
-post = 3
+minor = 1
+post = 0
 
 __version__ = f'{major}.{minor}.{post}'
