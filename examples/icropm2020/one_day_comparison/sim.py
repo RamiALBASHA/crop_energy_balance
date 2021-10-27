@@ -140,7 +140,7 @@ def solve_energy_balance(
     inputs, params = get_energy_balance_inputs_and_params(**kwargs)
 
     solver = eb_solver.Solver(leaves_category=leaf_class_type, inputs=inputs, params=params)
-    solver.run(correct_neutrality=correct_stability)
+    solver.run(is_stability_considered=correct_stability)
 
     return solver
 

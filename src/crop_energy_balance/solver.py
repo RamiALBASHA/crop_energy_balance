@@ -25,11 +25,11 @@ class Solver:
 
         self.energy_balance = None
 
-    def run(self, correct_neutrality=False):
+    def run(self, is_stability_considered=False):
         """Solves the steady-state energy balance.
 
         Args:
-            correct_neutrality: If True then turbulence neutrality conditions are considered following
+            is_stability_considered: If True then turbulence neutrality conditions are considered following
                 Webber et al. (2016), otherwise False (default)
 
         References:
@@ -41,7 +41,7 @@ class Solver:
         self.solve_transient_energy_balance()
 
         # Corrects the energy balance for non-neutral conditions
-        if correct_neutrality:
+        if is_stability_considered:
             is_acceptable_error = False
             while not is_acceptable_error and self.stability_iterations_number <= 100:
                 self.stability_iterations_number += 1
