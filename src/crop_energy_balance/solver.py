@@ -9,12 +9,13 @@ constants = Constants()
 
 class Solver:
     def __init__(self,
-                 canopy: Crop,
+                 leaves_category: str,
                  inputs: Inputs,
                  params: Params):
-        self.canopy = canopy
+        self.leaves_category = leaves_category
         self.inputs = inputs
         self.params = params
+        self.canopy = Crop(leaves_category=self.leaves_category, inputs=self.inputs, params=self.params)
 
         self.components = self.canopy.extract_all_components()
 

@@ -139,8 +139,7 @@ def solve_energy_balance(
     kwargs = {k: v for k, v in locals().items() if k not in ('leaf_class_type', 'correct_stability')}
     inputs, params = get_energy_balance_inputs_and_params(**kwargs)
 
-    canopy = eb_canopy.Crop(leaves_category=leaf_class_type, inputs=inputs, params=params)
-    solver = eb_solver.Solver(canopy=canopy, inputs=inputs, params=params)
+    solver = eb_solver.Solver(leaves_category=leaf_class_type, inputs=inputs, params=params)
     solver.run(correct_neutrality=correct_stability)
 
     return solver

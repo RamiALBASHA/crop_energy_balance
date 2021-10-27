@@ -38,9 +38,8 @@ if __name__ == '__main__':
     params = Params(params_path=root_pth / 'params.json')
     params.update(inputs=inputs)
 
-    canopy = Crop(leaves_category='sunlit-shaded', inputs=inputs, params=params)
-    solver = Solver(canopy=canopy, inputs=inputs, params=params)
+    solver = Solver(leaves_category='sunlit-shaded', inputs=inputs, params=params)
     solver.run()
 
-    plot_temperature_profile(canopy, root_pth / 'temperature_profile.png')
+    plot_temperature_profile(solver.canopy, root_pth / 'temperature_profile.png')
     print(f'*** iterations = {solver.iterations_number} **')
