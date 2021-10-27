@@ -21,6 +21,8 @@ class Solver:
 
         self.stability_iterations_number = 1
         self.iterations_number = 0
+        self.error_temperature = None
+        self.error_sensible_heat_flux = None
         self.init_state_variables()
 
         self.energy_balance = None
@@ -49,8 +51,8 @@ class Solver:
                 self.crop.state_variables.calc_aerodynamic_resistance(
                     inputs=self.crop.inputs, correct_stability=True)
                 self.solve_transient_energy_balance()
-                error = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
-                is_acceptable_error = is_almost_equal(actual=error, desired=0, decimal=2)
+                self.error_sensible_heat_flux = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
+                is_acceptable_error = is_almost_equal(actual=self.error_sensible_heat_flux, desired=0, decimal=2)
 
             if self.stability_iterations_number > 100:
                 self.force_aerodynamic_resistance()
@@ -63,10 +65,10 @@ class Solver:
         while not is_acceptable_error:
             self.iterations_number += 1
             self.update_state_variables()
-            error = self.calc_error()
+            self.error_temperature = self.calc_error()
             self.update_temperature()
             self.calc_energy_balance()
-            is_acceptable_error = self.determine_if_acceptable_error(error)
+            is_acceptable_error = self.determine_if_acceptable_error()
 
     def init_state_variables(self):
         self.crop.state_variables = CropStateVariables(self.crop.inputs)
@@ -138,6 +140,5 @@ class Solver:
         return sum(
             [abs(crop_component.temperature - crop_component._temperature) for crop_component in self.components])
 
-    def determine_if_acceptable_error(self,
-                                      error: float) -> bool:
-        return error <= self.params.numerical_resolution.acceptable_temperature_error
+    def determine_if_acceptable_error(self) -> bool:
+        return self.error_temperature <= self.params.numerical_resolution.acceptable_temperature_error
