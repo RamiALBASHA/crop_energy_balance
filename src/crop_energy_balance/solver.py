@@ -46,7 +46,8 @@ class Solver:
             while not is_acceptable_error and self.stability_iterations_number <= 100:
                 self.stability_iterations_number += 1
                 sensible_heat = self.canopy.state_variables.sensible_heat_flux.copy()
-                self.canopy.state_variables.calc_aerodynamic_resistance(inputs=self.inputs, correct_stability=True)
+                self.canopy.state_variables.calc_aerodynamic_resistance(
+                    inputs=self.canopy.inputs, correct_stability=True)
                 self.solve_transient_energy_balance()
                 error = abs(self.canopy.state_variables.sensible_heat_flux - sensible_heat)
                 is_acceptable_error = is_almost_equal(actual=error, desired=0, decimal=2)
@@ -68,7 +69,7 @@ class Solver:
             is_acceptable_error = self.determine_if_acceptable_error(error)
 
     def init_state_variables(self):
-        self.canopy.state_variables = CropStateVariables(self.inputs)
+        self.canopy.state_variables = CropStateVariables(self.canopy.inputs)
         for crop_component in self.components:
             crop_component.init_state_variables(self.canopy.inputs, self.canopy.params, self.canopy.state_variables)
 
@@ -110,8 +111,8 @@ class Solver:
                 Environmental Modelling and Software 77, 143 - 155
         """
         neutral_friction_velocity = weather.calc_friction_velocity(
-            wind_speed=self.inputs.wind_speed,
-            measurement_height=self.inputs.measurement_height,
+            wind_speed=self.canopy.inputs.wind_speed,
+            measurement_height=self.canopy.inputs.measurement_height,
             zero_displacement_height=self.canopy.state_variables.zero_displacement_height,
             roughness_length_for_momentum=self.canopy.state_variables.roughness_length_for_momentum,
             stability_correction_for_momentum=0,
@@ -119,12 +120,12 @@ class Solver:
         neutral_aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=0,
             friction_velocity=neutral_friction_velocity,
-            measurement_height=self.inputs.measurement_height,
+            measurement_height=self.canopy.inputs.measurement_height,
             zero_displacement_height=self.canopy.state_variables.zero_displacement_height,
             roughness_length_for_heat=self.canopy.state_variables.roughness_length_for_heat_transfer,
             stability_correction_for_heat=0,
             canopy_temperature=self.canopy.state_variables.source_temperature,
-            air_temperature=self.inputs.air_temperature,
+            air_temperature=self.canopy.inputs.air_temperature,
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
