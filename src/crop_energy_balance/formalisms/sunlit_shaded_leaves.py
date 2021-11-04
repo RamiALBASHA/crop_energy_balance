@@ -1,9 +1,11 @@
 from math import exp
 
+from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_sunlit_fraction_per_leaf_layer
+from numpy import trapz
+
 from crop_energy_balance.formalisms import lumped_leaves, leaf
 from crop_energy_balance.formalisms.irradiance import calc_leaf_fraction, calc_absorbed_irradiance
 from crop_energy_balance.utils import discretize_linearly
-from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_sunlit_fraction_per_leaf_layer
 
 
 def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
@@ -123,36 +125,43 @@ def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
     Returns:
         [m h-1] bulk surface conductance of the leaf layer for both sides of leaves blade
     """
-    sublayer_thickness = (lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index) / sublayers_number
+    # Bypass the numerical integral by a direct analytical solution
+    # (allows also avoiding numerical instability and using a low number of sublayers)
+    if leaves_category == 'sunlit' and incident_direct_irradiance == 0:
+        return 0
+    elif leaves_category == 'shaded' and (incident_direct_irradiance + incident_diffuse_irradiance == 0):
+        return residual_stomatal_conductance * (lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index)
+    else:
+        sublayer_thickness = (lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index) / sublayers_number
 
-    leaf_layer_surface_conductance = 0
-    for cumulative_leaf_area_index in discretize_linearly(upper_cumulative_leaf_area_index,
-                                                          lower_cumulative_leaf_area_index, sublayers_number):
-        absorbed_irradiance = calc_absorbed_irradiance(leaves_category,
-                                                       incident_direct_irradiance,
-                                                       incident_diffuse_irradiance,
-                                                       cumulative_leaf_area_index,
-                                                       leaf_scattering_coefficient,
-                                                       canopy_reflectance_to_direct_irradiance,
-                                                       canopy_reflectance_to_diffuse_irradiance,
-                                                       direct_extinction_coefficient,
-                                                       direct_black_extinction_coefficient,
-                                                       diffuse_extinction_coefficient)
+        leaf_surface_conductance = []
+        for cumulative_leaf_area_index in discretize_linearly(upper_cumulative_leaf_area_index,
+                                                              lower_cumulative_leaf_area_index, sublayers_number):
+            absorbed_irradiance = calc_absorbed_irradiance(leaves_category,
+                                                           incident_direct_irradiance,
+                                                           incident_diffuse_irradiance,
+                                                           cumulative_leaf_area_index,
+                                                           leaf_scattering_coefficient,
+                                                           canopy_reflectance_to_direct_irradiance,
+                                                           canopy_reflectance_to_diffuse_irradiance,
+                                                           direct_extinction_coefficient,
+                                                           direct_black_extinction_coefficient,
+                                                           diffuse_extinction_coefficient)
 
-        lumped_leaf_surface_conductance = leaf.calc_stomatal_conductance(
-            residual_stomatal_conductance=residual_stomatal_conductance,
-            maximum_stomatal_conductance=maximum_stomatal_conductance,
-            absorbed_irradiance=absorbed_irradiance,
-            shape_parameter=shape_parameter,
-            stomatal_sensibility_to_water_status=stomatal_sensibility_to_water_status)
+            lumped_leaf_surface_conductance = leaf.calc_stomatal_conductance(
+                residual_stomatal_conductance=residual_stomatal_conductance,
+                maximum_stomatal_conductance=maximum_stomatal_conductance,
+                absorbed_irradiance=absorbed_irradiance,
+                shape_parameter=shape_parameter,
+                stomatal_sensibility_to_water_status=stomatal_sensibility_to_water_status)
 
-        leaf_fraction = calc_leaf_fraction(leaves_category,
-                                           cumulative_leaf_area_index,
-                                           direct_black_extinction_coefficient)
+            leaf_fraction = calc_leaf_fraction(leaves_category,
+                                               cumulative_leaf_area_index,
+                                               direct_black_extinction_coefficient)
 
-        leaf_layer_surface_conductance += (lumped_leaf_surface_conductance * leaf_fraction * sublayer_thickness)
+            leaf_surface_conductance.append(lumped_leaf_surface_conductance * leaf_fraction)
 
-    return leaf_layer_surface_conductance
+        return trapz(leaf_surface_conductance, dx=sublayer_thickness)
 
 
 def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
