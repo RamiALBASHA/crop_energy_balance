@@ -168,7 +168,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(incident_direct_irradiance: floa
     """
 
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
-    surface_conductance = max(1.e-6, calc_leaf_layer_surface_conductance_to_vapor(**args))
+    surface_conductance = max(1.e-12, calc_leaf_layer_surface_conductance_to_vapor(**args))
 
     return stomatal_density_factor * (1.0 / surface_conductance)
 

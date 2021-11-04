@@ -74,7 +74,7 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
     d = calc_zero_displacement_height(canopy_height)
     z0u = calc_roughness_length_for_momentum_transfer(canopy_height)
 
-    return max(10.0e-10, wind_speed * log((canopy_height - d) / z0u) / log((measurement_height - d) / z0u))
+    return max(1.e-12, wind_speed * log((canopy_height - d) / z0u) / log((measurement_height - d) / z0u))
 
 
 def calc_net_longwave_radiation(air_temperature: float,
