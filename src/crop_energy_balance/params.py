@@ -175,7 +175,7 @@ class Simulation:
         self.leaves_to_sun_average_projection = 0.5
         """[-] average projection of canopy leaves in the direction of the solar beam"""
 
-        self.sublayers_number = 10
+        self.sublayers_number = 100
         """[-] number of sublayers that are used to perform the numerical integral of the leaf-layer surface conductance
         equation
         """
