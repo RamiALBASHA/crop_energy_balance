@@ -28,7 +28,7 @@ def test_calc_leaf_layer_boundary_resistance_to_heat():
                                                                   wind_speed_extinction_coefficient=0.5,
                                                                   characteristic_length=0.01,
                                                                   shape_parameter=0.01)
-    except ZeroDivisionError as e:
+    except ZeroDivisionError:
         pass
 
     assert is_almost_equal(
@@ -95,7 +95,7 @@ def test_calc_leaf_layer_surface_resistance_to_vapor():
 
     args = set_args()
     args.update({'residual_stomatal_conductance': 0, 'incident_direct_irradiance': 0, 'incident_diffuse_irradiance': 0})
-    assert 1.e6 == lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(**args)
+    assert 1.e12 == lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(**args)
 
     args = set_args()
     args.update({'residual_stomatal_conductance': 1.e9})
