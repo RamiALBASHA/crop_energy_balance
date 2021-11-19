@@ -4,6 +4,7 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import calc_s
 from numpy import trapz
 
 from crop_energy_balance.formalisms import lumped_leaves, leaf
+from crop_energy_balance.formalisms.config import PRECISION
 from crop_energy_balance.formalisms.irradiance import calc_leaf_fraction, calc_absorbed_irradiance
 from crop_energy_balance.utils import discretize_linearly
 
@@ -40,7 +41,7 @@ def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
             exp(-lumped_extinction_coefficient * upper_cumulative_leaf_area_index) -
             exp(-lumped_extinction_coefficient * lower_cumulative_leaf_area_index))
 
-    sunlit_layer_boundary_conductance = leaf_boundary_conductance * max(1.e-12, sunlit_layer_scaling_factor)
+    sunlit_layer_boundary_conductance = leaf_boundary_conductance * max(PRECISION, sunlit_layer_scaling_factor)
 
     if leaves_category == 'sunlit':
         return sunlit_layer_boundary_conductance
@@ -52,7 +53,7 @@ def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
             wind_speed_extinction_coefficient,
             characteristic_length,
             shape_parameter)
-        return max(1.e-12, lumped_layer_boundary_conductance - sunlit_layer_boundary_conductance)
+        return lumped_layer_boundary_conductance - sunlit_layer_boundary_conductance
 
 
 def calc_leaf_layer_boundary_resistance_to_heat(leaves_category: str,
@@ -210,7 +211,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
     """
 
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
-    surface_conductance = max(1.e-12, calc_leaf_layer_surface_conductance_to_vapor(**args))
+    surface_conductance = max(PRECISION, calc_leaf_layer_surface_conductance_to_vapor(**args))
 
     return stomatal_density_factor * (1.0 / surface_conductance)
 

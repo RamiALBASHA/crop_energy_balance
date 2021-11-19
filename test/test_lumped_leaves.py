@@ -1,4 +1,5 @@
 from crop_energy_balance.formalisms import lumped_leaves
+from crop_energy_balance.formalisms.config import PRECISION
 from crop_energy_balance.utils import is_almost_equal, assert_trend
 
 
@@ -95,7 +96,7 @@ def test_calc_leaf_layer_surface_resistance_to_vapor():
 
     args = set_args()
     args.update({'residual_stomatal_conductance': 0, 'incident_direct_irradiance': 0, 'incident_diffuse_irradiance': 0})
-    assert 1.e12 == lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(**args)
+    assert PRECISION ** -1 == lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(**args)
 
     args = set_args()
     args.update({'residual_stomatal_conductance': 1.e9})

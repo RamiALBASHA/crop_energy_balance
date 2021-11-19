@@ -14,8 +14,8 @@ def test_calc_leaf_layer_boundary_conductance_to_vapor():
         args.update(**kwargs)
         return args
 
-    for category, res in (('sunlit', 0), ('shaded', 1.e-12)):
-        assert res == sunlit_shaded_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
+    for category in ('sunlit', 'shaded'):
+        assert 0 == sunlit_shaded_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
             **set_args(leaves_category=category, wind_speed_at_canopy_height=0))
 
         assert is_almost_equal(desired=0, actual=sunlit_shaded_leaves.calc_leaf_layer_boundary_conductance_to_vapor(

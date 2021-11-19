@@ -3,6 +3,7 @@ from math import exp
 from numpy import trapz
 
 from crop_energy_balance.formalisms import leaf
+from crop_energy_balance.formalisms.config import PRECISION
 from crop_energy_balance.formalisms.irradiance import calc_absorbed_irradiance
 from crop_energy_balance.utils import discretize_linearly
 
@@ -173,7 +174,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(incident_direct_irradiance: floa
     """
 
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
-    surface_conductance = max(1.e-12, calc_leaf_layer_surface_conductance_to_vapor(**args))
+    surface_conductance = max(PRECISION, calc_leaf_layer_surface_conductance_to_vapor(**args))
 
     return stomatal_density_factor * (1.0 / surface_conductance)
 

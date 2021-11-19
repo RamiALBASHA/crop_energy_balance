@@ -1,5 +1,7 @@
 from math import log
 
+from crop_energy_balance.formalisms.config import PRECISION
+
 
 def calc_zero_displacement_height(canopy_height: float) -> float:
     """Calculates zero displacement height of the canopy.
@@ -74,7 +76,7 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
     d = calc_zero_displacement_height(canopy_height)
     z0u = calc_roughness_length_for_momentum_transfer(canopy_height)
 
-    return max(1.e-12, wind_speed * log((canopy_height - d) / z0u) / log((measurement_height - d) / z0u))
+    return max(PRECISION, wind_speed * log((canopy_height - d) / z0u) / log((measurement_height - d) / z0u))
 
 
 def calc_net_longwave_radiation(air_temperature: float,
