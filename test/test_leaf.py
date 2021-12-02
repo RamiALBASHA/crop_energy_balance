@@ -1,5 +1,5 @@
 from crop_energy_balance.formalisms import leaf
-from crop_energy_balance.utils import is_almost_equal
+from crop_energy_balance.utils import is_almost_equal, assert_trend
 
 
 def test_calc_leaf_boundary_conductance():
@@ -17,19 +17,69 @@ def test_calc_leaf_boundary_conductance():
                                                      shape_parameter=0.01)
 
 
-def test_calc_stomatal_sensibility():
-    assert 1 == leaf.calc_stomatal_sensibility(air_vapor_pressure_deficit=0, shape_parameter=1)
+def test_calc_stomatal_sensibility_leuning():
+    assert 1 == leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=0, shape_parameter=1)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility(air_vapor_pressure_deficit=1, shape_parameter=1.e9), desired=1, decimal=3)
+        actual=leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=1, shape_parameter=1.e9),
+        desired=1,
+        decimal=3)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility(air_vapor_pressure_deficit=1.e9, shape_parameter=1), desired=0, decimal=3)
+        actual=leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=1.e9, shape_parameter=1),
+        desired=0,
+        decimal=3)
 
-    try:
-        leaf.calc_stomatal_sensibility(air_vapor_pressure_deficit=0, shape_parameter=0)
-    except AssertionError as e:
-        assert e.args[0] == 'The value of `shape_parameter` must be greater than zero.'
+    assert_trend(
+        values=[leaf.calc_stomatal_sensibility_leuning(vpd, 1) for vpd in range(7)],
+        expected_trend='-')
+
+    pass
+
+
+def test_calc_stomatal_sensibility_tuzet():
+    assert 1 == leaf.calc_stomatal_sensibility_tuzet(psi=0, psi_ref=0, steepness=0)
+
+    assert is_almost_equal(
+        actual=leaf.calc_stomatal_sensibility_tuzet(psi=0, psi_ref=0, steepness=-1.e9),
+        desired=1,
+        decimal=3)
+
+    assert is_almost_equal(
+        actual=leaf.calc_stomatal_sensibility_tuzet(psi=-1.e3, psi_ref=-300, steepness=1),
+        desired=0,
+        decimal=3)
+
+    assert_trend(
+        values=[leaf.calc_stomatal_sensibility_tuzet(-psi, -300, 1) for psi in range(0, 1000, 100)],
+        expected_trend='-')
+
+    pass
+
+
+def test_calc_stomatal_sensibility_misson():
+    assert 1 == leaf.calc_stomatal_sensibility_misson(psi=0, psi_half_aperture=-300, steepness=1)
+
+    assert is_almost_equal(
+        actual=leaf.calc_stomatal_sensibility_misson(psi=-600, psi_half_aperture=-300, steepness=-1.e3),
+        desired=1.0,
+        decimal=3)
+
+    assert is_almost_equal(
+        actual=leaf.calc_stomatal_sensibility_misson(psi=-300, psi_half_aperture=-300, steepness=-1.e9),
+        desired=0.5,
+        decimal=3)
+
+    assert is_almost_equal(
+        actual=leaf.calc_stomatal_sensibility_misson(psi=-1.e6, psi_half_aperture=-300, steepness=1),
+        desired=0,
+        decimal=3)
+
+    assert_trend(
+        values=[leaf.calc_stomatal_sensibility_misson(psi, -300, 2) for psi in range(1, 1000, 100)],
+        expected_trend='-')
+
+    pass
 
 
 def test_calc_stomatal_conductance():
