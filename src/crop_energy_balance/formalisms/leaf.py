@@ -24,7 +24,7 @@ def calc_stomatal_sensibility(air_vapor_pressure_deficit: float,
         shape_parameter: [kPa] empirical shape parameter
 
     Returns:
-        [-] stomatal closure fraction due to elevated air vapor pressure deficit
+        [-] reduction fraction of the maximum stomatal aperture
 
     """
     assert (shape_parameter != 0), 'The value of `shape_parameter` must be greater than zero.'
