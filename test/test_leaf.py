@@ -18,15 +18,15 @@ def test_calc_leaf_boundary_conductance():
 
 
 def test_calc_stomatal_sensibility_leuning():
-    assert 1 == leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=0, shape_parameter=1)
+    assert 1 == leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=0, param_shape=1)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=1, shape_parameter=1.e9),
+        actual=leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=1, param_shape=1.e9),
         desired=1,
         decimal=3)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=1.e9, shape_parameter=1),
+        actual=leaf.calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit=1.e9, param_shape=1),
         desired=0,
         decimal=3)
 
@@ -38,15 +38,15 @@ def test_calc_stomatal_sensibility_leuning():
 
 
 def test_calc_stomatal_sensibility_tuzet():
-    assert 1 == leaf.calc_stomatal_sensibility_tuzet(psi=0, psi_ref=0, steepness=0)
+    assert 1 == leaf.calc_stomatal_sensibility_tuzet(psi=0, param_psi_ref=0, param_steepness=0)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_tuzet(psi=0, psi_ref=0, steepness=-1.e9),
+        actual=leaf.calc_stomatal_sensibility_tuzet(psi=0, param_psi_ref=0, param_steepness=-1.e9),
         desired=1,
         decimal=3)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_tuzet(psi=-1.e3, psi_ref=-300, steepness=1),
+        actual=leaf.calc_stomatal_sensibility_tuzet(psi=-1.e3, param_psi_ref=-300, param_steepness=1),
         desired=0,
         decimal=3)
 
@@ -58,20 +58,20 @@ def test_calc_stomatal_sensibility_tuzet():
 
 
 def test_calc_stomatal_sensibility_misson():
-    assert 1 == leaf.calc_stomatal_sensibility_misson(psi=0, psi_half_aperture=-300, steepness=1)
+    assert 1 == leaf.calc_stomatal_sensibility_misson(psi=0, param_psi_half_aperture=-300, param_steepness=1)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_misson(psi=-600, psi_half_aperture=-300, steepness=-1.e3),
+        actual=leaf.calc_stomatal_sensibility_misson(psi=-600, param_psi_half_aperture=-300, param_steepness=-1.e3),
         desired=1.0,
         decimal=3)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_misson(psi=-300, psi_half_aperture=-300, steepness=-1.e9),
+        actual=leaf.calc_stomatal_sensibility_misson(psi=-300, param_psi_half_aperture=-300, param_steepness=-1.e9),
         desired=0.5,
         decimal=3)
 
     assert is_almost_equal(
-        actual=leaf.calc_stomatal_sensibility_misson(psi=-1.e6, psi_half_aperture=-300, steepness=1),
+        actual=leaf.calc_stomatal_sensibility_misson(psi=-1.e6, param_psi_half_aperture=-300, param_steepness=1),
         desired=0,
         decimal=3)
 
