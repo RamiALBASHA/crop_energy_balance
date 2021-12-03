@@ -1,5 +1,13 @@
 {
-  "vpd_coeff": 7,
+  "stomatal_sensibility": {
+    "leuning": {
+      "d_0": 7
+    },
+    "tuzet": {
+      "psi_ref": -300,
+      "steepness": 2
+    }
+  },
   "soil_aerodynamic_resistance_shape_parameter": 2.5,
   "soil_roughness_length_for_momentum": 0.01,
   "leaf_characteristic_length": 0.01,
