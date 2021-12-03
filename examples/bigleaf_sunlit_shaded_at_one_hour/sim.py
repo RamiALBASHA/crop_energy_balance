@@ -4,6 +4,7 @@ from matplotlib import pyplot
 
 from crop_energy_balance.crop import Crop
 from crop_energy_balance.formalisms.weather import convert_kelvin_to_celsius
+from crop_energy_balance.solver import Solver
 
 
 def plot_temperature_profile(canopy_object: Crop, fig_path: Path):
