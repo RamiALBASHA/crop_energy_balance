@@ -86,6 +86,11 @@ class Inputs:
                 lowest number which must be equal to -1.
         """
 
+        self.soil_water_potential = self._inputs[
+            'soil_water_potential'] if 'soil_water_potential' in self._inputs else None
+        """[cm H2O] soil water potential.
+        """
+
         self.solar_inclination = self._inputs['solar_inclination']
         """(Rad) the angle between solar beam and the horizon.
         """

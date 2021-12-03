@@ -1,3 +1,4 @@
+from inspect import signature
 from pathlib import Path
 
 from crop_energy_balance import utils
@@ -157,6 +158,8 @@ class Component:
         self.absorbed_irradiance = None
         self.upper_cumulative_leaf_area_index = None
         self.lower_cumulative_leaf_area_index = None
+        self.vapor_pressure_deficit = None
+        self.water_potential = None
         self.surface_resistance = None
         self.boundary_resistance = None
         self.composed_resistance = None
@@ -278,6 +281,19 @@ class LeafComponent(Component):
 
         self.stomatal_sensibility = None
 
+    def set_stomatal_sensibility_args(self, model_params: dict):
+        model_args = model_params.copy()
+        sensibility_funcs = {
+            'leuning': leaf.calc_stomatal_sensibility_leuning,
+            'tuzet': leaf.calc_stomatal_sensibility_tuzet,
+            'misson': leaf.calc_stomatal_sensibility_misson}
+
+        for name, param_args in model_params.items():
+            args = signature(sensibility_funcs[name]).parameters.keys()
+            model_args[name].update({k: getattr(self, k) for k in args if k not in param_args})
+
+        return model_args
+
 
 class LumpedLeafComponent(LeafComponent):
     def __init__(self, **kwargs):
@@ -287,10 +303,11 @@ class LumpedLeafComponent(LeafComponent):
                              inputs: Inputs,
                              params: Params,
                              crop_state_variables: CropStateVariables):
+        self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
+        self.water_potential = inputs.soil_water_potential
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
-            inputs.vapor_pressure_deficit,
-            params.simulation.vapor_pressure_deficit_coefficient)
+            self.set_stomatal_sensibility_args(model_params=params.simulation.stomatal_sensibility))
         self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
             incident_direct_irradiance=inputs.incident_irradiance['direct'],
             incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
@@ -342,6 +359,9 @@ class SunlitShadedLeafComponent(LeafComponent):
                              inputs: Inputs,
                              params: Params,
                              crop_state_variables: CropStateVariables):
+        self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
+        self.water_potential = inputs.soil_water_potential
+
         self.surface_fraction = sunlit_shaded_leaves.calc_leaf_fraction_per_leaf_layer(
             leaves_category=self.leaves_category,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -349,8 +369,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient)
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index][self.leaves_category]
         self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
-            inputs.vapor_pressure_deficit,
-            params.simulation.vapor_pressure_deficit_coefficient)
+            self.set_stomatal_sensibility_args(model_params=params.simulation.stomatal_sensibility))
         self.surface_resistance = sunlit_shaded_leaves.calc_leaf_layer_surface_resistance_to_vapor(
             leaves_category=self.leaves_category,
             incident_direct_irradiance=inputs.incident_irradiance['direct'],

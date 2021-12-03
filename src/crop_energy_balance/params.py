@@ -72,8 +72,13 @@ class Constants:
 
 class Simulation:
     def __init__(self, data):
-        self.vapor_pressure_deficit_coefficient = data['vpd_coeff']
-        """[kPa] empirical parameter regulating the shape of stomata response to air vapor pressure deficit"""
+        self.stomatal_sensibility = data['stomatal_sensibility']
+        """A dictionary of stomatal sensibility parameters (multiple models are handled):
+            - key: name of the model (e.g. 'leuning', 'tuzet', 'misson')
+            - value: dictionary :
+                - key: parameter name
+                - value: parameter value
+        """
 
         self.soil_aerodynamic_resistance_shape_parameter = data['soil_aerodynamic_resistance_shape_parameter']
         """[-] soil aerodynamic resistance shape parameter.

@@ -18,29 +18,41 @@ def calc_leaf_boundary_conductance(wind_speed_at_canopy_height: float,
     return 3600 * shape_parameter * (wind_speed_at_canopy_height / characteristic_length) ** 0.5
 
 
-def calc_stomatal_sensibility(air_vapor_pressure_deficit: float,
-                              shape_parameter: float) -> float:
-    """Calculates the effect of air vapor pressure deficit on stomatal aperture.
+def calc_stomatal_sensibility(model_args: dict) -> float:
+    """Calculates the effect of water status on stomatal aperture following one or several models.
 
     Args:
-        air_vapor_pressure_deficit: [kPa] vapor pressure deficit of the air at canopy source height
-        shape_parameter: [kPa] empirical shape parameter
+        model_args: A dictionary of stomatal sensibility parameters (multiple models are handled)
+            - key: name of the model (one of 'leuning', 'tuzet', 'misson')
+            - value: dictionary :
+                - key: parameter name
+                - value: parameter value
 
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
 
     """
-    assert (shape_parameter != 0), 'The value of `shape_parameter` must be greater than zero.'
-    return 1.0 / (1.0 + air_vapor_pressure_deficit / shape_parameter)
+    reduction_factor = 1
+    for name, kwargs in model_args.items():
+        if name == 'leuning':
+            reduction_factor *= calc_stomatal_sensibility_leuning(**kwargs)
+        elif name == 'tuzet':
+            reduction_factor *= calc_stomatal_sensibility_tuzet(**kwargs)
+        elif name == 'misson':
+            reduction_factor *= calc_stomatal_sensibility_misson(**kwargs)
+        else:
+            raise ValueError(f'Model "name" is not recognized.')
+
+    return reduction_factor
 
 
-def calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit: float,
-                                      param_shape: float) -> float:
+def calc_stomatal_sensibility_leuning(vapor_pressure_deficit: float,
+                                      d_0: float) -> float:
     """Calculates the effect of air vapor pressure deficit on stomatal aperture following Leuning et al. (1995).
 
     Args:
-        air_vapor_pressure_deficit: [kPa] vapor pressure deficit of the air at canopy source height
-        param_shape: [kPa] empirical shape parameter
+        vapor_pressure_deficit: [kPa] vapor pressure deficit of the air at canopy source height
+        d_0: [kPa] empirical shape parameter
 
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
@@ -50,19 +62,18 @@ def calc_stomatal_sensibility_leuning(air_vapor_pressure_deficit: float,
             A critical appraisal of a combined stomatal photosynthesis model for C3 plants.
             Plant, Cell and Environment 18, 339355.
 
-
     """
-    assert (param_shape != 0), 'The value of `shape_parameter` must be greater than zero.'
-    return 1.0 / (1.0 + air_vapor_pressure_deficit / param_shape)
+    assert (d_0 != 0), 'The value of `shape_parameter` must be greater than zero.'
+    return 1.0 / (1.0 + vapor_pressure_deficit / d_0)
 
 
-def calc_stomatal_sensibility_tuzet(psi: float, param_psi_ref: float, param_steepness: float) -> float:
-    """Calculates the effect of air vapor pressure deficit on stomatal aperture following Tuzet et al. (2003).
+def calc_stomatal_sensibility_tuzet(water_potential: float, psi_ref: float, steepness: float) -> float:
+    """Calculates the effect of leaf water potential on stomatal aperture following Tuzet et al. (2003).
 
     Args:
-        psi: [kPa] bulk leaf water potential
-        param_psi_ref: [kPa] empirical shape parameter
-        param_steepness: [kPa-1] steepness of the sigmoidal function
+        water_potential: [kPa] bulk leaf water potential
+        psi_ref: [kPa] empirical shape parameter
+        steepness: [kPa-1] steepness of the sigmoidal function
 
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
@@ -72,18 +83,17 @@ def calc_stomatal_sensibility_tuzet(psi: float, param_psi_ref: float, param_stee
             A coupled model of stomatal conductance, photosynthesis and transpiration.
             Plant, Cell and Environment 26, 10971116.
 
-
     """
-    return (1. + exp(param_steepness * param_psi_ref)) / (1. + exp(float(param_steepness * (param_psi_ref - psi))))
+    return (1. + exp(steepness * psi_ref)) / (1. + exp(float(steepness * (psi_ref - water_potential))))
 
 
-def calc_stomatal_sensibility_misson(psi: float, param_psi_half_aperture: float, param_steepness: float) -> float:
-    """Calculates the effect of air vapor pressure deficit on stomatal aperture following Misson et al. (2004).
+def calc_stomatal_sensibility_misson(water_potential: float, psi_half_aperture: float, steepness: float) -> float:
+    """Calculates the effect of soil water potential on stomatal aperture following Misson et al. (2004).
 
     Args:
-        psi: [kPa] bulk leaf water potential
-        param_psi_half_aperture: [kPa] value of psi at which the maximum stomatal conductance is reduced by 50 %
-        param_steepness: [kPa-1] steepness of the sigmoidal function
+        water_potential: [kPa] bulk leaf water potential
+        psi_half_aperture: [kPa] value of psi at which the maximum stomatal conductance is reduced by 50 %
+        steepness: [kPa-1] steepness of the sigmoidal function
 
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
@@ -95,7 +105,7 @@ def calc_stomatal_sensibility_misson(psi: float, param_psi_half_aperture: float,
             Tree Physiology 24, 529 541.
 
     """
-    return 1. / (1. + (psi / param_psi_half_aperture) ** param_steepness)
+    return 1. / (1. + (water_potential / psi_half_aperture) ** steepness)
 
 
 def calc_stomatal_conductance(residual_stomatal_conductance: float,
