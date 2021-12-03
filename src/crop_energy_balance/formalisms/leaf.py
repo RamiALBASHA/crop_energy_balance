@@ -31,6 +31,10 @@ def calc_stomatal_sensibility(model_args: dict) -> float:
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
 
+    Note:
+        If multiple models are provided, the resulting reduction fraction is the product of all reduction fractions
+            from all models
+
     """
     reduction_factor = 1
     for name, kwargs in model_args.items():
