@@ -35,5 +35,5 @@
   "vapor_pressure_deficit": 1.91,
   "vapor_pressure": 1.135,
   "solar_inclination": 1.0471975511965976,
-  "soil_water_potential": -300
+  "soil_water_potential": -0.3
 }
