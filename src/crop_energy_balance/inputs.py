@@ -88,7 +88,7 @@ class Inputs:
 
         self.soil_water_potential = self._inputs[
             'soil_water_potential'] if 'soil_water_potential' in self._inputs else None
-        """[cm H2O] soil water potential.
+        """[MPa] soil water potential.
         """
 
         self.solar_inclination = self._inputs['solar_inclination']

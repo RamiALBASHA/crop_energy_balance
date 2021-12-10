@@ -75,9 +75,9 @@ def calc_stomatal_sensibility_tuzet(water_potential: float, psi_ref: float, stee
     """Calculates the effect of leaf water potential on stomatal aperture following Tuzet et al. (2003).
 
     Args:
-        water_potential: [kPa] bulk leaf water potential
-        psi_ref: [kPa] empirical shape parameter
-        steepness: [kPa-1] steepness of the sigmoidal function
+        water_potential: [MPa] bulk leaf water potential
+        psi_ref: [MPa] empirical shape parameter
+        steepness: [MPa-1] steepness of the sigmoidal function
 
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
@@ -95,9 +95,9 @@ def calc_stomatal_sensibility_misson(water_potential: float, psi_half_aperture: 
     """Calculates the effect of soil water potential on stomatal aperture following Misson et al. (2004).
 
     Args:
-        water_potential: [kPa] bulk leaf water potential
-        psi_half_aperture: [kPa] value of psi at which the maximum stomatal conductance is reduced by 50 %
-        steepness: [kPa-1] steepness of the sigmoidal function
+        water_potential: [MPa] bulk leaf water potential
+        psi_half_aperture: [MPa] value of psi at which the maximum stomatal conductance is reduced by 50 %
+        steepness: [-] steepness of the sigmoidal function
 
     Returns:
         [-] reduction fraction of the maximum stomatal aperture
