@@ -328,3 +328,32 @@ def calc_stability_correction_functions(friction_velocity: float,
         correction_for_momentum = correction_for_heat
 
     return correction_for_momentum, correction_for_heat, richardson_number, monin_obukhov_length
+
+
+def convert_molar_to_metric_flux(molar_flux_density: float, temperature: int,
+                                 ideal_gas_constant: float = 8.2057 * 1.e-5) -> float:
+    """Converts molar flux density to metric flux.
+
+    Args:
+        molar_flux_density: [mol m-2] molar flux density
+        temperature: [K] gas temperature
+        ideal_gas_constant: [m3 atm mol−1 K−1] ideal gas constant
+
+    Returns:
+        [m] metric flux
+    """
+    return molar_flux_density * ideal_gas_constant * temperature
+
+
+def convert_metric_to_molar_flux(metric_flux: float, temperature: int, ideal_gas_constant: float = 8.2057 * 1.e-5):
+    """Converts metric flux to molar flux density.
+
+    Args:
+        metric_flux: [m] metric flux
+        temperature: [K] gas temperature
+        ideal_gas_constant: [m3 atm mol−1 K−1] ideal gas constant
+
+    Returns:
+        [mol m-2] molar flux density
+    """
+    return metric_flux / (ideal_gas_constant * temperature)
