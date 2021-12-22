@@ -69,6 +69,10 @@ class Constants:
         """[g m-3] dry air density
         """
 
+        self.ideal_gas_constant = 8.2057 * 1.e-5
+        """[m3 atm mol−1 K−1] Ideal gas constant
+        """
+
 
 class Simulation:
     def __init__(self, data):
