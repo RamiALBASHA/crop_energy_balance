@@ -59,13 +59,17 @@ def calc_roughness_length_for_heat_transfer(canopy_height: float) -> float:
 
 def calc_wind_speed_at_canopy_height(wind_speed: float,
                                      canopy_height: float,
-                                     measurement_height: float) -> float:
+                                     measurement_height: float,
+                                     zero_displacement_height: float,
+                                     roughness_length_for_momentum: float) -> float:
     """Calculates hourly wind speed values at canopy height.
 
     Args:
         wind_speed: [m h-1] wind speed at measurement height
         canopy_height: [m] height of the canopy
         measurement_height: [m] height at which meteorological measurements are made
+        zero_displacement_height: [m] zero displacement height
+        roughness_length_for_momentum: [m] roughness length for momentum transfer
 
     Returns:
         [m h-1] wind speed at canopy height
@@ -73,10 +77,10 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
 
     wind_speed = max(2400.0, wind_speed)
     canopy_height = max(0.1, canopy_height)
-    d = calc_zero_displacement_height(canopy_height)
-    z0u = calc_roughness_length_for_momentum_transfer(canopy_height)
 
-    return max(PRECISION, wind_speed * log((canopy_height - d) / z0u) / log((measurement_height - d) / z0u))
+    return max(PRECISION,
+               wind_speed * log((canopy_height - zero_displacement_height) / roughness_length_for_momentum) / log(
+                   (measurement_height - zero_displacement_height) / roughness_length_for_momentum))
 
 
 def calc_net_longwave_radiation(air_temperature: float,

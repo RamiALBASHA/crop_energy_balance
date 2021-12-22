@@ -1,9 +1,8 @@
 from json import load
 from pathlib import Path
 
-from crop_energy_balance.formalisms import canopy, weather
-
 from crop_energy_balance import params
+from crop_energy_balance.formalisms import weather
 
 constants = params.Constants()
 
@@ -33,10 +32,6 @@ class Inputs:
 
         self.wind_speed = self._inputs['wind_speed']
         """[m h-1] wind speed"""
-
-        self.wind_speed_at_canopy_height = canopy.calc_wind_speed_at_canopy_height(
-            self.wind_speed, self.canopy_height, self.measurement_height)
-        """[m h-1] wind speed at canopy height"""
 
         self.air_vapor_pressure = self._inputs['vapor_pressure']
         """[kPa] vapor pressure of the air"""

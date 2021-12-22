@@ -32,7 +32,8 @@ class CropStateVariables:
         self.wind_speed_at_canopy_height = canopy.calc_wind_speed_at_canopy_height(
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,
-            measurement_height=inputs.measurement_height)
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height)
 
         self.friction_velocity = None
         self.aerodynamic_resistance = None
@@ -327,7 +328,7 @@ class LumpedLeafComponent(LeafComponent):
             sublayers_number=params.simulation.sublayers_number,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
         self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(
-            wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
+            wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
@@ -391,7 +392,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             stomatal_density_factor=params.simulation.stomatal_density_factor)
         self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_heat(
             leaves_category=self.leaves_category,
-            wind_speed_at_canopy_height=inputs.wind_speed_at_canopy_height / 3600.0,
+            wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,

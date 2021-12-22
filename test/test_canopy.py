@@ -23,18 +23,34 @@ def test_calc_roughness_length_for_heat_transfer():
 
 def test_calc_wind_speed_at_canopy_height():
     # minimal wind speed is set to 2400 m h-1
-    assert (canopy.calc_wind_speed_at_canopy_height(wind_speed=0, canopy_height=1, measurement_height=2) ==
-            canopy.calc_wind_speed_at_canopy_height(wind_speed=2400, canopy_height=1, measurement_height=2))
+    assert (canopy.calc_wind_speed_at_canopy_height(wind_speed=0, canopy_height=1, measurement_height=2,
+                                                    zero_displacement_height=0.67,
+                                                    roughness_length_for_momentum=0.123) ==
+            canopy.calc_wind_speed_at_canopy_height(wind_speed=2400, canopy_height=1, measurement_height=2,
+                                                    zero_displacement_height=0.67,
+                                                    roughness_length_for_momentum=0.123))
 
-    assert (canopy.calc_wind_speed_at_canopy_height(wind_speed=2400, canopy_height=1, measurement_height=2) <
-            canopy.calc_wind_speed_at_canopy_height(wind_speed=2401, canopy_height=1, measurement_height=2))
+    assert (canopy.calc_wind_speed_at_canopy_height(wind_speed=2400, canopy_height=1, measurement_height=2,
+                                                    zero_displacement_height=0.67,
+                                                    roughness_length_for_momentum=0.123) <
+            canopy.calc_wind_speed_at_canopy_height(wind_speed=2401, canopy_height=1, measurement_height=2,
+                                                    zero_displacement_height=0.67,
+                                                    roughness_length_for_momentum=0.123))
     # minimal canopy height set to 0.1 m
-    assert (canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=0, measurement_height=2) ==
-            canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=0.1, measurement_height=2))
+    assert (canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=0, measurement_height=2,
+                                                    zero_displacement_height=0.067,
+                                                    roughness_length_for_momentum=0.0123) ==
+            canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=0.1, measurement_height=2,
+                                                    zero_displacement_height=0.067,
+                                                    roughness_length_for_momentum=0.0123))
 
-    assert canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=1, measurement_height=1) == 3600
+    assert canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=1, measurement_height=1,
+                                                   zero_displacement_height=0.67,
+                                                   roughness_length_for_momentum=0.123) == 3600
 
-    assert canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=1, measurement_height=2) < 3600
+    assert canopy.calc_wind_speed_at_canopy_height(wind_speed=3600, canopy_height=1, measurement_height=2,
+                                                   zero_displacement_height=0.67,
+                                                   roughness_length_for_momentum=0.123) < 3600
 
 
 def test_calc_net_longwave_radiation():
