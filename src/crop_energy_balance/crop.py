@@ -116,6 +116,7 @@ class CropStateVariables:
             stability_correction_for_momentum=self.stability_correction_for_momentum,
             von_karman_constant=constants.von_karman)
 
+        self.friction_velocity = max(0.01, self.friction_velocity)  # from CanopyT (H. Webber)
         if correct_stability:
             (self.stability_correction_for_momentum, self.stability_correction_for_heat,
              self.richardson_number, self.monin_obukhov_length) = weather.calc_stability_correction_functions(
