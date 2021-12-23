@@ -1,4 +1,4 @@
-from math import exp, log, atan
+from math import exp, log, atan, pi
 
 
 def calc_psychrometric_constant(atmospheric_pressure: float,
@@ -306,11 +306,10 @@ def calc_stability_correction_functions(friction_velocity: float,
         # ----------------------
         # unstable
         # ----------------------
-        x = (1.0 - 16.0 * (measurement_height - zero_displacement_height) / monin_obukhov_length) ** 0.25
-        y = x ** 2
-        correction_for_heat = 2.0 * log((1 + y) / 2)  # (Liu et al. 2007, eq. 13)
         # Colaizzi et al. 2004, eq. 12)
-        correction_for_momentum = 2.0 * log((1 + x) / 2) + log((1 + x ** 2) / 2) - 2 * atan(x) + 2 * atan(1)
+        x = (1.0 - 16.0 * (measurement_height - zero_displacement_height) / monin_obukhov_length) ** 0.25
+        correction_for_heat = 2.0 * log((1 + x ** 2) / 2)  # (Liu et al. 2007, eq. 13)
+        correction_for_momentum = 2.0 * log((1 + x) / 2) + log((1 + x ** 2) / 2) - 2 * atan(x) + pi / 2.
     elif richardson_number < 0.2:
         # ----------------------
         # stable - technically (Thom, 1975)
