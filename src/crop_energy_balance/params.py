@@ -204,6 +204,9 @@ class Simulation:
         self.diffuse_black_extinction_coefficient = None
         """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
 
+        self.drag_coefficient = 0.2
+        """[m2ground m-2leaf] drag coefficient"""
+
     def update(self,
                inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(

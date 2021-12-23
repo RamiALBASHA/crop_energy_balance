@@ -80,7 +80,7 @@ class Solver:
             is_acceptable_error = self.determine_if_acceptable_error()
 
     def init_state_variables(self):
-        self.crop.state_variables = CropStateVariables(self.crop.inputs)
+        self.crop.state_variables = CropStateVariables(inputs=self.crop.inputs, params=self.crop.params)
         for crop_component in self.components:
             crop_component.init_state_variables(self.crop.inputs, self.crop.params, self.crop.state_variables)
 

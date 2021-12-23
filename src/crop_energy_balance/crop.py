@@ -11,7 +11,8 @@ constants = Constants()
 
 class CropStateVariables:
     def __init__(self,
-                 inputs: Inputs):
+                 inputs: Inputs,
+                 params: Params):
         self.stability_correction_for_momentum = 0.0
         self.stability_correction_for_heat = 0.0
         self.richardson_number = 0.0
@@ -24,7 +25,9 @@ class CropStateVariables:
         self.vapor_pressure_slope = weather.calc_vapor_pressure_slope(
             weather.convert_kelvin_to_celsius(inputs.air_temperature, constants.absolute_zero))
         self.zero_displacement_height = canopy.calc_zero_displacement_height(
-            canopy_height=inputs.canopy_height)
+            canopy_height=inputs.canopy_height,
+            leaf_area_index=sum(inputs.leaf_layers.values()),
+            drag_coefficient=params.simulation.drag_coefficient)
         self.roughness_length_for_momentum = canopy.calc_roughness_length_for_momentum_transfer(
             canopy_height=inputs.canopy_height)
         self.roughness_length_for_heat_transfer = canopy.calc_roughness_length_for_heat_transfer(

@@ -3,16 +3,18 @@ from math import log
 from crop_energy_balance.formalisms.config import PRECISION
 
 
-def calc_zero_displacement_height(canopy_height: float) -> float:
+def calc_zero_displacement_height(canopy_height: float, leaf_area_index: float, drag_coefficient: float) -> float:
     """Calculates zero displacement height of the canopy.
 
     Args:
         canopy_height: [m] average height of the canopy
+        leaf_area_index: [m2leaf m-2ground] total leaf area index
+        drag_coefficient: [m2ground m-2leaf] drag coefficient
 
     Returns:
         [m] zero displacement height of water vapor between the crop and the atmosphere
     """
-    return 0.67 * canopy_height
+    return 1.1 * canopy_height * log(1.0 + (drag_coefficient * leaf_area_index) ** 0.25)
 
 
 def calc_roughness_length_for_momentum_transfer(canopy_height: float) -> float:
