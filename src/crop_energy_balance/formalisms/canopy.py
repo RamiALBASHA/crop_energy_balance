@@ -1,6 +1,7 @@
 from math import log
 
 from crop_energy_balance.formalisms.config import PRECISION
+from crop_energy_balance.formalisms.weather import convert_celsius_to_kelvin
 
 
 def calc_zero_displacement_height(canopy_height: float, leaf_area_index: float, drag_coefficient: float) -> float:
@@ -196,8 +197,9 @@ def calc_aerodynamic_resistance(richardson_number: float,
         # strongly unstable, free convection dominates (Kimball et al. 2015)
         # (Webber et al. 2016, eq. 11)
         # ----------------------
-        n = 5.  # surface characteristic shape factor (ASHRAE, 2001, Eq. 11 in Table 5)
-        ra = air_density * air_specific_heat_capacity / (n * abs((canopy_temperature - air_temperature)) ** 0.25)
+        n = 5.
+        temperature_difference = max(convert_celsius_to_kelvin(0.1), canopy_temperature - air_temperature)
+        ra = air_density * air_specific_heat_capacity / (n * abs(temperature_difference) ** (1 / 3.))
     else:
         # ----------------------
         # unstable and stable conditions (the general case)
