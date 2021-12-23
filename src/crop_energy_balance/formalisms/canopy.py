@@ -13,6 +13,12 @@ def calc_zero_displacement_height(canopy_height: float, leaf_area_index: float, 
 
     Returns:
         [m] zero displacement height of water vapor between the crop and the atmosphere
+
+    References:
+        Choudhury, B., Monteith, J., 1988.
+            A four-layer model for the heat budget ofhomogeneous land surfaces.
+            Q. J. Roy. Meteor. Soc. 114, 373–398.
+
     """
     return 1.1 * canopy_height * log(1.0 + (drag_coefficient * leaf_area_index) ** 0.25)
 
