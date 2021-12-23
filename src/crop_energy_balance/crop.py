@@ -33,7 +33,8 @@ class CropStateVariables:
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,
             measurement_height=inputs.measurement_height,
-            zero_displacement_height=self.zero_displacement_height)
+            zero_displacement_height=self.zero_displacement_height,
+            roughness_length_for_momentum=self.roughness_length_for_momentum)
 
         self.friction_velocity = None
         self.aerodynamic_resistance = None
