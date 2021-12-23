@@ -1,14 +1,14 @@
-from crop_energy_balance.formalisms import canopy
-from crop_energy_balance.params import Params, Constants
-from crop_energy_balance.formalisms import weather
 from crop_energy_balance import utils
+from crop_energy_balance.formalisms import canopy
+from crop_energy_balance.formalisms import weather
+from crop_energy_balance.params import Constants
 
 constants = Constants()
 
 
 def test_calc_zero_displacement_height():
-    assert canopy.calc_zero_displacement_height(0) == 0
-    assert canopy.calc_zero_displacement_height(1) == 0.67
+    assert canopy.calc_zero_displacement_height(0, 1, 0.2) == 0
+    assert round(canopy.calc_zero_displacement_height(1, 1, 0.2), 3) == 0.563
 
 
 def test_calc_roughness_length_for_momentum_transfer():
@@ -105,7 +105,8 @@ def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
     """
     height = 0.12
     measurement_height = 2
-    zero_displacement_height = canopy.calc_zero_displacement_height(canopy_height=height)
+    zero_displacement_height = canopy.calc_zero_displacement_height(
+        canopy_height=height, leaf_area_index=1, drag_coefficient=0.2)
     von_karman_constant = constants.von_karman
 
     friction_velocity = weather.calc_friction_velocity(
