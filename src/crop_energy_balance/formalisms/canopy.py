@@ -194,8 +194,10 @@ def calc_aerodynamic_resistance(richardson_number: float,
     """
     if richardson_number < -0.8:
         # ----------------------
-        # strongly unstable, free convection dominates (Kimball et al. 2015)
-        # (Webber et al. 2016, eq. 11)
+        # strongly unstable, free convection dominates
+        # (Webber et al. 2016, eq. 11 is replaced by Kimball et al. 2015 eqs. 28 & 29)
+        # Kimball et al. (2015) used the equation for free (also called natural) convection from ASHAE (page 3.12,
+        # Table 5, eq. 11). They replaced the "n" parameter value from 1.52 used for "large plates" to 5 for wheat.
         # ----------------------
         n = 5.
         temperature_difference = max(convert_celsius_to_kelvin(0.1), canopy_temperature - air_temperature)
