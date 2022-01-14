@@ -31,7 +31,8 @@ class CropStateVariables:
         self.roughness_length_for_momentum = canopy.calc_roughness_length_for_momentum_transfer(
             canopy_height=inputs.canopy_height)
         self.roughness_length_for_heat_transfer = canopy.calc_roughness_length_for_heat_transfer(
-            canopy_height=inputs.canopy_height)
+            canopy_height=inputs.canopy_height,
+            ratio_heat_to_momentum_roughness_lengths=params.simulation.ratio_heat_to_momentum_canopy_roughness_lengths)
         self.wind_speed_at_canopy_height = canopy.calc_wind_speed_at_canopy_height(
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,

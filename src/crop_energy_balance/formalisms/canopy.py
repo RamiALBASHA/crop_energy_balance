@@ -45,11 +45,13 @@ def calc_roughness_length_for_momentum_transfer(canopy_height: float) -> float:
     return 0.123 * canopy_height
 
 
-def calc_roughness_length_for_heat_transfer(canopy_height: float) -> float:
+def calc_roughness_length_for_heat_transfer(canopy_height: float,
+                                            ratio_heat_to_momentum_roughness_lengths: float) -> float:
     """Calculates roughness length for heat and water vapor transfer of the canopy.
 
     Args:
         canopy_height: [m] average height of the canopy
+        ratio_heat_to_momentum_roughness_lengths: [-] Ratio of canopy's heat to momentum roughness lengths
 
     Returns:
         [m] roughness length for heat transfer
@@ -59,11 +61,19 @@ def calc_roughness_length_for_heat_transfer(canopy_height: float) -> float:
             Putting the 'vap' into evaporation.
             Hydrol. Earth Syst. Sci. 11, 210 - 244
             Eq. 11
+        Kimball et al. 2015.
+            Predicting canopy temperatures and infrared heater energy requirements for warming field plots.
+            Climatology and Water Management 107, 129 - 141
+            Eq. 7
 
     Notes:
-        This formula holds for the reference grass crop.
+        Indicative values for 'ratio_heat_to_momentum_roughness_lengths' are:
+            * 1/10 for reference grass crop (Shuttleworth, 2007)
+            * 1/7.4 for wheat (Kimball et al., 2015)
+
     """
-    return calc_roughness_length_for_momentum_transfer(canopy_height=canopy_height) / 10.
+    return ratio_heat_to_momentum_roughness_lengths * (
+        calc_roughness_length_for_momentum_transfer(canopy_height=canopy_height))
 
 
 def calc_wind_speed_at_canopy_height(wind_speed: float,
