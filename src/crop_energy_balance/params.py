@@ -207,6 +207,13 @@ class Simulation:
         self.drag_coefficient = 0.2
         """[m2ground m-2leaf] drag coefficient"""
 
+        self.ratio_heat_to_momentum_canopy_roughness_lengths = 1/7.4
+        """[-] Ratio of canopy's heat to momentum roughness lengths.
+        Indicative values are:
+            * 1/10 for reference grass crop (Shuttleworth, 2007. Hydrol. Earth Syst. Sci. 11, 210 - 244)
+            * 1/7.4 for wheat (Kimball et al., 2015. Climatology and Water Management 107, 129 - 141)
+        """
+
     def update(self,
                inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
