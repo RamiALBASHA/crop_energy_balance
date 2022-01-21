@@ -2,7 +2,8 @@ from inspect import signature
 from pathlib import Path
 
 from crop_energy_balance import utils
-from crop_energy_balance.formalisms import canopy, weather, leaf, lumped_leaves, sunlit_shaded_leaves, component, soil
+from crop_energy_balance.formalisms import (canopy, weather, leaf, lumped_leaves, sunlit_shaded_leaves, component, soil,
+                                            config)
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params, Constants
 
@@ -13,7 +14,7 @@ class CropStateVariables:
     def __init__(self,
                  inputs: Inputs,
                  params: Params):
-        self.sensible_heat_flux = 1.e-6
+        self.sensible_heat_flux = config.PRECISION
         self.stability_correction_for_momentum = 0.0
         self.stability_correction_for_heat = 0.0
         self.richardson_number = 0.0
