@@ -450,7 +450,8 @@ def calc_richardson_number(is_stable: bool,
 def calc_stability_correction_functions(monin_obukhov_length: float,
                                         richardson_number: float,
                                         measurement_height: float,
-                                        zero_displacement_height: float) -> (float,):
+                                        zero_displacement_height: float,
+                                        richardon_threshold_free_convection: float) -> (float,):
     """Calculates the stability correction functions for momentum and heat transfer.
 
     Args:
@@ -458,15 +459,16 @@ def calc_stability_correction_functions(monin_obukhov_length: float,
         richardson_number: [-] Richardson length
         measurement_height: [m] measurement height for wind and temperature measurement (assumed equal)
         zero_displacement_height: [m] zero plane displacement height
+        richardon_threshold_free_convection: [-] Richardson number threshold below which free convection is assumed
 
     Returns:
         [-] correction function for momentum transfer
         [-] correction function for heat transfer
     """
 
-    if richardson_number < -0.8:
+    if richardson_number < richardon_threshold_free_convection:
         # ----------------------
-        # strongly unstable, free convection dominates (Kimball et al. 2015)
+        # strongly unstable, free convection dominates
         # ----------------------
         correction_for_heat = 0
         correction_for_momentum = correction_for_heat

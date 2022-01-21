@@ -330,7 +330,8 @@ def test_calc_stability_correction_functions():
         monin_obukhov_length=monin_obukhov_length,
         richardson_number=-1.1,
         measurement_height=measurement_height,
-        zero_displacement_height=zero_displacement_height)
+        zero_displacement_height=zero_displacement_height,
+        richardon_threshold_free_convection=-0.8)
     assert phi_m == 0
     assert phi_h == 0
 
@@ -338,7 +339,8 @@ def test_calc_stability_correction_functions():
         monin_obukhov_length=monin_obukhov_length,
         richardson_number=0.2,
         measurement_height=measurement_height,
-        zero_displacement_height=zero_displacement_height)
+        zero_displacement_height=zero_displacement_height,
+        richardon_threshold_free_convection=-0.8)
     assert phi_m == 0
     assert phi_h == 0
 
@@ -346,6 +348,7 @@ def test_calc_stability_correction_functions():
         monin_obukhov_length=monin_obukhov_length,
         richardson_number=richardson_number,
         measurement_height=measurement_height,
-        zero_displacement_height=zero_displacement_height)
+        zero_displacement_height=zero_displacement_height,
+        richardon_threshold_free_convection=-0.8)
     assert phi_m != 0
     assert phi_h != 0

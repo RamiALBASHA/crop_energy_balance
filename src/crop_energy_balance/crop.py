@@ -151,7 +151,8 @@ class CropStateVariables:
                 monin_obukhov_length=self.monin_obukhov_length,
                 richardson_number=self.richardson_number,
                 measurement_height=inputs.measurement_height,
-                zero_displacement_height=self.zero_displacement_height)
+                zero_displacement_height=self.zero_displacement_height,
+                richardon_threshold_free_convection=threshold_free_convection)
 
         self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=self.richardson_number,
