@@ -1,4 +1,4 @@
-from math import log
+from math import log, atan, pi
 
 from crop_energy_balance.formalisms.config import PRECISION
 from crop_energy_balance.formalisms.weather import convert_celsius_to_kelvin
@@ -367,3 +367,155 @@ def calc_friction_velocity(wind_speed: float,
     return von_karman_constant * wind_speed / (
             log((measurement_height - zero_displacement_height) / roughness_length_for_momentum)
             - stability_correction_for_momentum)
+
+
+def calc_monin_obukhov_length(surface_temperature: float,
+                              sensible_heat_flux: float,
+                              friction_velocity: float,
+                              air_density: float,
+                              air_specific_heat_capacity: float,
+                              gravitational_acceleration: float,
+                              von_karman_constant: float) -> float:
+    """Calculates the Monin-Obukhov length.
+
+    Args:
+        surface_temperature: [K] aerodynamic surface temperature
+        sensible_heat_flux: [W m-2ground] sensible heat flux
+        friction_velocity: [m h-1] friction velocity
+        air_density: [g m-3] air density
+        air_specific_heat_capacity: [W h g-1 K-1] air specific heat capacity
+        gravitational_acceleration: [m h-2] gravity acceleration
+        von_karman_constant: [-] von Karman constant
+
+    Returns:
+        [m] Monin-Obukhov length
+
+    References:
+        Monin, A. S. and Obukhov, A. M. 1954.
+            Dimensionless characteristics of turbulence in the surface layer.
+            Akad. Nauk. SSSR Geofiz. Inst. Tr. 24, 163 - 187.
+    """
+    shear = friction_velocity ** 3
+    buoyancy = von_karman_constant * (gravitational_acceleration / surface_temperature) * (
+            sensible_heat_flux / (air_density * air_specific_heat_capacity))
+    return - shear / buoyancy
+
+
+def calc_richardson_number(is_stable: bool,
+                           measurement_height: float,
+                           zero_displacement_height: float,
+                           monin_obukhov_length: float) -> float:
+    """Calculates the Richardson's number.
+
+    Args:
+        is_stable: first approximation of stability (see Note below)
+        measurement_height: [m] height at which meteorological measurements are made
+        zero_displacement_height: [m] zero plane displacement height
+        monin_obukhov_length: [m] Monin-Obukhov length
+
+    Returns:
+        [-] Richardson length
+
+    References:
+        Monteith and Unsworth (2013).
+            Principles of Environmental Physics (Fourth Edition)
+            Academic Press, pp 289 - 320
+
+        Webb (1970).
+            Profile relationships: the log-linear range, and extension to strong stability.
+            Quarterly Journal of the Royal Meteorological Society 96, 67 - 90.
+
+        Webber et al. (2016)
+            Simulating canopy temperature for modelling heat stress in cereals.
+            Environmental Modelling and Software 77, 143 - 155
+
+
+    Note:
+        According to Webber et al. (2016) turbulence condition is considered stable if canopy's temperature is lower
+            the air's, otherwise unstable
+    """
+    if is_stable:
+        # Webb (1970) in Monteith and Unsworth (2013)
+        richardson = (measurement_height - zero_displacement_height) / (
+                monin_obukhov_length + 5 * (measurement_height - zero_displacement_height))
+    else:
+        # Monteith and Unsworth (2013)
+        richardson = (measurement_height - zero_displacement_height) / monin_obukhov_length
+
+    return richardson
+
+
+def calc_stability_correction_functions(friction_velocity: float,
+                                        sensible_heat: float,
+                                        canopy_temperature: float,
+                                        measurement_height: float,
+                                        zero_displacement_height: float,
+                                        air_density: float,
+                                        air_specific_heat_capacity: float,
+                                        von_karman_constant,
+                                        gravitational_acceleration: float) -> (float,):
+    """Calculates the stability correction functions for momentum and heat transfer.
+
+    Args:
+        friction_velocity: [m h-1] friction velocity
+        sensible_heat: [W m-2ground] sensible heat flux
+        canopy_temperature: [K] canopy temperature
+        measurement_height: [m] measurement height for wind and temperature measurement (assumed equal)
+        zero_displacement_height: [m] zero plane displacement height
+        air_density: [g m-3] air density
+        air_specific_heat_capacity: [W h g-1 K-1] air specific heat capacity
+        von_karman_constant: [-] von Karman's constant
+        gravitational_acceleration: [m h-2]
+
+    Returns:
+        [-] correction function for momentum transfer
+        [-] correction function for heat transfer
+        [-] Richardson's number
+    """
+
+    monin_obukhov_length = calc_monin_obukhov_length(
+        surface_temperature=canopy_temperature,
+        sensible_heat_flux=sensible_heat,
+        friction_velocity=friction_velocity,
+        air_density=air_density,
+        air_specific_heat_capacity=air_specific_heat_capacity,
+        gravitational_acceleration=gravitational_acceleration,
+        von_karman_constant=von_karman_constant)
+
+    richardson_number = calc_richardson_number(
+        is_stable=sensible_heat < 0,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height,
+        monin_obukhov_length=monin_obukhov_length)
+
+    if richardson_number < -0.8:
+        # ----------------------
+        # strongly unstable, free convection dominates (Kimball et al. 2015)
+        # ----------------------
+        correction_for_heat = 0
+        correction_for_momentum = correction_for_heat
+    elif richardson_number < -0.01:
+        # ----------------------
+        # unstable
+        # ----------------------
+        # Colaizzi et al. 2004, eq. 12)
+        x = (1.0 - 16.0 * (measurement_height - zero_displacement_height) / monin_obukhov_length) ** 0.25
+        correction_for_heat = 2.0 * log((1 + x ** 2) / 2)  # (Liu et al. 2007, eq. 13)
+        correction_for_momentum = 2.0 * log((1 + x) / 2) + log((1 + x ** 2) / 2) - 2 * atan(x) + pi / 2.
+    elif richardson_number < 0.2:
+        # ----------------------
+        # stable - technically (Thom, 1975)
+        # ----------------------
+        correction_for_heat = -5.0 * (
+                measurement_height - zero_displacement_height) / monin_obukhov_length  # (Liu et al. 2007, eq. 11)
+        correction_for_momentum = correction_for_heat  # (Liu et al. 2007, eq. 10)
+    else:
+        # ----------------------
+        # strongly stable
+        # Note: The concepts underlying similarity theory become invalid according to Mahrt (2010)
+        # in Monteith and Unsworth (2013)
+        # ----------------------
+        correction_for_heat = 0
+        correction_for_momentum = correction_for_heat
+
+    return correction_for_momentum, correction_for_heat, richardson_number, monin_obukhov_length

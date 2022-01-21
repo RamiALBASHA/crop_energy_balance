@@ -1,7 +1,6 @@
-import crop_energy_balance.formalisms.canopy
 from crop_energy_balance.formalisms import weather
 from crop_energy_balance.params import Constants
-from crop_energy_balance.utils import is_almost_equal, assert_trend, discretize_linearly
+from crop_energy_balance.utils import is_almost_equal, assert_trend
 
 constants = Constants()
 
@@ -81,68 +80,3 @@ def test_calc_vapor_pressure_deficit():
         expected_trend='-',
         values=[weather.calc_vapor_pressure_deficit(temperature_air=25, temperature_leaf=25, relative_humidity=rh)
                 for rh in range(0, 100)])
-
-
-def test_calc_monin_obukhov_length():
-    def set_args(**kwargs):
-        args = dict(surface_temperature=25 + 273,
-                    sensible_heat_flux=50,
-                    friction_velocity=400,
-                    air_density=constants.air_density,
-                    air_specific_heat_capacity=constants.air_specific_heat_capacity,
-                    gravitational_acceleration=constants.gravitational_acceleration,
-                    von_karman_constant=constants.von_karman)
-        args.update(**kwargs)
-        return args
-
-    assert 0 == weather.calc_monin_obukhov_length(**set_args(friction_velocity=0))
-
-    assert_trend(expected_trend='-',
-                 values=[weather.calc_monin_obukhov_length(**set_args(surface_temperature=t)) for t in range(248, 298)])
-
-    assert_trend(expected_trend='+',
-                 values=[weather.calc_monin_obukhov_length(**set_args(sensible_heat_flux=h)) for h in range(1, 10, 90)])
-
-    assert_trend(expected_trend='-',
-                 values=[weather.calc_monin_obukhov_length(**set_args(sensible_heat_flux=h)) for h in range(-1, -10)])
-
-
-def test_calc_richardson_number():
-    def set_args(**kwargs):
-        args = dict(measurement_height=2, zero_displacement_height=0.67, monin_obukhov_length=5)
-        args.update(**kwargs)
-        return args
-
-    assert (weather.calc_richardson_number(**set_args(is_stable=True)) !=
-            weather.calc_richardson_number(**set_args(is_stable=False)))
-
-    assert 0 == weather.calc_richardson_number(
-        **set_args(is_stable=True, measurement_height=2, zero_displacement_height=2))
-
-    assert 0 == weather.calc_richardson_number(
-        **set_args(is_stable=False, measurement_height=2, zero_displacement_height=2))
-
-
-def test_calc_stability_correction_functions():
-    def set_args(**kwargs):
-        args = dict(friction_velocity=400,
-                    sensible_heat=100,
-                    canopy_temperature=5 + 273,
-                    measurement_height=2,
-                    zero_displacement_height=0.67,
-                    air_density=constants.air_density,
-                    air_specific_heat_capacity=constants.air_specific_heat_capacity,
-                    von_karman_constant=constants.von_karman,
-                    gravitational_acceleration=constants.gravitational_acceleration)
-        args.update(**kwargs)
-        return args
-
-    assert 4 == len(weather.calc_stability_correction_functions(**set_args()))
-
-    phi_m, phi_h, richardson, obukhov = weather.calc_stability_correction_functions(**set_args(friction_velocity=0.1))
-    assert is_almost_equal(actual=[phi_m, phi_h, obukhov], desired=[0, 0, 0])
-
-    phi_m, phi_h, richardson, obukhov = weather.calc_stability_correction_functions(**set_args(friction_velocity=1.e6))
-    assert is_almost_equal(actual=richardson, desired=0)
-    assert phi_m != 0
-    assert phi_h != 0
