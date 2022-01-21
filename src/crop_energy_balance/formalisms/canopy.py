@@ -162,6 +162,7 @@ def calc_aerodynamic_resistance(richardson_number: float,
                                 stability_correction_for_heat: float,
                                 canopy_temperature: float,
                                 air_temperature: float,
+                                richardon_threshold_free_convection: float,
                                 von_karman_constant: float,
                                 air_density: float,
                                 air_specific_heat_capacity: float):
@@ -175,6 +176,7 @@ def calc_aerodynamic_resistance(richardson_number: float,
         zero_displacement_height: [m] zero displacement height
         roughness_length_for_heat: [m] roughness length for heat and water vapor transfer
         stability_correction_for_heat: [-] stability correction factor for heat transfer
+        richardon_threshold_free_convection: [-] Richardson number threshold below which free convection is assumed.
         von_karman_constant: [-] von Karman constant
         air_temperature: [K] air temperature at reference height
         canopy_temperature: [K] canopy (source) temperature
@@ -201,7 +203,7 @@ def calc_aerodynamic_resistance(richardson_number: float,
             Environmental Modelling and Software 77, 143 - 155
 
     """
-    if richardson_number < -0.8:
+    if richardson_number < richardon_threshold_free_convection:
         # ----------------------
         # strongly unstable, free convection dominates
         # (Webber et al. 2016, eq. 11 is replaced by Kimball et al. 2015 eqs. 28 & 29)

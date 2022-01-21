@@ -40,13 +40,7 @@ class Solver:
         """Solves the steady-state energy balance.
 
         Args:
-            is_stability_considered: If True then turbulence neutrality conditions are considered following
-                Webber et al. (2016), otherwise False (default)
-
-        References:
-            Webber et al. (2016)
-                Simulating canopy temperature for modelling heat stress in cereals.
-                Environmental Modelling and Software 77, 143 - 155
+            is_stability_considered: If True then the aerodynamic resistance is corrected for non-neutral conditions.
         """
         # Solves the energy balance for neutral conditions
         self.solve_transient_energy_balance()
@@ -58,7 +52,9 @@ class Solver:
                 self.stability_iterations_number += 1
                 sensible_heat = self.crop.state_variables.sensible_heat_flux.copy()
                 self.crop.state_variables.calc_aerodynamic_resistance(
-                    inputs=self.crop.inputs, correct_stability=True)
+                    inputs=self.crop.inputs,
+                    threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection,
+                    correct_stability=True)
                 self.solve_transient_energy_balance()
                 self.error_sensible_heat_flux = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
                 is_acceptable_error = is_almost_equal(actual=self.error_sensible_heat_flux, desired=0, decimal=2)
@@ -137,6 +133,7 @@ class Solver:
             stability_correction_for_heat=0,
             canopy_temperature=self.crop.state_variables.source_temperature,
             air_temperature=self.crop.inputs.air_temperature,
+            richardon_threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection,
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)

@@ -113,7 +113,7 @@ def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
         wind_speed=3600,
         measurement_height=measurement_height,
         zero_displacement_height=zero_displacement_height,
-        roughness_length_for_momentum=canopy.calc_roughness_length_for_momentum_transfer(canopy_height=height),
+        roughness_length_for_momentum=0.123 * height,
         stability_correction_for_momentum=0,
         von_karman_constant=von_karman_constant)
 
@@ -122,12 +122,11 @@ def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
         friction_velocity=friction_velocity,
         measurement_height=measurement_height,
         zero_displacement_height=zero_displacement_height,
-        roughness_length_for_heat=canopy.calc_roughness_length_for_heat_transfer(
-            roughness_length_for_momentum_transfer=0.123,
-            ratio_heat_to_momentum_roughness_lengths=0.1),
+        roughness_length_for_heat=0.0123 * height,
         stability_correction_for_heat=0,
         canopy_temperature=0,
         air_temperature=0,
+        richardon_threshold_free_convection=-0.8,
         von_karman_constant=von_karman_constant,
         air_density=0,
         air_specific_heat_capacity=0)
