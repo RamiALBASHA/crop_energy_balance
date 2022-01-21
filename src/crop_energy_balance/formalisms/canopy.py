@@ -45,12 +45,12 @@ def calc_roughness_length_for_momentum_transfer(canopy_height: float) -> float:
     return 0.123 * canopy_height
 
 
-def calc_roughness_length_for_heat_transfer(canopy_height: float,
+def calc_roughness_length_for_heat_transfer(roughness_length_for_momentum_transfer: float,
                                             ratio_heat_to_momentum_roughness_lengths: float) -> float:
     """Calculates roughness length for heat and water vapor transfer of the canopy.
 
     Args:
-        canopy_height: [m] average height of the canopy
+        roughness_length_for_momentum_transfer: [m] roughness length for momentum transfer
         ratio_heat_to_momentum_roughness_lengths: [-] Ratio of canopy's heat to momentum roughness lengths
 
     Returns:
@@ -72,8 +72,7 @@ def calc_roughness_length_for_heat_transfer(canopy_height: float,
             * 1/7.4 for wheat (Kimball et al., 2015)
 
     """
-    return ratio_heat_to_momentum_roughness_lengths * (
-        calc_roughness_length_for_momentum_transfer(canopy_height=canopy_height))
+    return ratio_heat_to_momentum_roughness_lengths * roughness_length_for_momentum_transfer
 
 
 def calc_wind_speed_at_canopy_height(wind_speed: float,

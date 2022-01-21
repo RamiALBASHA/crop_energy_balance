@@ -18,7 +18,7 @@ def test_calc_roughness_length_for_momentum_transfer():
 
 def test_calc_roughness_length_for_heat_transfer():
     assert canopy.calc_roughness_length_for_heat_transfer(0, 0.1) == 0
-    assert canopy.calc_roughness_length_for_heat_transfer(1, 0.1) == 0.0123
+    assert canopy.calc_roughness_length_for_heat_transfer(1, 0.1) == 0.1
 
 
 def test_calc_wind_speed_at_canopy_height():
@@ -123,7 +123,7 @@ def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
         measurement_height=measurement_height,
         zero_displacement_height=zero_displacement_height,
         roughness_length_for_heat=canopy.calc_roughness_length_for_heat_transfer(
-            canopy_height=height,
+            roughness_length_for_momentum_transfer=0.123,
             ratio_heat_to_momentum_roughness_lengths=0.1),
         stability_correction_for_heat=0,
         canopy_temperature=0,
