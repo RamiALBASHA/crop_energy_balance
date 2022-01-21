@@ -216,6 +216,11 @@ class Simulation:
 
         self.richardon_threshold_free_convection = -0.8
         """[-] Richardson number threshold below which flux is assumed to occur under free convection.
+        Note:
+        Indicative values are:
+            * -1.0 (Monteith and Unsworth, 2004. cf. description belw Eq. 16.45)
+            * -0.8 (CanopyT, Webber et al., 2016)
+
         """
 
     def update(self,
