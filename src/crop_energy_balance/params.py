@@ -214,6 +214,10 @@ class Simulation:
             * 1/7.4 for wheat (Kimball et al., 2015. Climatology and Water Management 107, 129 - 141)
         """
 
+        self.richardon_threshold_free_convection = -0.8
+        """[-] Richardson number threshold below which flux is assumed to occur under free convection.
+        """
+
     def update(self,
                inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
