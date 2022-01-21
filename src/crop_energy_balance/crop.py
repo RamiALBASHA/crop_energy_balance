@@ -13,6 +13,7 @@ class CropStateVariables:
     def __init__(self,
                  inputs: Inputs,
                  params: Params):
+        self.sensible_heat_flux = 1.e-6
         self.stability_correction_for_momentum = 0.0
         self.stability_correction_for_heat = 0.0
         self.richardson_number = 0.0
@@ -60,7 +61,6 @@ class CropStateVariables:
         self.sum_composed_conductances = None
         self.penman_energy = None
         self.total_penman_monteith_evaporative_energy = None
-        self.sensible_heat_flux = 0
 
     def calc_total_composed_conductances(self,
                                          crop_components: list):
