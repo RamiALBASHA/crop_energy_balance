@@ -114,7 +114,7 @@ class CropStateVariables:
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
 
     def calc_aerodynamic_resistance(self, inputs: Inputs, correct_stability: bool):
-        self.friction_velocity = weather.calc_friction_velocity(
+        self.friction_velocity = canopy.calc_friction_velocity(
             wind_speed=inputs.wind_speed,
             measurement_height=inputs.measurement_height,
             zero_displacement_height=self.zero_displacement_height,

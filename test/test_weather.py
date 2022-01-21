@@ -1,3 +1,4 @@
+import crop_energy_balance.formalisms.canopy
 from crop_energy_balance.formalisms import weather
 from crop_energy_balance.params import Constants
 from crop_energy_balance.utils import is_almost_equal, assert_trend, discretize_linearly
@@ -80,30 +81,6 @@ def test_calc_vapor_pressure_deficit():
         expected_trend='-',
         values=[weather.calc_vapor_pressure_deficit(temperature_air=25, temperature_leaf=25, relative_humidity=rh)
                 for rh in range(0, 100)])
-
-
-def test_calc_friction_velocity():
-    def set_args(**kwargs):
-        args = dict(wind_speed=3600,
-                    measurement_height=2,
-                    zero_displacement_height=0.67,
-                    roughness_length_for_momentum=0.123,
-                    stability_correction_for_momentum=0,
-                    von_karman_constant=constants.von_karman)
-        args.update(**kwargs)
-        return args
-
-    assert 0 == weather.calc_friction_velocity(**set_args(wind_speed=0))
-
-    assert is_almost_equal(
-        desired=-1,
-        actual=weather.calc_friction_velocity(**set_args(
-            wind_speed=1 / constants.von_karman, zero_displacement_height=1, roughness_length_for_momentum=1,
-            stability_correction_for_momentum=1)))
-
-    assert_trend(expected_trend='+',
-                 values=[weather.calc_friction_velocity(**set_args(stability_correction_for_momentum=phi_m))
-                         for phi_m in discretize_linearly(0.01, 2.38, 3)])  # 2.38075 = log((2 - 0.67) / 0.123)
 
 
 def test_calc_monin_obukhov_length():

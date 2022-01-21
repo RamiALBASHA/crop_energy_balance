@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from crop_energy_balance.crop import Crop, CropStateVariables
-from crop_energy_balance.formalisms import canopy, weather
+from crop_energy_balance.formalisms import canopy
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params, Constants
 from crop_energy_balance.utils import is_almost_equal
@@ -121,7 +121,7 @@ class Solver:
                 Simulating canopy temperature for modelling heat stress in cereals.
                 Environmental Modelling and Software 77, 143 - 155
         """
-        neutral_friction_velocity = weather.calc_friction_velocity(
+        neutral_friction_velocity = canopy.calc_friction_velocity(
             wind_speed=self.crop.inputs.wind_speed,
             measurement_height=self.crop.inputs.measurement_height,
             zero_displacement_height=self.crop.state_variables.zero_displacement_height,

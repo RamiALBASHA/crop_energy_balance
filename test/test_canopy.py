@@ -1,7 +1,7 @@
 from crop_energy_balance import utils
-from crop_energy_balance.formalisms import canopy
-from crop_energy_balance.formalisms import weather
+from crop_energy_balance.formalisms import canopy, weather
 from crop_energy_balance.params import Constants
+from crop_energy_balance.utils import is_almost_equal, assert_trend, discretize_linearly
 
 constants = Constants()
 
@@ -109,7 +109,7 @@ def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
         canopy_height=height, leaf_area_index=1, drag_coefficient=0.2)
     von_karman_constant = constants.von_karman
 
-    friction_velocity = weather.calc_friction_velocity(
+    friction_velocity = canopy.calc_friction_velocity(
         wind_speed=3600,
         measurement_height=measurement_height,
         zero_displacement_height=zero_displacement_height,
@@ -235,3 +235,27 @@ def test_calc_temperature():
     utils.assert_trend(
         values=[canopy.calc_temperature(t_air, r0, a, pm_, rho, cp) for pm_ in range(0, 1000, 100)],
         expected_trend='-')
+
+
+def test_calc_friction_velocity():
+    def set_args(**kwargs):
+        args = dict(wind_speed=3600,
+                    measurement_height=2,
+                    zero_displacement_height=0.67,
+                    roughness_length_for_momentum=0.123,
+                    stability_correction_for_momentum=0,
+                    von_karman_constant=constants.von_karman)
+        args.update(**kwargs)
+        return args
+
+    assert 0 == canopy.calc_friction_velocity(**set_args(wind_speed=0))
+
+    assert is_almost_equal(
+        desired=-1,
+        actual=canopy.calc_friction_velocity(**set_args(
+            wind_speed=1 / constants.von_karman, zero_displacement_height=1, roughness_length_for_momentum=1,
+            stability_correction_for_momentum=1)))
+
+    assert_trend(expected_trend='+',
+                 values=[canopy.calc_friction_velocity(**set_args(stability_correction_for_momentum=phi_m))
+                         for phi_m in discretize_linearly(0.01, 2.38, 3)])  # 2.38075 = log((2 - 0.67) / 0.123)

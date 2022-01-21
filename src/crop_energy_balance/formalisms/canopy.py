@@ -343,3 +343,27 @@ def calc_temperature(air_temperature: float,
     """
     return air_temperature + (canopy_aerodynamic_resistance / (air_density * air_specific_heat_capacity)) * (
             canopy_available_energy - penman_monteith_evaporative_energy)
+
+
+def calc_friction_velocity(wind_speed: float,
+                           measurement_height: float,
+                           zero_displacement_height: float,
+                           roughness_length_for_momentum: float,
+                           stability_correction_for_momentum: float,
+                           von_karman_constant: float):
+    """Calculates the friction velocity in the atmospheric boundary layer.
+
+    Args:
+        wind_speed: [m h-1] wind speed at measurement height
+        measurement_height: [m] height at which meteorological measurements are made
+        zero_displacement_height: [m] zero plane displacement height
+        roughness_length_for_momentum: [m] roughness length for momentum transfer
+        stability_correction_for_momentum: [-] stability correction factor for momentum transfer
+        von_karman_constant: [-] von Karman constant
+
+    Returns:
+        [m h-1]: friction velocity
+    """
+    return von_karman_constant * wind_speed / (
+            log((measurement_height - zero_displacement_height) / roughness_length_for_momentum)
+            - stability_correction_for_momentum)
