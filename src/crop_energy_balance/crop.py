@@ -123,18 +123,28 @@ class CropStateVariables:
             von_karman_constant=constants.von_karman)
 
         self.friction_velocity = max(36.0, self.friction_velocity)  # from CanopyT (H. Webber)
+
+        self.monin_obukhov_length = canopy.calc_monin_obukhov_length(
+            surface_temperature=self.source_temperature,
+            sensible_heat_flux=self.sensible_heat_flux,
+            friction_velocity=self.friction_velocity,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity,
+            gravitational_acceleration=constants.gravitational_acceleration,
+            von_karman_constant=constants.von_karman)
+        self.richardson_number = canopy.calc_richardson_number(
+            is_stable=self.sensible_heat_flux < 0,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            monin_obukhov_length=self.monin_obukhov_length)
+
         if correct_stability:
-            (self.stability_correction_for_momentum, self.stability_correction_for_heat,
-             self.richardson_number, self.monin_obukhov_length) = canopy.calc_stability_correction_functions(
-                friction_velocity=self.friction_velocity,
-                sensible_heat=self.sensible_heat_flux,
-                canopy_temperature=self.source_temperature,
+            (self.stability_correction_for_momentum,
+             self.stability_correction_for_heat) = canopy.calc_stability_correction_functions(
+                monin_obukhov_length=self.monin_obukhov_length,
+                richardson_number=self.richardson_number,
                 measurement_height=inputs.measurement_height,
-                zero_displacement_height=self.zero_displacement_height,
-                air_density=constants.air_density,
-                air_specific_heat_capacity=constants.air_specific_heat_capacity,
-                von_karman_constant=constants.von_karman,
-                gravitational_acceleration=constants.gravitational_acceleration)
+                zero_displacement_height=self.zero_displacement_height)
 
         self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=self.richardson_number,

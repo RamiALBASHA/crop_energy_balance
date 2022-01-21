@@ -414,7 +414,7 @@ def calc_richardson_number(is_stable: bool,
         monin_obukhov_length: [m] Monin-Obukhov length
 
     Returns:
-        [-] Richardson length
+        [-] Richardson number
 
     References:
         Monteith and Unsworth (2013).
@@ -445,48 +445,22 @@ def calc_richardson_number(is_stable: bool,
     return richardson
 
 
-def calc_stability_correction_functions(friction_velocity: float,
-                                        sensible_heat: float,
-                                        canopy_temperature: float,
+def calc_stability_correction_functions(monin_obukhov_length: float,
+                                        richardson_number: float,
                                         measurement_height: float,
-                                        zero_displacement_height: float,
-                                        air_density: float,
-                                        air_specific_heat_capacity: float,
-                                        von_karman_constant,
-                                        gravitational_acceleration: float) -> (float,):
+                                        zero_displacement_height: float) -> (float,):
     """Calculates the stability correction functions for momentum and heat transfer.
 
     Args:
-        friction_velocity: [m h-1] friction velocity
-        sensible_heat: [W m-2ground] sensible heat flux
-        canopy_temperature: [K] canopy temperature
+        monin_obukhov_length: [m] Monin-Obukhov length
+        richardson_number: [-] Richardson length
         measurement_height: [m] measurement height for wind and temperature measurement (assumed equal)
         zero_displacement_height: [m] zero plane displacement height
-        air_density: [g m-3] air density
-        air_specific_heat_capacity: [W h g-1 K-1] air specific heat capacity
-        von_karman_constant: [-] von Karman's constant
-        gravitational_acceleration: [m h-2]
 
     Returns:
         [-] correction function for momentum transfer
         [-] correction function for heat transfer
-        [-] Richardson's number
     """
-
-    monin_obukhov_length = calc_monin_obukhov_length(
-        surface_temperature=canopy_temperature,
-        sensible_heat_flux=sensible_heat,
-        friction_velocity=friction_velocity,
-        air_density=air_density,
-        air_specific_heat_capacity=air_specific_heat_capacity,
-        gravitational_acceleration=gravitational_acceleration,
-        von_karman_constant=von_karman_constant)
-
-    richardson_number = calc_richardson_number(
-        is_stable=sensible_heat < 0,
-        measurement_height=measurement_height,
-        zero_displacement_height=zero_displacement_height,
-        monin_obukhov_length=monin_obukhov_length)
 
     if richardson_number < -0.8:
         # ----------------------
@@ -518,4 +492,4 @@ def calc_stability_correction_functions(friction_velocity: float,
         correction_for_heat = 0
         correction_for_momentum = correction_for_heat
 
-    return correction_for_momentum, correction_for_heat, richardson_number, monin_obukhov_length
+    return correction_for_momentum, correction_for_heat

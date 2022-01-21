@@ -302,25 +302,51 @@ def test_calc_richardson_number():
 
 
 def test_calc_stability_correction_functions():
-    def set_args(**kwargs):
-        args = dict(friction_velocity=400,
-                    sensible_heat=100,
-                    canopy_temperature=5 + 273,
-                    measurement_height=2,
-                    zero_displacement_height=0.67,
-                    air_density=constants.air_density,
-                    air_specific_heat_capacity=constants.air_specific_heat_capacity,
-                    von_karman_constant=constants.von_karman,
-                    gravitational_acceleration=constants.gravitational_acceleration)
-        args.update(**kwargs)
-        return args
+    friction_velocity = 400
+    sensible_heat = 10
+    canopy_temperature = 5 + 273
+    measurement_height = 2
+    zero_displacement_height = 0.67
+    air_density = constants.air_density
+    air_specific_heat_capacity = constants.air_specific_heat_capacity
+    von_karman_constant = constants.von_karman
+    gravitational_acceleration = constants.gravitational_acceleration
 
-    assert 4 == len(canopy.calc_stability_correction_functions(**set_args()))
+    monin_obukhov_length = canopy.calc_monin_obukhov_length(
+        surface_temperature=canopy_temperature,
+        sensible_heat_flux=sensible_heat,
+        friction_velocity=friction_velocity,
+        air_density=air_density,
+        air_specific_heat_capacity=air_specific_heat_capacity,
+        gravitational_acceleration=gravitational_acceleration,
+        von_karman_constant=von_karman_constant)
 
-    phi_m, phi_h, richardson, obukhov = canopy.calc_stability_correction_functions(**set_args(friction_velocity=0.1))
-    assert is_almost_equal(actual=[phi_m, phi_h, obukhov], desired=[0, 0, 0])
+    richardson_number = canopy.calc_richardson_number(
+        is_stable=sensible_heat < 0,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height,
+        monin_obukhov_length=monin_obukhov_length)
 
-    phi_m, phi_h, richardson, obukhov = canopy.calc_stability_correction_functions(**set_args(friction_velocity=1.e6))
-    assert is_almost_equal(actual=richardson, desired=0)
+    phi_m, phi_h = canopy.calc_stability_correction_functions(
+        monin_obukhov_length=monin_obukhov_length,
+        richardson_number=-1.1,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height)
+    assert phi_m == 0
+    assert phi_h == 0
+
+    phi_m, phi_h = canopy.calc_stability_correction_functions(
+        monin_obukhov_length=monin_obukhov_length,
+        richardson_number=0.2,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height)
+    assert phi_m == 0
+    assert phi_h == 0
+
+    phi_m, phi_h = canopy.calc_stability_correction_functions(
+        monin_obukhov_length=monin_obukhov_length,
+        richardson_number=richardson_number,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height)
     assert phi_m != 0
     assert phi_h != 0
