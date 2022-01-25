@@ -212,8 +212,8 @@ def calc_aerodynamic_resistance(richardson_number: float,
         # Note that the value of h (Heat Transfer Coefficient) given in ASHAE is in W m-2 K-1.
         # ----------------------
         n = 5.
-        temperature_difference = max(convert_celsius_to_kelvin(0.1), canopy_temperature - air_temperature)
-        ra = air_density * air_specific_heat_capacity / (n * abs(temperature_difference) ** (1 / 3.))
+        temperature_difference = max(convert_celsius_to_kelvin(0.1), abs(canopy_temperature - air_temperature))
+        ra = air_density * air_specific_heat_capacity / (n * temperature_difference ** (1 / 3.))
     else:
         # ----------------------
         # unstable and stable conditions (the general case)
