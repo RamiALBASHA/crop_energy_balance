@@ -6,6 +6,8 @@ from crop_irradiance.uniform_crops.formalisms.sunlit_shaded_leaves import (calc_
                                                                            calc_direct_extinction_coefficient,
                                                                            calc_direct_black_extinction_coefficient)
 
+from crop_energy_balance.formalisms.weather import calc_atmospheric_emissivity
+
 
 class Params:
     def __init__(self,
@@ -223,6 +225,9 @@ class Simulation:
 
         """
 
+        self.atmospheric_emissivity = None
+        """[-] sky longwave radiation emissivity"""
+
     def update(self,
                inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
@@ -244,6 +249,11 @@ class Simulation:
         self.canopy_reflectance_to_direct_irradiance = calc_canopy_reflectance_to_direct_irradiance(
             direct_black_extinction_coefficient=self.direct_black_extinction_coefficient,
             leaf_scattering_coefficient=self.leaf_scattering_coefficient)
+
+        self.atmospheric_emissivity = calc_atmospheric_emissivity('brutsaert_1975',
+                                                                  inputs.air_vapor_pressure,
+                                                                  inputs.air_temperature)
+        """[-] sky longwave radiation emissivity"""
 
 
 class NumericalResolution:

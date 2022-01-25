@@ -68,7 +68,7 @@ class CropStateVariables:
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
             air_vapor_pressure=inputs.air_vapor_pressure,
-            atmospheric_emissivity=inputs.atmospheric_emissivity,
+            atmospheric_emissivity=params.simulation.atmospheric_emissivity,
             stefan_boltzmann_constant=constants.stefan_boltzmann)
 
         # Canopy available energy and net radiation are not initialized to None so that to initialize the soil heat flux
