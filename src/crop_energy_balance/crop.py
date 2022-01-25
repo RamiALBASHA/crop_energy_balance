@@ -17,8 +17,6 @@ class CropStateVariables:
         self.sensible_heat_flux = config.PRECISION
         self.stability_correction_for_momentum = 0.0
         self.stability_correction_for_heat = 0.0
-        self.richardson_number = 0.0
-        self.monin_obukhov_length = None
 
         self.source_temperature = inputs.air_temperature
 
@@ -41,14 +39,31 @@ class CropStateVariables:
             measurement_height=inputs.measurement_height,
             zero_displacement_height=self.zero_displacement_height,
             roughness_length_for_momentum=self.roughness_length_for_momentum)
-
-        self.friction_velocity = None
+        self.friction_velocity = canopy.calc_friction_velocity(
+            wind_speed=inputs.wind_speed,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            roughness_length_for_momentum=self.roughness_length_for_momentum,
+            stability_correction_for_momentum=self.stability_correction_for_momentum,
+            von_karman_constant=constants.von_karman)
+        self.monin_obukhov_length = canopy.calc_monin_obukhov_length(
+            surface_temperature=self.source_temperature,
+            sensible_heat_flux=self.sensible_heat_flux,
+            friction_velocity=self.friction_velocity,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity,
+            gravitational_acceleration=constants.gravitational_acceleration,
+            von_karman_constant=constants.von_karman)
+        self.richardson_number = canopy.calc_richardson_number(
+            is_stable=self.sensible_heat_flux < 0,
+            measurement_height=inputs.measurement_height,
+            zero_displacement_height=self.zero_displacement_height,
+            monin_obukhov_length=self.monin_obukhov_length)
         self.aerodynamic_resistance = None
         self.lumped_aerodynamic_resistance = None
         self.calc_aerodynamic_resistance(
             inputs=inputs,
-            threshold_free_convection=params.simulation.richardon_threshold_free_convection,
-            correct_stability=False)
+            threshold_free_convection=params.simulation.richardon_threshold_free_convection)
 
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
@@ -119,40 +134,7 @@ class CropStateVariables:
 
     def calc_aerodynamic_resistance(self,
                                     inputs: Inputs,
-                                    threshold_free_convection: float,
-                                    correct_stability: bool):
-        self.friction_velocity = canopy.calc_friction_velocity(
-            wind_speed=inputs.wind_speed,
-            measurement_height=inputs.measurement_height,
-            zero_displacement_height=self.zero_displacement_height,
-            roughness_length_for_momentum=self.roughness_length_for_momentum,
-            stability_correction_for_momentum=self.stability_correction_for_momentum,
-            von_karman_constant=constants.von_karman)
-
-        self.friction_velocity = max(36.0, self.friction_velocity)  # from CanopyT (H. Webber)
-
-        self.monin_obukhov_length = canopy.calc_monin_obukhov_length(
-            surface_temperature=self.source_temperature,
-            sensible_heat_flux=self.sensible_heat_flux,
-            friction_velocity=self.friction_velocity,
-            air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity,
-            gravitational_acceleration=constants.gravitational_acceleration,
-            von_karman_constant=constants.von_karman)
-        self.richardson_number = canopy.calc_richardson_number(
-            is_stable=self.sensible_heat_flux < 0,
-            measurement_height=inputs.measurement_height,
-            zero_displacement_height=self.zero_displacement_height,
-            monin_obukhov_length=self.monin_obukhov_length)
-
-        if correct_stability:
-            (self.stability_correction_for_momentum,
-             self.stability_correction_for_heat) = canopy.calc_stability_correction_functions(
-                monin_obukhov_length=self.monin_obukhov_length,
-                richardson_number=self.richardson_number,
-                measurement_height=inputs.measurement_height,
-                zero_displacement_height=self.zero_displacement_height,
-                richardon_threshold_free_convection=threshold_free_convection)
+                                    threshold_free_convection: float):
 
         self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=self.richardson_number,

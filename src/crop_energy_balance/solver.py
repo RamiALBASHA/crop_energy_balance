@@ -51,10 +51,10 @@ class Solver:
             while not is_acceptable_error and self.stability_iterations_number <= 100:
                 self.stability_iterations_number += 1
                 sensible_heat = self.crop.state_variables.sensible_heat_flux.copy()
+                self.update_correction_factors()
                 self.crop.state_variables.calc_aerodynamic_resistance(
                     inputs=self.crop.inputs,
-                    threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection,
-                    correct_stability=True)
+                    threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection)
                 self.solve_transient_energy_balance()
                 self.error_sensible_heat_flux = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
                 is_acceptable_error = is_almost_equal(actual=self.error_sensible_heat_flux, desired=0, decimal=2)
@@ -141,6 +141,58 @@ class Solver:
             self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_aerodynamic_resistance
         else:
             self.crop.state_variables.aerodynamic_resistance = 0.8 * neutral_aerodynamic_resistance
+
+    def update_correction_factors(self):
+        phi_m = self.crop.state_variables.stability_correction_for_momentum
+        phi_h = self.crop.state_variables.stability_correction_for_heat
+
+        counter = 0
+        is_acceptable_error = False
+        while not is_acceptable_error and counter < 50:
+            counter += 1
+
+            phi_m += 0.5 * (self.crop.state_variables.stability_correction_for_momentum - phi_m)
+            phi_h += 0.5 * (self.crop.state_variables.stability_correction_for_heat - phi_h)
+            self.crop.state_variables.stability_correction_for_momentum = phi_m
+            self.crop.state_variables.stability_correction_for_heat = phi_h
+
+            self.crop.state_variables.friction_velocity = canopy.calc_friction_velocity(
+                wind_speed=self.crop.inputs.wind_speed,
+                measurement_height=self.crop.inputs.measurement_height,
+                zero_displacement_height=self.crop.state_variables.zero_displacement_height,
+                roughness_length_for_momentum=self.crop.state_variables.roughness_length_for_momentum,
+                stability_correction_for_momentum=self.crop.state_variables.stability_correction_for_momentum,
+                von_karman_constant=constants.von_karman)
+
+            self.crop.state_variables.friction_velocity = max(0.1, self.crop.state_variables.friction_velocity)
+
+            self.crop.state_variables.monin_obukhov_length = canopy.calc_monin_obukhov_length(
+                surface_temperature=self.crop.state_variables.source_temperature,
+                sensible_heat_flux=self.crop.state_variables.sensible_heat_flux,
+                friction_velocity=self.crop.state_variables.friction_velocity,
+                air_density=constants.air_density,
+                air_specific_heat_capacity=constants.air_specific_heat_capacity,
+                gravitational_acceleration=constants.gravitational_acceleration,
+                von_karman_constant=constants.von_karman)
+            self.crop.state_variables.richardson_number = canopy.calc_richardson_number(
+                is_stable=self.crop.state_variables.sensible_heat_flux < 0,
+                measurement_height=self.crop.inputs.measurement_height,
+                zero_displacement_height=self.crop.state_variables.zero_displacement_height,
+                monin_obukhov_length=self.crop.state_variables.monin_obukhov_length)
+
+            (self.crop.state_variables.stability_correction_for_momentum,
+             self.crop.state_variables.stability_correction_for_heat) = canopy.calc_stability_correction_functions(
+                monin_obukhov_length=self.crop.state_variables.monin_obukhov_length,
+                richardson_number=self.crop.state_variables.richardson_number,
+                measurement_height=self.crop.inputs.measurement_height,
+                zero_displacement_height=self.crop.state_variables.zero_displacement_height,
+                richardon_threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection)
+
+            is_acceptable_error = all([
+                is_almost_equal(actual=self.crop.state_variables.stability_correction_for_momentum,
+                                desired=phi_m, decimal=2),
+                is_almost_equal(actual=self.crop.state_variables.stability_correction_for_heat,
+                                desired=phi_h, decimal=2)])
 
     def calc_error(self) -> float:
         return sum(
