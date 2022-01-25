@@ -56,27 +56,21 @@ def test_calc_wind_speed_at_canopy_height():
 def test_calc_net_longwave_radiation():
     vp = 3  # air_vapor_pressure
     t_air = weather.convert_celsius_to_kelvin(25)  # air_temperature
-    t_can = weather.convert_celsius_to_kelvin(25)  # canopy_temperature
     atm = 0.73  # atmospheric_emissivity
     boltzmann = constants.stefan_boltzmann
 
     utils.assert_trend(
-        values=[canopy.calc_net_longwave_radiation(t_air, vp, weather.convert_celsius_to_kelvin(t), atm, boltzmann)
+        values=[canopy.calc_net_longwave_radiation(weather.convert_celsius_to_kelvin(t), vp, atm, boltzmann)
                 for t in range(-50, 50)],
         expected_trend='-')
 
     utils.assert_trend(
-        values=[canopy.calc_net_longwave_radiation(weather.convert_celsius_to_kelvin(t), vp, t_can, atm, boltzmann)
-                for t in range(-50, 50)],
-        expected_trend='+')
-
-    utils.assert_trend(
-        values=[canopy.calc_net_longwave_radiation(t_air, vp, t_can, atm_emissivity / 100., boltzmann)
+        values=[canopy.calc_net_longwave_radiation(t_air, vp, atm_emissivity / 100., boltzmann)
                 for atm_emissivity in range(0, 110, 10)],
         expected_trend='+')
 
     utils.assert_trend(
-        values=[canopy.calc_net_longwave_radiation(t_air, air_vp / 10., t_can, atm, boltzmann)
+        values=[canopy.calc_net_longwave_radiation(t_air, air_vp / 10., atm, boltzmann)
                 for air_vp in range(0, 110, 10)],
         expected_trend='+')
 

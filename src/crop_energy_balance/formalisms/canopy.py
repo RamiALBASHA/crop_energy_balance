@@ -103,7 +103,6 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
 
 def calc_net_longwave_radiation(air_temperature: float,
                                 air_vapor_pressure: float,
-                                canopy_temperature: float,
                                 atmospheric_emissivity: float,
                                 stefan_boltzmann_constant: float) -> float:
     """Calculates net long wave radiation at the top of the canopy.
@@ -111,7 +110,6 @@ def calc_net_longwave_radiation(air_temperature: float,
     Args:
         air_temperature: [K] air temperature
         air_vapor_pressure: [kPa] actual vapor pressure
-        canopy_temperature: [K] canopy (source) temperature
         atmospheric_emissivity: [-] atmospheric emissivity to longwave radiation
         stefan_boltzmann_constant: [W m-2 K-4] Stefan-Boltzmann constant
 
@@ -126,10 +124,10 @@ def calc_net_longwave_radiation(air_temperature: float,
             Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
             Plant, Cell and Environment 18, 1183 - 1200.
     """
-    gross_radiation_loss = (atmospheric_emissivity * stefan_boltzmann_constant * air_temperature ** 4 -
-                            stefan_boltzmann_constant * canopy_temperature ** 4)
-    reduction_factor = 0.34 - 0.14 * air_vapor_pressure ** 0.5
-    return gross_radiation_loss * reduction_factor
+    gross_radiation_loss = - stefan_boltzmann_constant * air_temperature ** 4
+    correction_humidity = 0.34 - 0.14 * air_vapor_pressure ** 0.5
+    correction_sky_cover = (1. - atmospheric_emissivity)
+    return gross_radiation_loss * correction_humidity * correction_sky_cover
 
 
 def calc_sensible_heat_flux(source_temperature: float,

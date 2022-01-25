@@ -68,7 +68,6 @@ class CropStateVariables:
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
             air_vapor_pressure=inputs.air_vapor_pressure,
-            canopy_temperature=self.source_temperature,
             atmospheric_emissivity=inputs.atmospheric_emissivity,
             stefan_boltzmann_constant=constants.stefan_boltzmann)
 
