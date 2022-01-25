@@ -228,7 +228,10 @@ class Simulation:
         self.atmospheric_emissivity = None
         """[-] sky longwave radiation emissivity"""
 
-        self.atmospheric_emissivity_model = 'brutsaert_1975'
+        if 'atmospheric_emissivity_model' in data.keys():
+            self.atmospheric_emissivity_model = data['atmospheric_emissivity_model']
+        else:
+            self.atmospheric_emissivity_model = 'brutsaert_1975'
         """Name of the model to be used for calculating sky longwave radiation emissivity"""
 
     def update(self,
