@@ -228,6 +228,9 @@ class Simulation:
         self.atmospheric_emissivity = None
         """[-] sky longwave radiation emissivity"""
 
+        self.atmospheric_emissivity_model = 'brutsaert_1975'
+        """Name of the model to be used for calculating sky longwave radiation emissivity"""
+
     def update(self,
                inputs):
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
@@ -250,9 +253,10 @@ class Simulation:
             direct_black_extinction_coefficient=self.direct_black_extinction_coefficient,
             leaf_scattering_coefficient=self.leaf_scattering_coefficient)
 
-        self.atmospheric_emissivity = calc_atmospheric_emissivity('brutsaert_1975',
-                                                                  inputs.air_vapor_pressure,
-                                                                  inputs.air_temperature)
+        self.atmospheric_emissivity = calc_atmospheric_emissivity(
+            model=self.atmospheric_emissivity_model,
+            air_vapor_pressure=inputs.air_vapor_pressure,
+            air_temperature=inputs.air_temperature)
         """[-] sky longwave radiation emissivity"""
 
 
