@@ -124,9 +124,26 @@ class Solver:
             roughness_length_for_momentum=self.crop.state_variables.roughness_length_for_momentum,
             stability_correction_for_momentum=0,
             von_karman_constant=constants.von_karman)
+
+        self.crop.state_variables.friction_velocity = neutral_friction_velocity
+
+        self.crop.state_variables.monin_obukhov_length = canopy.calc_monin_obukhov_length(
+            surface_temperature=self.crop.state_variables.source_temperature,
+            sensible_heat_flux=self.crop.state_variables.sensible_heat_flux,
+            friction_velocity=self.crop.state_variables.friction_velocity,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity,
+            gravitational_acceleration=constants.gravitational_acceleration,
+            von_karman_constant=constants.von_karman)
+        self.crop.state_variables.richardson_number = canopy.calc_richardson_number(
+            is_stable=self.crop.state_variables.sensible_heat_flux < 0,
+            measurement_height=self.crop.inputs.measurement_height,
+            zero_displacement_height=self.crop.state_variables.zero_displacement_height,
+            monin_obukhov_length=self.crop.state_variables.monin_obukhov_length)
+
         neutral_aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
-            richardson_number=0,
-            friction_velocity=neutral_friction_velocity,
+            richardson_number=self.crop.state_variables.richardson_number,
+            friction_velocity=self.crop.state_variables.friction_velocity,
             measurement_height=self.crop.inputs.measurement_height,
             zero_displacement_height=self.crop.state_variables.zero_displacement_height,
             roughness_length_for_heat=self.crop.state_variables.roughness_length_for_heat_transfer,
@@ -137,6 +154,7 @@ class Solver:
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity)
+
         if self.crop.state_variables.sensible_heat_flux > 0:
             self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_aerodynamic_resistance
         else:
