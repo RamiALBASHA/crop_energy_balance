@@ -35,6 +35,7 @@ class Solver:
         self.init_state_variables()
 
         self.energy_balance = None
+        self.is_forced_aerodynamic_resistance = False
 
     def run(self, is_stability_considered=False):
         """Solves the steady-state energy balance.
@@ -62,6 +63,7 @@ class Solver:
             if self.stability_iterations_number > 100:
                 self.force_aerodynamic_resistance()
                 self.solve_transient_energy_balance()
+                self.is_forced_aerodynamic_resistance = True
 
     def solve_transient_energy_balance(self):
         """Solves energy balance having fixed stability-related variables.
