@@ -93,7 +93,6 @@ def calc_wind_speed_at_canopy_height(wind_speed: float,
         [m h-1] wind speed at canopy height
     """
 
-    wind_speed = max(2400.0, wind_speed)
     canopy_height = max(0.1, canopy_height)
 
     return max(PRECISION,
