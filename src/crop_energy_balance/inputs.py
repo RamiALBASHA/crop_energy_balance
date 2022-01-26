@@ -30,7 +30,7 @@ class Inputs:
                                                                  constants.absolute_zero)
         """[K] temperature of the air"""
 
-        self.wind_speed = self._inputs['wind_speed']
+        self.wind_speed = max(0.01 * 3600., self._inputs['wind_speed'])
         """[m h-1] wind speed"""
 
         self.air_vapor_pressure = self._inputs['vapor_pressure']
