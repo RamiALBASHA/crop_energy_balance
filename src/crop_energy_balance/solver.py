@@ -119,12 +119,15 @@ class Solver:
                 Simulating canopy temperature for modelling heat stress in cereals.
                 Environmental Modelling and Software 77, 143 - 155
         """
+        self.crop.state_variables.stability_correction_for_momentum = 0
+        self.crop.state_variables.stability_correction_for_heat = 0
+
         neutral_friction_velocity = canopy.calc_friction_velocity(
             wind_speed=self.crop.inputs.wind_speed,
             measurement_height=self.crop.inputs.measurement_height,
             zero_displacement_height=self.crop.state_variables.zero_displacement_height,
             roughness_length_for_momentum=self.crop.state_variables.roughness_length_for_momentum,
-            stability_correction_for_momentum=0,
+            stability_correction_for_momentum=self.crop.state_variables.stability_correction_for_momentum,
             von_karman_constant=constants.von_karman)
 
         self.crop.state_variables.friction_velocity = neutral_friction_velocity
@@ -149,7 +152,7 @@ class Solver:
             measurement_height=self.crop.inputs.measurement_height,
             zero_displacement_height=self.crop.state_variables.zero_displacement_height,
             roughness_length_for_heat=self.crop.state_variables.roughness_length_for_heat_transfer,
-            stability_correction_for_heat=0,
+            stability_correction_for_heat=self.crop.state_variables.stability_correction_for_heat,
             canopy_temperature=self.crop.state_variables.source_temperature,
             air_temperature=self.crop.inputs.air_temperature,
             richardon_threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection,
