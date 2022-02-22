@@ -63,7 +63,8 @@ def calc_leaf_layer_boundary_resistance_to_heat(leaves_category: str,
                                                 direct_black_extinction_coefficient: float,
                                                 wind_speed_extinction_coefficient: float,
                                                 characteristic_length: float,
-                                                shape_parameter: float) -> float:
+                                                shape_parameter: float,
+                                                stomatal_density_factor: int) -> float:
     """Calculates the bulk leaf layer resistance to heat transfer.
 
     Args:
@@ -76,12 +77,14 @@ def calc_leaf_layer_boundary_resistance_to_heat(leaves_category: str,
         wind_speed_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of wind speed inside the canopy
         characteristic_length: [m] characteristic leaf length in the direction of the wind
         shape_parameter: [m s-0.5] an empirical shape parameter
+        stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
         [h m-1] bulk leaf layer resistance to heat transfer
     """
 
-    return 1.0 / calc_leaf_layer_boundary_conductance_to_vapor(**locals())
+    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
+    return 1.0 / calc_leaf_layer_boundary_conductance_to_vapor(**args) / stomatal_density_factor
 
 
 def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
@@ -204,7 +207,7 @@ def calc_leaf_layer_surface_resistance_to_vapor(leaves_category: str,
             to absorbed photosynthetically active radiation
         sublayers_number: number of sublayers that are used to perform the numerical integral of the leaf-layer surface
             conductance equation
-        stomatal_density_factor (int): [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
+        stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
         (float): [h m-1] bulk surface resistance of the leaf layer

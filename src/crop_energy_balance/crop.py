@@ -134,7 +134,6 @@ class CropStateVariables:
     def calc_aerodynamic_resistance(self,
                                     inputs: Inputs,
                                     threshold_free_convection: float):
-
         self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=self.richardson_number,
             friction_velocity=self.friction_velocity,
@@ -338,7 +337,8 @@ class LumpedLeafComponent(LeafComponent):
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
         self.net_longwave_radiation = lumped_leaves.calc_leaf_layer_net_longwave_radiation(
             canopy_top_net_longwave_radiation=crop_state_variables.net_longwave_radiation,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -403,7 +403,8 @@ class SunlitShadedLeafComponent(LeafComponent):
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
             wind_speed_extinction_coefficient=params.simulation.wind_speed_extinction_coef,
             characteristic_length=params.simulation.leaf_characteristic_length,
-            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter)
+            shape_parameter=params.simulation.leaf_boundary_layer_shape_parameter,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
         self.net_longwave_radiation = sunlit_shaded_leaves.calc_leaf_layer_net_longwave_radiation(
             leaves_category=self.leaves_category,
             canopy_top_net_longwave_radiation=crop_state_variables.net_longwave_radiation,
