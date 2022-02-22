@@ -146,24 +146,18 @@ class Solver:
             zero_displacement_height=self.crop.state_variables.zero_displacement_height,
             monin_obukhov_length=self.crop.state_variables.monin_obukhov_length)
 
-        neutral_aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
-            richardson_number=self.crop.state_variables.richardson_number,
+        neutral_turbulent_aerodynamic_resistance = canopy.calc_turbulent_aerodynamic_resistance(
             friction_velocity=self.crop.state_variables.friction_velocity,
             measurement_height=self.crop.inputs.measurement_height,
             zero_displacement_height=self.crop.state_variables.zero_displacement_height,
             roughness_length_for_heat=self.crop.state_variables.roughness_length_for_heat_transfer,
             stability_correction_for_heat=self.crop.state_variables.stability_correction_for_heat,
-            canopy_temperature=self.crop.state_variables.source_temperature,
-            air_temperature=self.crop.inputs.air_temperature,
-            richardon_threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection,
-            von_karman_constant=constants.von_karman,
-            air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity)
+            von_karman_constant=constants.von_karman)
 
         if self.crop.state_variables.sensible_heat_flux > 0:
-            self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_aerodynamic_resistance
+            self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_turbulent_aerodynamic_resistance
         else:
-            self.crop.state_variables.aerodynamic_resistance = 0.8 * neutral_aerodynamic_resistance
+            self.crop.state_variables.aerodynamic_resistance = 0.8 * neutral_turbulent_aerodynamic_resistance
 
     def update_correction_factors(self):
         phi_m = self.crop.state_variables.stability_correction_for_momentum
