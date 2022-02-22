@@ -208,17 +208,79 @@ def calc_aerodynamic_resistance(richardson_number: float,
         # Table 5, eq. 11). They replaced the "n" parameter value from 1.52 used for "large plates" to 5 for wheat.
         # Note that the value of h (Heat Transfer Coefficient) given in ASHAE is in W m-2 K-1.
         # ----------------------
-        n = 5.
-        temperature_difference = max(convert_celsius_to_kelvin(0.1), abs(canopy_temperature - air_temperature))
-        ra = air_density * air_specific_heat_capacity / (n * temperature_difference ** (1 / 3.))
+        ra = calc_free_convection(
+            canopy_temperature=canopy_temperature,
+            air_temperature=air_temperature,
+            air_density=air_density,
+            air_specific_heat_capacity=air_specific_heat_capacity)
     else:
         # ----------------------
         # unstable and stable conditions (the general case)
         # ----------------------
-        ra = 1.0 / (von_karman_constant * friction_velocity) * (
-            (log((measurement_height - zero_displacement_height) / roughness_length_for_heat) -
-             stability_correction_for_heat))
+        ra = calc_turbulent_aerodynamic_resistance(
+            friction_velocity=friction_velocity,
+            measurement_height=measurement_height,
+            zero_displacement_height=zero_displacement_height,
+            roughness_length_for_heat=roughness_length_for_heat,
+            stability_correction_for_heat=stability_correction_for_heat,
+            von_karman_constant=von_karman_constant)
     return ra
+
+
+def calc_free_convection(canopy_temperature: float,
+                         air_temperature: float,
+                         air_density: float,
+                         air_specific_heat_capacity: float) -> float:
+    """Calculates the resistance to the transfer of momentum, water vapor and heat between the source height and the
+    reference height when free convection prevails.
+
+
+    Args:
+        air_temperature: [K] air temperature at reference height
+        canopy_temperature: [K] canopy (source) temperature
+        air_density: [g m-3] density of dry air
+        air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
+
+    Returns:
+        [h m-1] air resistance to water vapor transfer when free convection prevails.
+
+    References:
+        American Society of Heating, Refrigerating, and Air-Conditioning Engineers (2001).
+            ASHRAE Fundamentals Handbook (SI). ASHRAE, New York.
+        Kimball et al. (2015)
+            Predicting Canopy Temperatures and Infrared Heater Energy Requirements for Warming Field Plots.
+            Agronomy Journal 107, 129 - 141.
+
+    """
+    n = 5.
+    temperature_difference = max(convert_celsius_to_kelvin(0.1), abs(canopy_temperature - air_temperature))
+    return air_density * air_specific_heat_capacity / (n * temperature_difference ** (1 / 3.))
+
+
+def calc_turbulent_aerodynamic_resistance(friction_velocity: float,
+                                          measurement_height: float,
+                                          zero_displacement_height: float,
+                                          roughness_length_for_heat: float,
+                                          stability_correction_for_heat: float,
+                                          von_karman_constant: float):
+    """Calculates the resistance to the transfer of momentum, water vapor and heat between the source height and the
+    reference height when turbulent conditions prevail.
+
+    Args:
+        friction_velocity: [m h-1] friction velocity
+        measurement_height: [m] height at which meteorological measurements are made
+        zero_displacement_height: [m] zero displacement height
+        roughness_length_for_heat: [m] roughness length for heat and water vapor transfer
+        stability_correction_for_heat: [-] stability correction factor for heat transfer
+        von_karman_constant: [-] von Karman constant
+
+    Returns:
+        [h m-1] air resistance to water vapor transfer under turbulent conditions.
+
+    """
+    return 1.0 / (von_karman_constant * friction_velocity) * (
+        (log((measurement_height - zero_displacement_height) / roughness_length_for_heat) -
+         stability_correction_for_heat))
 
 
 def calc_penman_evaporative_energy(canopy_aerodynamic_resistance: float,
