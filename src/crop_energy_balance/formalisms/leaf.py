@@ -4,7 +4,8 @@ from math import exp
 def calc_forced_convection_condutance(wind_speed_at_canopy_height: float,
                                       characteristic_length: float = 0.01,
                                       shape_parameter: float = 0.01) -> float:
-    """Calculates bulk boundary layer conductance (for both sides of leaves) at the scale of an individual leaf.
+    """Calculates boundary layer conductance under forced convection (for both sides of leaves) at the scale of an
+    individual leaf.
 
     Args:
         wind_speed_at_canopy_height: [m s-1] local wind speed in the vicinity of the leaf
@@ -12,7 +13,8 @@ def calc_forced_convection_condutance(wind_speed_at_canopy_height: float,
         shape_parameter: [m s-0.5] an empirical shape parameter
 
     Returns:
-        [m h-1] bulk boundary layer conductance (for both sides of leaves) at the scale of an individual leaf
+        [m h-1] bulk boundary layer conductance uner forced convection (for both sides of leaves) at the scale of an
+        individual leaf
 
     """
     return 3600 * shape_parameter * (wind_speed_at_canopy_height / characteristic_length) ** 0.5

@@ -14,7 +14,7 @@ def calc_leaf_layer_forced_convection_conductance(wind_speed_at_canopy_height: f
                                                   wind_speed_extinction_coefficient: float = 0.5,
                                                   characteristic_length: float = 0.01,
                                                   shape_parameter: float = 0.01) -> float:
-    """Calculates bulk layer boundary layer conductance to water vapor for both sides of leaves blade.
+    """Calculates boundary conductance under forced convection.
 
     Args:
         wind_speed_at_canopy_height: [m s-1] local wind speed in the vicinity of the leaf
@@ -25,7 +25,7 @@ def calc_leaf_layer_forced_convection_conductance(wind_speed_at_canopy_height: f
         shape_parameter: [m s-0.5] an empirical shape parameter
 
     Returns:
-        [m h-1] Calculates bulk layer boundary layer conductance to water vapor for both sides of leaves blade
+        [m h-1] boundary conductance under forced convection
     """
     leaf_boundary_conductance = leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height,
                                                                        characteristic_length,
@@ -44,7 +44,7 @@ def calc_leaf_layer_forced_convection_resistance(wind_speed_at_canopy_height: fl
                                                  characteristic_length: float,
                                                  shape_parameter: float,
                                                  stomatal_density_factor: float) -> float:
-    """Calculates the bulk leaf layer resistance to heat transfer.
+    """Calculates boundary resistance under forced convection.
 
     Args:
         wind_speed_at_canopy_height: [m s-1] local wind speed in the vicinity of the leaf
@@ -56,7 +56,7 @@ def calc_leaf_layer_forced_convection_resistance(wind_speed_at_canopy_height: fl
         stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
-        [h m-1] bulk leaf layer resistance to water vapor transfer
+        [h m-1] boundary resistance under forced convection
     """
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
     return 1.0 / calc_leaf_layer_forced_convection_conductance(**args) / stomatal_density_factor

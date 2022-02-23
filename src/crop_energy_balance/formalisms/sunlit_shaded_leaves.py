@@ -17,7 +17,7 @@ def calc_leaf_layer_forced_convection_conductance(leaves_category: str,
                                                   wind_speed_extinction_coefficient: float = 0.5,
                                                   characteristic_length: float = 0.01,
                                                   shape_parameter: float = 0.01) -> float:
-    """Calculates bulk layer boundary layer conductance for both sides of leaves blade.
+    """Calculates boundary conductance under forced convection.
 
     Args:
         leaves_category: one of ('sunlit', 'shaded')
@@ -31,7 +31,7 @@ def calc_leaf_layer_forced_convection_conductance(leaves_category: str,
         shape_parameter: [m s-0.5] an empirical shape parameter
 
     Returns:
-        [m h-1] bulk layer boundary layer conductance to water vapor for both sides of leaves blade
+        [m h-1] boundary conductance under forced convection
     """
     leaf_boundary_conductance = leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height,
                                                                        characteristic_length,
@@ -65,7 +65,7 @@ def calc_leaf_layer_forced_convection_resistance(leaves_category: str,
                                                  characteristic_length: float,
                                                  shape_parameter: float,
                                                  stomatal_density_factor: int) -> float:
-    """Calculates the bulk leaf layer resistance to heat transfer.
+    """Calculates boundary resistance under forced convection.
 
     Args:
         leaves_category: one of ('sunlit', 'shaded')
@@ -80,7 +80,7 @@ def calc_leaf_layer_forced_convection_resistance(leaves_category: str,
         stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
 
     Returns:
-        [h m-1] bulk leaf layer resistance to heat transfer
+        [h m-1] boundary resistance under forced convection
     """
 
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}

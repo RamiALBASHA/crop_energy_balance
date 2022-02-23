@@ -41,7 +41,7 @@ def calc_forced_convection_resistance(wind_speed: float,
                                       soil_roughness_length_for_momentum: float = 0.01,
                                       shape_parameter: float = 2.5,
                                       von_karman_constant: float = 0.41) -> float:
-    """Calculates the bulk aerodynamic resistance between the soil surface and the source height.
+    """Calculates the forced conevction aerodynamic resistance between the soil surface and the source height.
 
     Args:
         wind_speed: [m h-1] wind speed at a given hour
