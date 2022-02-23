@@ -3,18 +3,18 @@ from crop_energy_balance.utils import is_almost_equal, assert_trend
 
 
 def test_calc_leaf_boundary_conductance():
-    assert 0 == leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height=0,
-                                                    characteristic_length=1,
-                                                    shape_parameter=0.01)
+    assert 0 == leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height=0,
+                                                       characteristic_length=1,
+                                                       shape_parameter=0.01)
 
-    assert is_almost_equal(actual=leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height=1,
-                                                                      characteristic_length=1.e9,
-                                                                      shape_parameter=0.01),
+    assert is_almost_equal(actual=leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height=1,
+                                                                         characteristic_length=1.e9,
+                                                                         shape_parameter=0.01),
                            desired=0, decimal=3)
 
-    assert 36 == leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height=1,
-                                                     characteristic_length=1,
-                                                     shape_parameter=0.01)
+    assert 36 == leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height=1,
+                                                        characteristic_length=1,
+                                                        shape_parameter=0.01)
 
 
 def test_calc_stomatal_sensibility_leuning():

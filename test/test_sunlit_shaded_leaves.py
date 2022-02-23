@@ -15,15 +15,15 @@ def test_calc_leaf_layer_boundary_conductance_to_vapor():
         return args
 
     for category in ('sunlit', 'shaded'):
-        assert 0 == sunlit_shaded_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
+        assert 0 == sunlit_shaded_leaves.calc_leaf_layer_forced_convection_conductance(
             **set_args(leaves_category=category, wind_speed_at_canopy_height=0))
 
-        assert is_almost_equal(desired=0, actual=sunlit_shaded_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
+        assert is_almost_equal(desired=0, actual=sunlit_shaded_leaves.calc_leaf_layer_forced_convection_conductance(
             **set_args(leaves_category=category,
                        upper_cumulative_leaf_area_index=1, lower_cumulative_leaf_area_index=1)))
 
         assert_trend(expected_trend='-',
-                     values=[sunlit_shaded_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
+                     values=[sunlit_shaded_leaves.calc_leaf_layer_forced_convection_conductance(
                          **set_args(leaves_category=category, wind_speed_extinction_coefficient=k_u))
                          for k_u in (0.1, 10, 100)])
 
@@ -36,19 +36,20 @@ def test_calc_leaf_layer_boundary_resistance_to_heat():
                     direct_black_extinction_coefficient=0.5,
                     wind_speed_extinction_coefficient=0.5,
                     characteristic_length=0.01,
-                    shape_parameter=0.01)
+                    shape_parameter=0.01,
+                    stomatal_density_factor=1)
         args.update(**kwargs)
         return args
 
     for category in ('sunlit', 'shaded'):
         try:
-            sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_heat(
+            sunlit_shaded_leaves.calc_leaf_layer_forced_convection_resistance(
                 **set_args(leaves_category=category, wind_speed_at_canopy_height=0))
         except ZeroDivisionError:
             pass
 
         assert_trend(expected_trend='+',
-                     values=[sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_heat(
+                     values=[sunlit_shaded_leaves.calc_leaf_layer_forced_convection_resistance(
                          **set_args(leaves_category=category, wind_speed_extinction_coefficient=k_u))
                          for k_u in (0.1, 10, 100)])
 

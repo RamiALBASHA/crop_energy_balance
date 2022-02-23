@@ -1,9 +1,9 @@
 from math import exp
 
 
-def calc_leaf_boundary_conductance(wind_speed_at_canopy_height: float,
-                                   characteristic_length: float = 0.01,
-                                   shape_parameter: float = 0.01) -> float:
+def calc_forced_convection_condutance(wind_speed_at_canopy_height: float,
+                                      characteristic_length: float = 0.01,
+                                      shape_parameter: float = 0.01) -> float:
     """Calculates bulk boundary layer conductance (for both sides of leaves) at the scale of an individual leaf.
 
     Args:

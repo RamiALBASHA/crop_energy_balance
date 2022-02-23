@@ -331,7 +331,7 @@ class LumpedLeafComponent(LeafComponent):
             shape_parameter=params.simulation.absorbed_par_50,
             sublayers_number=params.simulation.sublayers_number,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.boundary_resistance = lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(
+        self.boundary_resistance = lumped_leaves.calc_leaf_layer_forced_convection_resistance(
             wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
@@ -395,7 +395,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             shape_parameter=params.simulation.absorbed_par_50,
             sublayers_number=params.simulation.sublayers_number,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_boundary_resistance_to_heat(
+        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_forced_convection_resistance(
             leaves_category=self.leaves_category,
             wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,

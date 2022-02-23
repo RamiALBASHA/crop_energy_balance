@@ -4,7 +4,7 @@ from crop_energy_balance.utils import is_almost_equal, assert_trend
 
 
 def test_calc_leaf_layer_boundary_conductance_to_vapor():
-    assert 0 == lumped_leaves.calc_leaf_layer_boundary_conductance_to_vapor(wind_speed_at_canopy_height=0,
+    assert 0 == lumped_leaves.calc_leaf_layer_forced_convection_conductance(wind_speed_at_canopy_height=0,
                                                                             upper_cumulative_leaf_area_index=0,
                                                                             lower_cumulative_leaf_area_index=1,
                                                                             wind_speed_extinction_coefficient=0.5,
@@ -12,7 +12,7 @@ def test_calc_leaf_layer_boundary_conductance_to_vapor():
                                                                             shape_parameter=0.01)
 
     assert is_almost_equal(
-        actual=lumped_leaves.calc_leaf_layer_boundary_conductance_to_vapor(wind_speed_at_canopy_height=1,
+        actual=lumped_leaves.calc_leaf_layer_forced_convection_conductance(wind_speed_at_canopy_height=1,
                                                                            upper_cumulative_leaf_area_index=0,
                                                                            lower_cumulative_leaf_area_index=1.e9,
                                                                            wind_speed_extinction_coefficient=2,
@@ -23,22 +23,24 @@ def test_calc_leaf_layer_boundary_conductance_to_vapor():
 
 def test_calc_leaf_layer_boundary_resistance_to_heat():
     try:
-        lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(wind_speed_at_canopy_height=0,
-                                                                  upper_cumulative_leaf_area_index=0,
-                                                                  lower_cumulative_leaf_area_index=1,
-                                                                  wind_speed_extinction_coefficient=0.5,
-                                                                  characteristic_length=0.01,
-                                                                  shape_parameter=0.01)
+        lumped_leaves.calc_leaf_layer_forced_convection_resistance(wind_speed_at_canopy_height=0,
+                                                                   upper_cumulative_leaf_area_index=0,
+                                                                   lower_cumulative_leaf_area_index=1,
+                                                                   wind_speed_extinction_coefficient=0.5,
+                                                                   characteristic_length=0.01,
+                                                                   shape_parameter=0.01,
+                                                                   stomatal_density_factor=1)
     except ZeroDivisionError:
         pass
 
     assert is_almost_equal(
-        actual=lumped_leaves.calc_leaf_layer_boundary_resistance_to_heat(wind_speed_at_canopy_height=1,
-                                                                         upper_cumulative_leaf_area_index=0,
-                                                                         lower_cumulative_leaf_area_index=1.e9,
-                                                                         wind_speed_extinction_coefficient=2,
-                                                                         characteristic_length=1,
-                                                                         shape_parameter=1 / 3600.),
+        actual=lumped_leaves.calc_leaf_layer_forced_convection_resistance(wind_speed_at_canopy_height=1,
+                                                                          upper_cumulative_leaf_area_index=0,
+                                                                          lower_cumulative_leaf_area_index=1.e9,
+                                                                          wind_speed_extinction_coefficient=2,
+                                                                          characteristic_length=1,
+                                                                          shape_parameter=1 / 3600.,
+                                                                          stomatal_density_factor=1),
         desired=1, decimal=3)
 
 

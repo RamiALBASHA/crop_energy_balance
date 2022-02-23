@@ -9,7 +9,7 @@ from crop_energy_balance.formalisms.irradiance import calc_leaf_fraction, calc_a
 from crop_energy_balance.utils import discretize_linearly
 
 
-def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
+def calc_leaf_layer_forced_convection_conductance(leaves_category: str,
                                                   wind_speed_at_canopy_height: float,
                                                   upper_cumulative_leaf_area_index: float,
                                                   lower_cumulative_leaf_area_index: float,
@@ -33,9 +33,9 @@ def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
     Returns:
         [m h-1] bulk layer boundary layer conductance to water vapor for both sides of leaves blade
     """
-    leaf_boundary_conductance = leaf.calc_leaf_boundary_conductance(wind_speed_at_canopy_height,
-                                                                    characteristic_length,
-                                                                    shape_parameter)
+    leaf_boundary_conductance = leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height,
+                                                                       characteristic_length,
+                                                                       shape_parameter)
     lumped_extinction_coefficient = 0.5 * wind_speed_extinction_coefficient + direct_black_extinction_coefficient
     sunlit_layer_scaling_factor = 1.0 / lumped_extinction_coefficient * (
             exp(-lumped_extinction_coefficient * upper_cumulative_leaf_area_index) -
@@ -46,7 +46,7 @@ def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
     if leaves_category == 'sunlit':
         return sunlit_layer_boundary_conductance
     elif leaves_category == 'shaded':
-        lumped_layer_boundary_conductance = lumped_leaves.calc_leaf_layer_boundary_conductance_to_vapor(
+        lumped_layer_boundary_conductance = lumped_leaves.calc_leaf_layer_forced_convection_conductance(
             wind_speed_at_canopy_height,
             upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index,
@@ -56,15 +56,15 @@ def calc_leaf_layer_boundary_conductance_to_vapor(leaves_category: str,
         return lumped_layer_boundary_conductance - sunlit_layer_boundary_conductance
 
 
-def calc_leaf_layer_boundary_resistance_to_heat(leaves_category: str,
-                                                wind_speed_at_canopy_height: float,
-                                                upper_cumulative_leaf_area_index: float,
-                                                lower_cumulative_leaf_area_index: float,
-                                                direct_black_extinction_coefficient: float,
-                                                wind_speed_extinction_coefficient: float,
-                                                characteristic_length: float,
-                                                shape_parameter: float,
-                                                stomatal_density_factor: int) -> float:
+def calc_leaf_layer_forced_convection_resistance(leaves_category: str,
+                                                 wind_speed_at_canopy_height: float,
+                                                 upper_cumulative_leaf_area_index: float,
+                                                 lower_cumulative_leaf_area_index: float,
+                                                 direct_black_extinction_coefficient: float,
+                                                 wind_speed_extinction_coefficient: float,
+                                                 characteristic_length: float,
+                                                 shape_parameter: float,
+                                                 stomatal_density_factor: int) -> float:
     """Calculates the bulk leaf layer resistance to heat transfer.
 
     Args:
@@ -84,7 +84,7 @@ def calc_leaf_layer_boundary_resistance_to_heat(leaves_category: str,
     """
 
     args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
-    return 1.0 / calc_leaf_layer_boundary_conductance_to_vapor(**args) / stomatal_density_factor
+    return 1.0 / calc_leaf_layer_forced_convection_conductance(**args) / stomatal_density_factor
 
 
 def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
