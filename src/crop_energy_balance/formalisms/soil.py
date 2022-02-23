@@ -33,14 +33,14 @@ def calc_eddy_diffusivity(wind_speed: float,
         log((measurement_height - zero_displacement_height) / canopy_roughness_length_for_momentum))
 
 
-def calc_boundary_resistance(wind_speed: float,
-                             canopy_height: float,
-                             measurement_height: float,
-                             zero_displacement_height: float,
-                             canopy_roughness_length_for_momentum: float,
-                             soil_roughness_length_for_momentum: float = 0.01,
-                             shape_parameter: float = 2.5,
-                             von_karman_constant: float = 0.41) -> float:
+def calc_forced_convection_resistance(wind_speed: float,
+                                      canopy_height: float,
+                                      measurement_height: float,
+                                      zero_displacement_height: float,
+                                      canopy_roughness_length_for_momentum: float,
+                                      soil_roughness_length_for_momentum: float = 0.01,
+                                      shape_parameter: float = 2.5,
+                                      von_karman_constant: float = 0.41) -> float:
     """Calculates the bulk aerodynamic resistance between the soil surface and the source height.
 
     Args:

@@ -247,7 +247,7 @@ class SoilComponent(Component):
             soil_saturation_ratio=inputs.soil_saturation_ratio,
             shape_parameter_1=params.simulation.soil_resistance_to_vapor_shape_parameter_1,
             shape_parameter_2=params.simulation.soil_resistance_to_vapor_shape_parameter_2)
-        self.boundary_resistance = soil.calc_boundary_resistance(
+        self.boundary_resistance = soil.calc_forced_convection_resistance(
             wind_speed=inputs.wind_speed,
             canopy_height=inputs.canopy_height,
             measurement_height=inputs.measurement_height,

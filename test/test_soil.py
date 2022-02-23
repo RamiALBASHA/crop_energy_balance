@@ -61,11 +61,11 @@ def test_calc_boundary_resistance():
 
     args_test_1 = set_args(soil_roughness_length_for_momentum=1, canopy_roughness_length_for_momentum=1,
                            zero_displacement_height=0, shape_parameter=1)
-    assert 0 == soil.calc_boundary_resistance(**args_test_1)
+    assert 0 == soil.calc_forced_convection_resistance(**args_test_1)
 
     args_test_2 = set_args(wind_speed=0)
     try:
-        soil.calc_boundary_resistance(**args_test_2)
+        soil.calc_forced_convection_resistance(**args_test_2)
     except ZeroDivisionError:
         pass
 
