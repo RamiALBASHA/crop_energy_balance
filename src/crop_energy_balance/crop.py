@@ -181,6 +181,7 @@ class Component:
                              params: Params,
                              crop_state_variables: CropStateVariables):
         self._temperature = inputs.air_temperature
+        self.temperature = inputs.air_temperature
         self.composed_resistance = component.calc_composed_resistance(
             surface_resistance=self.surface_resistance,
             boundary_layer_resistance=self.boundary_resistance,
