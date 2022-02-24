@@ -28,7 +28,7 @@ class Solver:
         self.components = self.crop.extract_all_components()
 
         self.stability_iterations_number = 1
-        self.iterations_number = 0
+        self.iterations_number = None
         self.error_temperature = None
         self.error_sensible_heat_flux = None
 
@@ -68,6 +68,7 @@ class Solver:
     def solve_transient_energy_balance(self):
         """Solves energy balance having fixed stability-related variables.
         """
+        self.iterations_number = 0
         is_acceptable_error = False
         while not is_acceptable_error:
             self.iterations_number += 1
