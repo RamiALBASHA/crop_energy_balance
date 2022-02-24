@@ -167,6 +167,8 @@ class Component:
         self.vapor_pressure_deficit = None
         self.water_potential = None
         self.surface_resistance = None
+        self.boundary_forced_convection_resistance = None
+        self.boundary_free_convection_resistance = None
         self.boundary_resistance = None
         self.composed_resistance = None
         self.composed_conductance = None
@@ -182,6 +184,10 @@ class Component:
                              crop_state_variables: CropStateVariables):
         self._temperature = inputs.air_temperature
         self.temperature = inputs.air_temperature
+
+    def calc_composed_resistance(self,
+                                 params: Params,
+                                 crop_state_variables: CropStateVariables):
         self.composed_resistance = component.calc_composed_resistance(
             surface_resistance=self.surface_resistance,
             boundary_layer_resistance=self.boundary_resistance,
@@ -242,6 +248,11 @@ class SoilComponent(Component):
                              inputs: Inputs,
                              params: Params,
                              crop_state_variables: CropStateVariables):
+        Component.init_state_variables(self,
+                                       inputs=inputs,
+                                       params=params,
+                                       crop_state_variables=crop_state_variables)
+
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
         self.surface_resistance = soil.calc_surface_resistance(
             soil_saturation_ratio=inputs.soil_saturation_ratio,
@@ -268,11 +279,9 @@ class SoilComponent(Component):
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=self.heat_flux)
-
-        Component.init_state_variables(self,
-                                       inputs=inputs,
-                                       params=params,
-                                       crop_state_variables=crop_state_variables)
+        Component.calc_composed_resistance(self,
+                                           params=params,
+                                           crop_state_variables=crop_state_variables)
 
 
 class LeafComponent(Component):
@@ -301,6 +310,20 @@ class LeafComponent(Component):
 
         return model_args
 
+    def calc_boundary_resistance(self):
+        forced_convection_resistance = self.boundary_forced_convection_resistance
+        free_convection_resistance = self.boundary_free_convection_resistance
+        if free_convection_resistance is None:
+            boundary_resistance = forced_convection_resistance
+        else:
+            boundary_resistance = component.calc_boundary_layer_resistance(
+                forced_convection_resistance=forced_convection_resistance,
+                free_convection_resistance=free_convection_resistance)
+        self.boundary_resistance = boundary_resistance
+
+    def calc_boundary_and_composed_conductances(self, **kwargs):
+        pass
+
 
 class LumpedLeafComponent(LeafComponent):
     def __init__(self, **kwargs):
@@ -310,6 +333,11 @@ class LumpedLeafComponent(LeafComponent):
                              inputs: Inputs,
                              params: Params,
                              crop_state_variables: CropStateVariables):
+        Component.init_state_variables(self,
+                                       inputs=inputs,
+                                       params=params,
+                                       crop_state_variables=crop_state_variables)
+
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.water_potential = inputs.soil_water_potential
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
@@ -332,7 +360,7 @@ class LumpedLeafComponent(LeafComponent):
             shape_parameter=params.simulation.absorbed_par_50,
             sublayers_number=params.simulation.sublayers_number,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.boundary_resistance = lumped_leaves.calc_leaf_layer_forced_convection_resistance(
+        self.boundary_forced_convection_resistance = lumped_leaves.calc_leaf_layer_forced_convection_resistance(
             wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
@@ -350,11 +378,27 @@ class LumpedLeafComponent(LeafComponent):
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=0)
+        self.calc_boundary_and_composed_conductances(
+            inputs=inputs,
+            params=params,
+            crop_state_variables=crop_state_variables)
 
-        Component.init_state_variables(self,
-                                       inputs=inputs,
-                                       params=params,
-                                       crop_state_variables=crop_state_variables)
+    def calc_boundary_and_composed_conductances(self,
+                                                inputs: Inputs,
+                                                params: Params,
+                                                crop_state_variables: CropStateVariables):
+        self.boundary_free_convection_resistance = lumped_leaves.calc_leaf_layer_free_convection_resistance(
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            layer_temperature=self.temperature,
+            air_temperature=inputs.air_temperature,
+            heat_molecular_diffusivity=constants.molecular_diffusivity_water_vapor,
+            characteristic_length=params.simulation.leaf_characteristic_length,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.calc_boundary_resistance()
+        Component.calc_composed_resistance(self,
+                                           params=params,
+                                           crop_state_variables=crop_state_variables)
 
 
 class SunlitShadedLeafComponent(LeafComponent):
@@ -367,6 +411,11 @@ class SunlitShadedLeafComponent(LeafComponent):
                              inputs: Inputs,
                              params: Params,
                              crop_state_variables: CropStateVariables):
+        Component.init_state_variables(self,
+                                       inputs=inputs,
+                                       params=params,
+                                       crop_state_variables=crop_state_variables)
+
         self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
         self.water_potential = inputs.soil_water_potential
 
@@ -396,7 +445,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             shape_parameter=params.simulation.absorbed_par_50,
             sublayers_number=params.simulation.sublayers_number,
             stomatal_density_factor=params.simulation.stomatal_density_factor)
-        self.boundary_resistance = sunlit_shaded_leaves.calc_leaf_layer_forced_convection_resistance(
+        self.boundary_forced_convection_resistance = sunlit_shaded_leaves.calc_leaf_layer_forced_convection_resistance(
             leaves_category=self.leaves_category,
             wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -418,11 +467,29 @@ class SunlitShadedLeafComponent(LeafComponent):
                 self.absorbed_irradiance),
             net_longwave_radiation=self.net_longwave_radiation,
             soil_heat_flux=0)
+        self.calc_boundary_and_composed_conductances(
+            inputs=inputs,
+            params=params,
+            crop_state_variables=crop_state_variables)
 
-        Component.init_state_variables(self,
-                                       inputs=inputs,
-                                       params=params,
-                                       crop_state_variables=crop_state_variables)
+    def calc_boundary_and_composed_conductances(self,
+                                                inputs: Inputs,
+                                                params: Params,
+                                                crop_state_variables: CropStateVariables):
+        self.boundary_free_convection_resistance = sunlit_shaded_leaves.calc_leaf_layer_free_convection_resistance(
+            leaves_category=self.leaves_category,
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            layer_temperature=self.temperature,
+            air_temperature=inputs.air_temperature,
+            heat_molecular_diffusivity=constants.molecular_diffusivity_water_vapor,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
+            characteristic_length=params.simulation.leaf_characteristic_length,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.calc_boundary_resistance()
+        Component.calc_composed_resistance(self,
+                                           params=params,
+                                           crop_state_variables=crop_state_variables)
 
 
 class Crop(dict):
