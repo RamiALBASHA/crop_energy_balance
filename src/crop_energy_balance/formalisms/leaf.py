@@ -52,7 +52,7 @@ def calc_free_convection_conductance(leaf_temperature: float,
                                      air_temperature: float,
                                      characteristic_length: float,
                                      heat_molecular_diffusivity: float) -> float:
-    """Calculates boundary layer conductance for free convection.
+    """Calculates boundary layer conductance for free convection (for both sides of leaves) .
 
     Args:
         leaf_temperature: [K] leaf temperature
@@ -61,7 +61,7 @@ def calc_free_convection_conductance(leaf_temperature: float,
         heat_molecular_diffusivity: [m2 h-1] heat molecular diffusivity
 
     Returns:
-        [m h-1] boundary layer conductance for free convection.
+        [m h-1] boundary layer conductance for free convection (for both sides of leaves) .
 
     """
     grashof_number = calc_grashof_number(
@@ -69,7 +69,7 @@ def calc_free_convection_conductance(leaf_temperature: float,
         leaf_temperature=leaf_temperature,
         air_temperature=air_temperature)
 
-    return 0.5 * heat_molecular_diffusivity * grashof_number ** 0.25 / characteristic_length
+    return 2. * 0.5 * heat_molecular_diffusivity * grashof_number ** 0.25 / characteristic_length
 
 
 def calc_stomatal_sensibility(model_args: dict) -> float:
