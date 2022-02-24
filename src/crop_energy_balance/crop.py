@@ -567,7 +567,7 @@ class Crop(dict):
                     index=index,
                     lower_cumulative_leaf_area_index=upper_cumulative_leaf_area_index)
 
-    def extract_all_components(self):
+    def extract_all_components(self, ignore_nocturnal_sunlit: bool):
         """Returns a list of all canopy components."""
         if self.leaves_category == 'lumped':
             return [self[key] for key in self.components_keys]
@@ -575,7 +575,8 @@ class Crop(dict):
             res = []
             for component_key in self.components_keys:
                 if component_key != -1:
-                    res.append(self[component_key]['sunlit'])
+                    if not (ignore_nocturnal_sunlit and self.inputs.incident_irradiance['direct'] == 0):
+                        res.append(self[component_key]['sunlit'])
                     res.append(self[component_key]['shaded'])
                 else:
                     res.append(self[component_key])
