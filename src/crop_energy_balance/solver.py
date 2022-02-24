@@ -167,10 +167,19 @@ class Solver:
             stability_correction_for_heat=self.crop.state_variables.stability_correction_for_heat,
             von_karman_constant=constants.von_karman)
 
-        if self.crop.state_variables.sensible_heat_flux > 0:
-            self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_turbulent_aerodynamic_resistance
-        else:
-            self.crop.state_variables.aerodynamic_resistance = 0.8 * neutral_turbulent_aerodynamic_resistance
+        free_convection_resistance = canopy.calc_free_convection(
+            canopy_temperature=self.crop.state_variables.source_temperature,
+            air_temperature=self.crop.inputs.air_temperature,
+            air_density=constants.air_density,
+            air_specific_heat_capacity=constants.air_specific_heat_capacity)
+
+        self.crop.state_variables.aerodynamic_resistance = min(neutral_turbulent_aerodynamic_resistance,
+                                                               free_convection_resistance)
+
+        # if self.crop.state_variables.sensible_heat_flux > 0:
+        #     self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_turbulent_aerodynamic_resistance
+        # else:
+        #     self.crop.state_variables.aerodynamic_resistance = 0.8 * neutral_turbulent_aerodynamic_resistance
 
     def update_correction_factors(self):
         phi_m = self.crop.state_variables.stability_correction_for_momentum
