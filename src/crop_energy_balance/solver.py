@@ -25,7 +25,7 @@ class Solver:
 
         self.crop = Crop(leaves_category=self.leaves_category, inputs=self.inputs, params=self.params)
 
-        self.components = self.crop.extract_all_components()
+        self.components = self.crop.extract_all_components(ignore_nocturnal_sunlit=False)
 
         self.stability_iterations_number = 1
         self.iterations_number = None
