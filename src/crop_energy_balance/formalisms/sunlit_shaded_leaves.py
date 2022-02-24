@@ -87,6 +87,90 @@ def calc_leaf_layer_forced_convection_resistance(leaves_category: str,
     return 1.0 / calc_leaf_layer_forced_convection_conductance(**args) / stomatal_density_factor
 
 
+def calc_leaf_layer_free_convection_conductance(leaves_category: str,
+                                                upper_cumulative_leaf_area_index: float,
+                                                lower_cumulative_leaf_area_index: float,
+                                                layer_temperature: float,
+                                                air_temperature: float,
+                                                heat_molecular_diffusivity: float,
+                                                direct_black_extinction_coefficient: float,
+                                                characteristic_length: float = 0.01) -> float:
+    """Calculates boundary conductance under free convection.
+
+    Args:
+        leaves_category: one of ('sunlit', 'shaded')
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        layer_temperature: [K] leaf temperature
+        air_temperature: [K] air temperature
+        heat_molecular_diffusivity: [m2 h-1] heat molecular diffusivity
+        direct_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of direct (beam) irradiance
+            through a canopy of black leaves
+        characteristic_length: [m] characteristic leaf length in the direction of the wind
+
+    Returns:
+        [m h-1] boundary conductance under forced convection
+    """
+    leaf_free_convection_conductance = leaf.calc_free_convection_conductance(
+        leaf_temperature=layer_temperature,
+        air_temperature=air_temperature,
+        characteristic_length=characteristic_length,
+        heat_molecular_diffusivity=heat_molecular_diffusivity)
+
+    sunlit_layer_scaling_factor = 1.0 / direct_black_extinction_coefficient * (
+            exp(-direct_black_extinction_coefficient * upper_cumulative_leaf_area_index) -
+            exp(-direct_black_extinction_coefficient * lower_cumulative_leaf_area_index))
+
+    sunlit_layer_free_convection_conductance = leaf_free_convection_conductance * sunlit_layer_scaling_factor
+
+    if leaves_category == 'sunlit':
+        return sunlit_layer_free_convection_conductance
+    elif leaves_category == 'shaded':
+        lumped_layer_free_convection_conductance = lumped_leaves.calc_leaf_layer_free_convection_conductance(
+            upper_cumulative_leaf_area_index=upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=lower_cumulative_leaf_area_index,
+            layer_temperature=layer_temperature,
+            air_temperature=air_temperature,
+            heat_molecular_diffusivity=heat_molecular_diffusivity,
+            characteristic_length=characteristic_length)
+        return lumped_layer_free_convection_conductance - sunlit_layer_free_convection_conductance
+
+
+def calc_leaf_layer_free_convection_resistance(leaves_category: str,
+                                               upper_cumulative_leaf_area_index: float,
+                                               lower_cumulative_leaf_area_index: float,
+                                               layer_temperature: float,
+                                               air_temperature: float,
+                                               heat_molecular_diffusivity: float,
+                                               direct_black_extinction_coefficient: float,
+                                               characteristic_length: float,
+                                               stomatal_density_factor: float) -> float:
+    """Calculates boundary resistance under free convection.
+
+    Args:
+        leaves_category: one of ('sunlit', 'shaded')
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        layer_temperature: [K] leaf temperature
+        air_temperature: [K] air temperature
+        heat_molecular_diffusivity: [m2 h-1] heat molecular diffusivity
+        direct_black_extinction_coefficient: [m2ground m-2leaf] extinction coefficient of direct (beam) irradiance
+            through a canopy of black leaves
+        characteristic_length: [m] characteristic leaf length in the direction of the wind
+        stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
+
+    Returns:
+        [m h-1] boundary resistance under forced convection
+    """
+    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
+    free_convection_conductance = calc_leaf_layer_free_convection_conductance(**args)
+    if free_convection_conductance == 0:
+        resistance = None
+    else:
+        resistance = 1.0 / free_convection_conductance / stomatal_density_factor
+    return resistance
+
+
 def calc_leaf_layer_surface_conductance_to_vapor(leaves_category: str,
                                                  incident_direct_irradiance: float,
                                                  incident_diffuse_irradiance: float,
