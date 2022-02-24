@@ -1,3 +1,21 @@
+from crop_energy_balance.formalisms.config import PRECISION
+
+
+def calc_boundary_layer_resistance(forced_convection_resistance: float,
+                                   free_convection_resistance: float) -> float:
+    """Calculates total boundary resistance under both forced and free convection conditions.
+
+    Args:
+        forced_convection_resistance: [h m-1] boundary resistance under forced convection
+        free_convection_resistance: [h m-1] boundary resistance under free convection
+
+    Returns:
+        [h m-1] boundary resistance under both forced and free convection conditions
+    """
+
+    return 1. / (1. / max(PRECISION, forced_convection_resistance) + 1. / max(PRECISION, free_convection_resistance))
+
+
 def calc_composed_resistance(surface_resistance: float,
                              boundary_layer_resistance: float,
                              vapor_pressure_slope: float,
