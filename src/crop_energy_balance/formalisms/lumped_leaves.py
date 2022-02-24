@@ -62,6 +62,64 @@ def calc_leaf_layer_forced_convection_resistance(wind_speed_at_canopy_height: fl
     return 1.0 / calc_leaf_layer_forced_convection_conductance(**args) / stomatal_density_factor
 
 
+def calc_leaf_layer_free_convection_conductance(upper_cumulative_leaf_area_index: float,
+                                                lower_cumulative_leaf_area_index: float,
+                                                layer_temperature: float,
+                                                air_temperature: float,
+                                                heat_molecular_diffusivity: float,
+                                                characteristic_length: float = 0.01) -> float:
+    """Calculates boundary conductance under free convection.
+
+    Args:
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        layer_temperature: [K] leaf temperature
+        air_temperature: [K] air temperature
+        heat_molecular_diffusivity: [m2 h-1] heat molecular diffusivity
+        characteristic_length: [m] characteristic leaf length in the direction of the wind
+
+    Returns:
+        [m h-1] boundary conductance under free convection
+    """
+
+    leaf_free_convection_conductance = leaf.calc_free_convection_conductance(
+        leaf_temperature=layer_temperature,
+        air_temperature=air_temperature,
+        characteristic_length=characteristic_length,
+        heat_molecular_diffusivity=heat_molecular_diffusivity)
+
+    scaling_factor = lower_cumulative_leaf_area_index - upper_cumulative_leaf_area_index
+
+    return leaf_free_convection_conductance * scaling_factor
+
+
+def calc_leaf_layer_free_convection_resistance(upper_cumulative_leaf_area_index: float,
+                                               lower_cumulative_leaf_area_index: float,
+                                               layer_temperature: float,
+                                               air_temperature: float,
+                                               heat_molecular_diffusivity: float,
+                                               characteristic_length: float,
+                                               stomatal_density_factor: float) -> float:
+    """Calculates boundary resistance under free convection.
+
+    Args:
+        upper_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the top of the layer
+        lower_cumulative_leaf_area_index: [m2leaf m-2ground] cumulative leaf layer index at the bottom of the layer
+        layer_temperature: [K] leaf temperature
+        air_temperature: [K] air temperature
+        heat_molecular_diffusivity: [m2 h-1] heat molecular diffusivity
+        characteristic_length: [m] characteristic leaf length in the direction of the wind
+        stomatal_density_factor: [-] 1 for amphistomatal leaves (stomata on both sides of the blade), otherwise 2
+
+    Returns:
+        [h m-1] boundary resistance under free convection.
+    """
+
+    args = {k: v for k, v in locals().items() if k != 'stomatal_density_factor'}
+    free_convection_conductance = max(PRECISION, calc_leaf_layer_free_convection_conductance(**args))
+    return 1.0 / free_convection_conductance / stomatal_density_factor
+
+
 def calc_leaf_layer_surface_conductance_to_vapor(incident_direct_irradiance: float,
                                                  incident_diffuse_irradiance: float,
                                                  upper_cumulative_leaf_area_index: float,
