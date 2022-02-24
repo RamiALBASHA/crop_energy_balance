@@ -75,6 +75,16 @@ class Constants:
         """[m3 atm mol−1 K−1] Ideal gas constant
         """
 
+        self.molecular_diffusivity_water_vapor = 3600. * 1e-6 * 24.9
+        """[m2 h-1] Molucular diffusivity for water vapor at 25 degrees C.
+
+        References:
+            Monteith and Unsworth (2013).
+                Principles of Environmental Physics (Fourth Edition)
+                Academic Press, pp 289 - 320
+                Table A.3
+        """
+
 
 class Simulation:
     def __init__(self, data):
