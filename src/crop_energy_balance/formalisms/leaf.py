@@ -20,6 +20,58 @@ def calc_forced_convection_condutance(wind_speed_at_canopy_height: float,
     return 3600 * shape_parameter * (wind_speed_at_canopy_height / characteristic_length) ** 0.5
 
 
+def calc_grashof_number(characteristic_length: float,
+                        leaf_temperature: float,
+                        air_temperature: float) -> float:
+    """Calculates Grashof number.
+
+    Args:
+        characteristic_length: [m] characteristic leaf length in the direction of the wind
+        leaf_temperature: [K] leaf temperature
+        air_temperature: [K] air temperature
+
+    Returns:
+        [-] Grashof number
+
+    References:
+        Monteith and Unsworth (2013).
+            Principles of Environmental Physics (Fourth Edition)
+            Academic Press, pp 289 - 320
+            Eqs. 10.8 and 10.9
+
+        Leuning et al. 1995
+            Leaf nitrogen, photosynthesis, conductance and transpiration: scaling from leaves to canopies.
+            Plant, Cell and Environment 18, 1183 - 1200.
+            Eq. E4
+
+    """
+    return 1.58e8 * abs(leaf_temperature - air_temperature) * characteristic_length ** 3.
+
+
+def calc_free_convection_conductance(leaf_temperature: float,
+                                     air_temperature: float,
+                                     characteristic_length: float,
+                                     heat_molecular_diffusivity: float) -> float:
+    """Calculates boundary layer conductance for free convection.
+
+    Args:
+        leaf_temperature: [K] leaf temperature
+        air_temperature: [K] air temperature
+        characteristic_length: [m] characteristic leaf length in the direction of the wind
+        heat_molecular_diffusivity: [m2 h-1] heat molecular diffusivity
+
+    Returns:
+        [m h-1] boundary layer conductance for free convection.
+
+    """
+    grashof_number = calc_grashof_number(
+        characteristic_length=characteristic_length,
+        leaf_temperature=leaf_temperature,
+        air_temperature=air_temperature)
+
+    return 0.5 * heat_molecular_diffusivity * grashof_number ** 0.25 / characteristic_length
+
+
 def calc_stomatal_sensibility(model_args: dict) -> float:
     """Calculates the effect of water status on stomatal aperture following one or several models.
 
