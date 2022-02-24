@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from crop_energy_balance.crop import Crop, CropStateVariables
+from crop_energy_balance.crop import Crop, CropStateVariables, LeafComponent
 from crop_energy_balance.formalisms import canopy
 from crop_energy_balance.inputs import Inputs
 from crop_energy_balance.params import Params, Constants
@@ -26,6 +26,7 @@ class Solver:
         self.crop = Crop(leaves_category=self.leaves_category, inputs=self.inputs, params=self.params)
 
         self.components = self.crop.extract_all_components(ignore_nocturnal_sunlit=False)
+        self.leaf_components = [c for c in self.components if isinstance(c, LeafComponent)]
 
         self.stability_iterations_number = 1
         self.iterations_number = None
@@ -84,6 +85,12 @@ class Solver:
             crop_component.init_state_variables(self.crop.inputs, self.crop.params, self.crop.state_variables)
 
     def update_state_variables(self):
+        for leaf_component in self.leaf_components:
+            leaf_component.calc_boundary_and_composed_conductances(
+                inputs=self.crop.inputs,
+                params=self.crop.params,
+                crop_state_variables=self.crop.state_variables)
+
         self.crop.state_variables.calc_total_composed_conductances(crop_components=self.components)
         for crop_component in self.components:
             crop_component.calc_composed_conductance(self.crop.state_variables)
