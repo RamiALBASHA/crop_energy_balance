@@ -70,14 +70,19 @@ class Solver:
         """Solves energy balance having fixed stability-related variables.
         """
         self.iterations_number = 0
+        initial_step_fraction = self.crop.params.numerical_resolution.step_fraction
         is_acceptable_error = False
-        while not is_acceptable_error:
+        while not is_acceptable_error and self.iterations_number < 100:
+            self.crop.params.numerical_resolution.step_fraction = initial_step_fraction / (
+                        divmod(self.iterations_number, 10)[0] + 1)
             self.iterations_number += 1
             self.update_state_variables()
             self.error_temperature = self.calc_error()
             self.update_temperature()
             self.calc_energy_balance()
             is_acceptable_error = self.determine_if_acceptable_error()
+
+        self.crop.params.numerical_resolution.step_fraction = initial_step_fraction
 
     def init_state_variables(self):
         self.crop.state_variables = CropStateVariables(inputs=self.crop.inputs, params=self.crop.params)
