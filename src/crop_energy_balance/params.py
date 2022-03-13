@@ -193,11 +193,17 @@ class Simulation:
         self.canopy_reflectance_to_diffuse_irradiance = 0.057
         """[-] canopy reflectance to diffuse irradiance"""
 
-        self.leaf_angle_distribution_factor = 0.9773843811168246
+        if 'leaf_angle_distribution_factor' in data.keys():
+            self.leaf_angle_distribution_factor = data['leaf_angle_distribution_factor']
+        else:
+            self.leaf_angle_distribution_factor = 0.9773843811168246
         """[-] factor describing leaf angle distribution (for spherical distributions its value equals
         rad(56) = 0.9773843811168246"""
 
-        self.clumping_factor = 1
+        if 'clumping_factor' in data.keys():
+            self.clumping_factor = data['clumping_factor']
+        else:
+            self.clumping_factor = 1
         """[-] clumping factor to describe the spatial dependency of the positions of the leaves"""
 
         self.sublayers_number = 100
