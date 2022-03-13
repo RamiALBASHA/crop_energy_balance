@@ -193,8 +193,12 @@ class Simulation:
         self.canopy_reflectance_to_diffuse_irradiance = 0.057
         """[-] canopy reflectance to diffuse irradiance"""
 
-        self.leaves_to_sun_average_projection = 0.5
-        """[-] average projection of canopy leaves in the direction of the solar beam"""
+        self.leaf_angle_distribution_factor = 0.9773843811168246
+        """[-] factor describing leaf angle distribution (for spherical distributions its value equals
+        rad(56) = 0.9773843811168246"""
+
+        self.clumping_factor = 1
+        """[-] clumping factor to describe the spatial dependency of the positions of the leaves"""
 
         self.sublayers_number = 100
         """[-] number of sublayers that are used to perform the numerical integral of the leaf-layer surface conductance
@@ -249,11 +253,13 @@ class Simulation:
         self.direct_extinction_coefficient = calc_direct_extinction_coefficient(
             solar_inclination=inputs.solar_inclination,
             leaf_scattering_coefficient=self.leaf_scattering_coefficient,
-            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection)
+            leaf_angle_distribution_factor=self.leaf_angle_distribution_factor,
+            clumping_factor=self.clumping_factor)
 
         self.direct_black_extinction_coefficient = calc_direct_black_extinction_coefficient(
             solar_inclination=inputs.solar_inclination,
-            leaves_to_sun_average_projection=self.leaves_to_sun_average_projection)
+            leaf_angle_distribution_factor=self.leaf_angle_distribution_factor,
+            clumping_factor=self.clumping_factor)
 
         self.diffuse_extinction_coefficient, self.diffuse_black_extinction_coefficient = (
             calc_diffuse_extinction_coefficient(
