@@ -180,6 +180,10 @@ class Solver:
         #     self.crop.state_variables.aerodynamic_resistance = 1.2 * neutral_turbulent_aerodynamic_resistance
         # else:
         #     self.crop.state_variables.aerodynamic_resistance = 0.8 * neutral_turbulent_aerodynamic_resistance
+        self.crop.state_variables.lumped_aerodynamic_resistance = canopy.calc_lumped_aerodynamic_resistance(
+            canopy_aerodynamic_resistance=self.crop.state_variables.aerodynamic_resistance,
+            vapor_pressure_slope=self.crop.state_variables.vapor_pressure_slope,
+            psychrometric_constant=constants.psychrometric_constant)
 
     def update_correction_factors(self):
         phi_m = self.crop.state_variables.stability_correction_for_momentum
