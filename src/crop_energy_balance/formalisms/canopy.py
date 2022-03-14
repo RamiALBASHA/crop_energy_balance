@@ -1,4 +1,4 @@
-from math import log, atan, pi
+from math import log, atan, pi, exp
 
 from crop_energy_balance.formalisms.config import PRECISION
 from crop_energy_balance.formalisms.weather import convert_celsius_to_kelvin
@@ -200,31 +200,35 @@ def calc_aerodynamic_resistance(richardson_number: float,
             Environmental Modelling and Software 77, 143 - 155
 
     """
-    if richardson_number < richardon_threshold_free_convection:
-        # ----------------------
-        # strongly unstable, free convection dominates
-        # (Webber et al. 2016, eq. 11 is replaced by Kimball et al. 2015 eqs. 28 & 29)
-        # Kimball et al. (2015) used the equation for free (also called natural) convection from ASHAE (page 3.12,
-        # Table 5, eq. 11). They replaced the "n" parameter value from 1.52 used for "large plates" to 5 for wheat.
-        # Note that the value of h (Heat Transfer Coefficient) given in ASHAE is in W m-2 K-1.
-        # ----------------------
-        ra = calc_free_convection(
-            canopy_temperature=canopy_temperature,
-            air_temperature=air_temperature,
-            air_density=air_density,
-            air_specific_heat_capacity=air_specific_heat_capacity)
-    else:
-        # ----------------------
-        # unstable and stable conditions (the general case)
-        # ----------------------
-        ra = calc_turbulent_aerodynamic_resistance(
-            friction_velocity=friction_velocity,
-            measurement_height=measurement_height,
-            zero_displacement_height=zero_displacement_height,
-            roughness_length_for_heat=roughness_length_for_heat,
-            stability_correction_for_heat=stability_correction_for_heat,
-            von_karman_constant=von_karman_constant)
-    return ra
+    # ----------------------
+    # strongly unstable, free convection dominates
+    # (Webber et al. 2016, eq. 11 is replaced by Kimball et al. 2015 eqs. 28 & 29)
+    # Kimball et al. (2015) used the equation for free (also called natural) convection from ASHAE (page 3.12,
+    # Table 5, eq. 11). They replaced the "n" parameter value of 1.52 used for "large plates" by 5 for wheat.
+    # Note that the value of h (Heat Transfer Coefficient) given in ASHAE is in W m-2 K-1.
+    # ----------------------
+    free_convection_resistance = calc_free_convection(
+        canopy_temperature=canopy_temperature,
+        air_temperature=air_temperature,
+        air_density=air_density,
+        air_specific_heat_capacity=air_specific_heat_capacity)
+
+    # ----------------------
+    # unstable and stable conditions (the general case)
+    # ----------------------
+    turbulent_aerodynamic_resistance = calc_turbulent_aerodynamic_resistance(
+        friction_velocity=friction_velocity,
+        measurement_height=measurement_height,
+        zero_displacement_height=zero_displacement_height,
+        roughness_length_for_heat=roughness_length_for_heat,
+        stability_correction_for_heat=stability_correction_for_heat,
+        von_karman_constant=von_karman_constant)
+
+    weight_factor = 1. / (1 + exp(richardson_number - richardon_threshold_free_convection))
+
+    return 1. / (
+            max(PRECISION, 1. / free_convection_resistance * weight_factor) +
+            max(PRECISION, 1. / turbulent_aerodynamic_resistance * (1 - weight_factor)))
 
 
 def calc_free_convection(canopy_temperature: float,
