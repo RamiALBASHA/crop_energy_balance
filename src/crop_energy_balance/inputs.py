@@ -60,9 +60,7 @@ class Inputs:
         """[W_{PAR} m-2ground] dictionary of incident photosynthetically active radiation.
 
         Notes:
-            For lumped leaves, the absorbed irradiance per leaf layer is a dictionary having the key 'lumped'.
-            For sunlit and shaded leaves, the absorbed irradiance per leaf layer is a dictionary having the keys
-                'sunlit' and 'shaded'.
+            This dictionary must provide direct and diffuse PAR with 'direct' and 'diffuse' keys, respectively.
         """
 
         self.absorbed_irradiance = self._inputs['absorbed_photosynthetically_active_radiation']
