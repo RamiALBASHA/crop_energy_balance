@@ -270,6 +270,8 @@ class Simulation:
         self.diffuse_extinction_coefficient, self.diffuse_black_extinction_coefficient = (
             calc_diffuse_extinction_coefficient(
                 leaf_area_index=sum(inputs.leaf_layers.values()),
+                leaf_angle_distribution_factor=self.leaf_angle_distribution_factor,
+                clumping_factor=self.clumping_factor,
                 leaf_scattering_coefficient=self.leaf_scattering_coefficient,
                 sky_sectors_number=3,
                 sky_type='soc'))
