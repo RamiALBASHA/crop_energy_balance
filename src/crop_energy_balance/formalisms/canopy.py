@@ -24,11 +24,19 @@ def calc_zero_displacement_height(canopy_height: float, leaf_area_index: float, 
     return 1.1 * canopy_height * log(1.0 + (drag_coefficient * leaf_area_index) ** 0.25)
 
 
-def calc_roughness_length_for_momentum_transfer(canopy_height: float) -> float:
+def calc_roughness_length_for_momentum_transfer(soil_roughness_length_for_momentum: float,
+                                                zero_plan_displacement_height: float,
+                                                canopy_height: float,
+                                                total_leaf_area_index: float,
+                                                drag_coefficient: float) -> float:
     """Calculates roughness length for momentum transfer of the canopy.
 
     Args:
+        soil_roughness_length_for_momentum: [m] roughness length for momentum transfer of bare soil
+        zero_plan_displacement_height: [m] zero plane displacement height
         canopy_height: [m] average height of the canopy
+        total_leaf_area_index: [m2leaf m-2ground] total leaf area index
+        drag_coefficient: [m2ground m-2leaf] drag coefficient
 
     Returns:
         [m] roughness length for momentum
@@ -38,11 +46,13 @@ def calc_roughness_length_for_momentum_transfer(canopy_height: float) -> float:
             Putting the 'vap' into evaporation.
             Hydrol. Earth Syst. Sci. 11, 210 - 244
             Eq. 11
-
-    Notes:
-        This formula holds for the reference grass crop.
     """
-    return 0.123 * canopy_height
+    ascending = soil_roughness_length_for_momentum + (
+            0.3 * canopy_height * (drag_coefficient * total_leaf_area_index) ** 0.5)
+    descending = 0.3 * canopy_height * (1 - zero_plan_displacement_height / canopy_height)
+    res = min(ascending, descending)
+    # res = 0.123 * canopy_height
+    return res
 
 
 def calc_roughness_length_for_heat_transfer(roughness_length_for_momentum_transfer: float,

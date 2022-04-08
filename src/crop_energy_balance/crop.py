@@ -29,7 +29,11 @@ class CropStateVariables:
             leaf_area_index=sum(inputs.leaf_layers.values()),
             drag_coefficient=params.simulation.drag_coefficient)
         self.roughness_length_for_momentum = canopy.calc_roughness_length_for_momentum_transfer(
-            canopy_height=inputs.canopy_height)
+            soil_roughness_length_for_momentum=params.simulation.soil_roughness_length_for_momentum,
+            zero_plan_displacement_height=self.zero_displacement_height,
+            canopy_height=inputs.canopy_height,
+            total_leaf_area_index=sum(inputs.leaf_layers.values()),
+            drag_coefficient=params.simulation.drag_coefficient)
         self.roughness_length_for_heat_transfer = canopy.calc_roughness_length_for_heat_transfer(
             roughness_length_for_momentum_transfer=self.roughness_length_for_momentum,
             ratio_heat_to_momentum_roughness_lengths=params.simulation.ratio_heat_to_momentum_canopy_roughness_lengths)
