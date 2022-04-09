@@ -56,6 +56,7 @@ class Solver:
                 self.update_correction_factors()
                 self.crop.state_variables.calc_aerodynamic_resistance(
                     inputs=self.crop.inputs,
+                    params=self.crop.params,
                     threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection)
                 self.solve_transient_energy_balance()
                 self.error_sensible_heat_flux = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
@@ -74,7 +75,7 @@ class Solver:
         is_acceptable_error = False
         while not is_acceptable_error and self.iterations_number < 100:
             self.crop.params.numerical_resolution.step_fraction = initial_step_fraction / (
-                        divmod(self.iterations_number, 10)[0] + 1)
+                    divmod(self.iterations_number, 10)[0] + 1)
             self.iterations_number += 1
             self.update_state_variables()
             self.error_temperature = self.calc_error()
@@ -171,7 +172,8 @@ class Solver:
             canopy_temperature=self.crop.state_variables.source_temperature,
             air_temperature=self.crop.inputs.air_temperature,
             air_density=constants.air_density,
-            air_specific_heat_capacity=constants.air_specific_heat_capacity)
+            air_specific_heat_capacity=constants.air_specific_heat_capacity,
+            shape_parameter=self.crop.params.simulation.free_convection_shape_parameter)
 
         self.crop.state_variables.aerodynamic_resistance = min(neutral_turbulent_aerodynamic_resistance,
                                                                free_convection_resistance)

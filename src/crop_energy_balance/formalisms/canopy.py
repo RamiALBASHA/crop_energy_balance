@@ -172,7 +172,8 @@ def calc_aerodynamic_resistance(richardson_number: float,
                                 richardon_threshold_free_convection: float,
                                 von_karman_constant: float,
                                 air_density: float,
-                                air_specific_heat_capacity: float):
+                                air_specific_heat_capacity: float,
+                                free_convection_shape_parameter: float):
     """Calculates the resistance to the transfer of momentum, water vapor and heat between the source height and the
     reference height.
 
@@ -189,6 +190,7 @@ def calc_aerodynamic_resistance(richardson_number: float,
         canopy_temperature: [K] canopy (source) temperature
         air_density: [g m-3] density of dry air
         air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
+        free_convection_shape_parameter: [W K-4/3 m-2] shape parameter related to surface characteristics
 
     Returns:
         [h m-1] air resistance to water vapor transfer between the source height and the reference height
@@ -221,7 +223,8 @@ def calc_aerodynamic_resistance(richardson_number: float,
         canopy_temperature=canopy_temperature,
         air_temperature=air_temperature,
         air_density=air_density,
-        air_specific_heat_capacity=air_specific_heat_capacity)
+        air_specific_heat_capacity=air_specific_heat_capacity,
+        shape_parameter=free_convection_shape_parameter)
 
     # ----------------------
     # unstable and stable conditions (the general case)
@@ -244,7 +247,8 @@ def calc_aerodynamic_resistance(richardson_number: float,
 def calc_free_convection(canopy_temperature: float,
                          air_temperature: float,
                          air_density: float,
-                         air_specific_heat_capacity: float) -> float:
+                         air_specific_heat_capacity: float,
+                         shape_parameter: float = 5) -> float:
     """Calculates the resistance to the transfer of momentum, water vapor and heat between the source height and the
     reference height when free convection prevails.
 
@@ -254,6 +258,7 @@ def calc_free_convection(canopy_temperature: float,
         canopy_temperature: [K] canopy (source) temperature
         air_density: [g m-3] density of dry air
         air_specific_heat_capacity: [W h g-1 K-1] specific heat capacity of the air under a constant pressure
+        shape_parameter: [W K-4/3 m-2] shape parameter
 
     Returns:
         [h m-1] air resistance to water vapor transfer when free convection prevails.
@@ -266,9 +271,8 @@ def calc_free_convection(canopy_temperature: float,
             Agronomy Journal 107, 129 - 141.
 
     """
-    n = 5.
     temperature_difference = max(convert_celsius_to_kelvin(0.1), abs(canopy_temperature - air_temperature))
-    return air_density * air_specific_heat_capacity / (n * temperature_difference ** (1 / 3.))
+    return air_density * air_specific_heat_capacity / (shape_parameter * temperature_difference ** (1 / 3.))
 
 
 def calc_turbulent_aerodynamic_resistance(friction_velocity: float,
