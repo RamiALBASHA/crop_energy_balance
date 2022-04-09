@@ -89,34 +89,43 @@ def test_calc_sensible_heat_flux():
 def test_calc_canopy_aerodynamic_resistance_under_neutral_conditions():
     """This test is taken from Box 4 in Allen et al. (1998). FAO Irrigation and Drainage Paper No. 56. Eq. 8
     """
+    von_karman_constant = constants.von_karman
     height = 0.12
     measurement_height = 2
+    leaf_area_index = 3
+    drag_coef = 0.2
     zero_displacement_height = canopy.calc_zero_displacement_height(
         canopy_height=height, leaf_area_index=1, drag_coefficient=0.2)
-    von_karman_constant = constants.von_karman
-
+    roughness_length_for_momentum = canopy.calc_roughness_length_for_momentum_transfer(
+        soil_roughness_length_for_momentum=0.0125,
+        zero_plan_displacement_height=zero_displacement_height,
+        canopy_height=height,
+        total_leaf_area_index=leaf_area_index,
+        drag_coefficient=drag_coef)
     friction_velocity = canopy.calc_friction_velocity(
         wind_speed=3600,
         measurement_height=measurement_height,
         zero_displacement_height=zero_displacement_height,
-        roughness_length_for_momentum=0.123 * height,
+        roughness_length_for_momentum=roughness_length_for_momentum,
         stability_correction_for_momentum=0,
         von_karman_constant=von_karman_constant)
 
     aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
-        richardson_number=0,
+        richardson_number=1,
         friction_velocity=friction_velocity,
         measurement_height=measurement_height,
         zero_displacement_height=zero_displacement_height,
-        roughness_length_for_heat=0.0123 * height,
+        roughness_length_for_heat=0.1 * roughness_length_for_momentum,
         stability_correction_for_heat=0,
-        canopy_temperature=0,
-        air_temperature=0,
+        canopy_temperature=25,
+        air_temperature=25,
         richardon_threshold_free_convection=-0.8,
         von_karman_constant=von_karman_constant,
-        air_density=0,
-        air_specific_heat_capacity=0)
-    assert utils.is_almost_equal(aerodynamic_resistance, 208 / 3600., decimal=1)
+        air_density=constants.air_density,
+        air_specific_heat_capacity=constants.air_specific_heat_capacity,
+        free_convection_shape_parameter=1.52)
+    print(aerodynamic_resistance)
+    assert utils.is_almost_equal(aerodynamic_resistance, 208 / 3600., decimal=2)
 
 
 def test_calc_penman_evaporative_energy():
