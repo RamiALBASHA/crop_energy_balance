@@ -226,21 +226,31 @@ class Simulation:
         self.diffuse_black_extinction_coefficient = None
         """[m2ground m-2leaf] extinction coefficient of diffuse photosynthetically active radiation for black leaves"""
 
-        self.drag_coefficient = 0.2
+        if 'drag_coefficient' in data.keys():
+            self.drag_coefficient = data['drag_coefficient']
+        else:
+            self.drag_coefficient = 0.2
         """[m2ground m-2leaf] drag coefficient"""
 
-        self.ratio_heat_to_momentum_canopy_roughness_lengths = 1 / 7.4
+        if 'ratio_heat_to_momentum_canopy_roughness_lengths' in data.keys():
+            self.ratio_heat_to_momentum_canopy_roughness_lengths = data[
+                'ratio_heat_to_momentum_canopy_roughness_lengths']
+        else:
+            self.ratio_heat_to_momentum_canopy_roughness_lengths = 1 / 7.4
         """[-] Ratio of canopy's heat to momentum roughness lengths.
         Indicative values are:
             * 1/10 for reference grass crop (Shuttleworth, 2007. Hydrol. Earth Syst. Sci. 11, 210 - 244)
             * 1/7.4 for wheat (Kimball et al., 2015. Climatology and Water Management 107, 129 - 141)
         """
 
-        self.richardon_threshold_free_convection = -0.8
+        if 'richardon_threshold_free_convection' in data.keys():
+            self.richardon_threshold_free_convection = data['richardon_threshold_free_convection']
+        else:
+            self.richardon_threshold_free_convection = -0.8
         """[-] Richardson number threshold below which flux is assumed to occur under free convection.
         Note:
         Indicative values are:
-            * -1.0 (Monteith and Unsworth, 2004. cf. description belw Eq. 16.45)
+            * -1.0 (Monteith and Unsworth, 2004. cf. description below Eq. 16.45)
             * -0.8 (CanopyT, Webber et al., 2016)
         """
 
@@ -258,7 +268,6 @@ class Simulation:
         else:
             self.free_convection_shape_parameter = 5
         """[W K-4/3 m-2] free convection shape parameter related to surface characteristics"""
-
 
     def update(self,
                inputs):
