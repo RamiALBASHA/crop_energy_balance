@@ -242,7 +242,6 @@ class Simulation:
         Indicative values are:
             * -1.0 (Monteith and Unsworth, 2004. cf. description belw Eq. 16.45)
             * -0.8 (CanopyT, Webber et al., 2016)
-
         """
 
         self.atmospheric_emissivity = None
@@ -253,6 +252,13 @@ class Simulation:
         else:
             self.atmospheric_emissivity_model = 'brutsaert_1975'
         """Name of the model to be used for calculating sky longwave radiation emissivity"""
+
+        if 'free_convection_shape_parameter' in data.keys():
+            self.free_convection_shape_parameter = data['free_convection_shape_parameter']
+        else:
+            self.free_convection_shape_parameter = 5
+        """[W K-4/3 m-2] free convection shape parameter related to surface characteristics"""
+
 
     def update(self,
                inputs):
