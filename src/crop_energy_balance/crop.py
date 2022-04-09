@@ -67,8 +67,7 @@ class CropStateVariables:
         self.lumped_aerodynamic_resistance = None
         self.calc_aerodynamic_resistance(
             inputs=inputs,
-            params=params,
-            threshold_free_convection=params.simulation.richardon_threshold_free_convection)
+            params=params)
 
         self.net_longwave_radiation = canopy.calc_net_longwave_radiation(
             air_temperature=inputs.air_temperature,
@@ -138,8 +137,7 @@ class CropStateVariables:
 
     def calc_aerodynamic_resistance(self,
                                     inputs: Inputs,
-                                    params: Params,
-                                    threshold_free_convection: float):
+                                    params: Params):
         self.aerodynamic_resistance = canopy.calc_aerodynamic_resistance(
             richardson_number=self.richardson_number,
             friction_velocity=self.friction_velocity,
@@ -149,7 +147,7 @@ class CropStateVariables:
             stability_correction_for_heat=self.stability_correction_for_heat,
             canopy_temperature=self.source_temperature,
             air_temperature=inputs.air_temperature,
-            richardon_threshold_free_convection=threshold_free_convection,
+            richardon_threshold_free_convection=params.simulation.richardon_threshold_free_convection,
             von_karman_constant=constants.von_karman,
             air_density=constants.air_density,
             air_specific_heat_capacity=constants.air_specific_heat_capacity,

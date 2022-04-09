@@ -56,8 +56,7 @@ class Solver:
                 self.update_correction_factors()
                 self.crop.state_variables.calc_aerodynamic_resistance(
                     inputs=self.crop.inputs,
-                    params=self.crop.params,
-                    threshold_free_convection=self.crop.params.simulation.richardon_threshold_free_convection)
+                    params=self.crop.params)
                 self.solve_transient_energy_balance()
                 self.error_sensible_heat_flux = abs(self.crop.state_variables.sensible_heat_flux - sensible_heat)
                 is_acceptable_error = is_almost_equal(actual=self.error_sensible_heat_flux, desired=0, decimal=2)
