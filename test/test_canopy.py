@@ -12,8 +12,19 @@ def test_calc_zero_displacement_height():
 
 
 def test_calc_roughness_length_for_momentum_transfer():
-    assert canopy.calc_roughness_length_for_momentum_transfer(0) == 0
-    assert canopy.calc_roughness_length_for_momentum_transfer(1) == 0.123
+    canopy_height = 1
+    drag_coefficient = 0.2
+    values = [canopy.calc_roughness_length_for_momentum_transfer(
+        soil_roughness_length_for_momentum=0.01,
+        canopy_height=canopy_height,
+        zero_plan_displacement_height=canopy.calc_zero_displacement_height(
+            canopy_height=canopy_height,
+            leaf_area_index=lai,
+            drag_coefficient=drag_coefficient
+        ),
+        total_leaf_area_index=lai / 10,
+        drag_coefficient=0.2) for lai in range(40)[1:]]
+    assert_trend(values=values, expected_trend='+-')
 
 
 def test_calc_roughness_length_for_heat_transfer():
