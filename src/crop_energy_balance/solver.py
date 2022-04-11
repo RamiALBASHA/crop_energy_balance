@@ -195,10 +195,13 @@ class Solver:
         while not is_acceptable_error and counter < 50:
             counter += 1
 
-            phi_m += 0.5 * (self.crop.state_variables.stability_correction_for_momentum - phi_m)
-            phi_h += 0.5 * (self.crop.state_variables.stability_correction_for_heat - phi_h)
-            self.crop.state_variables.stability_correction_for_momentum = phi_m
-            self.crop.state_variables.stability_correction_for_heat = phi_h
+            self.crop.state_variables.stability_correction_for_momentum += 0.5 * (
+                    self.crop.state_variables.stability_correction_for_momentum - phi_m)
+            self.crop.state_variables.stability_correction_for_heat += 0.5 * (
+                        self.crop.state_variables.stability_correction_for_heat - phi_h)
+
+            phi_m = self.crop.state_variables.stability_correction_for_momentum
+            phi_h = self.crop.state_variables.stability_correction_for_heat
 
             self.crop.state_variables.friction_velocity = canopy.calc_friction_velocity(
                 wind_speed=self.crop.inputs.wind_speed,
