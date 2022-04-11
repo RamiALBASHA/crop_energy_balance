@@ -155,12 +155,6 @@ class Simulation:
                 cf. Eq. 3.15 in Monteith and Unsworth (2013). Principles of Environmental Physics, 4th Edition. 
         """
 
-        self.leaf_emissivity = data['leaf_emissivity']
-        """[-] leaf emissivity to longwave energy"""
-
-        self.soil_emissivity = data['soil_emissivity']
-        """[-] soil emissivity to longwave energy"""
-
         self.absorbed_par_50 = data['absorbed_par_50']
         """[W m-2leaf] absorbed photosynthetically active radiation flux density at which stomatal conductance is half
         its maximum value.

@@ -17,8 +17,6 @@
   "residual_stomatal_conductance": 4.0,
   "diffuse_extinction_coef": 0.64,
   "leaf_scattering_coefficient": 0.15,
-  "leaf_emissivity": 0.96,
-  "soil_emissivity": 0.93,
   "absorbed_par_50": 105,
   "soil_resistance_to_vapor_shape_parameter_1": 8.206,
   "soil_resistance_to_vapor_shape_parameter_2": 4.255,
