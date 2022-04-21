@@ -76,7 +76,7 @@ class Constants:
         """
 
         self.molecular_diffusivity_water_vapor = 3600. * 1e-6 * 24.9
-        """[m2 h-1] Molucular diffusivity for water vapor at 25 degrees C.
+        """[m2 h-1] Molecular diffusivity for water vapor at 25 degrees C.
 
         References:
             Monteith and Unsworth (2013).
