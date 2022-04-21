@@ -33,9 +33,9 @@ def calc_leaf_layer_forced_convection_conductance(leaves_category: str,
     Returns:
         [m h-1] boundary conductance under forced convection
     """
-    leaf_boundary_conductance = leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height,
-                                                                       characteristic_length,
-                                                                       shape_parameter)
+    leaf_boundary_conductance = leaf.calc_forced_convection_conductance(wind_speed_at_canopy_height,
+                                                                        characteristic_length,
+                                                                        shape_parameter)
     lumped_extinction_coefficient = 0.5 * wind_speed_extinction_coefficient + direct_black_extinction_coefficient
     sunlit_layer_scaling_factor = 1.0 / lumped_extinction_coefficient * (
             exp(-lumped_extinction_coefficient * upper_cumulative_leaf_area_index) -

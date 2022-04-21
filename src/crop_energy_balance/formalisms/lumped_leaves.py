@@ -27,7 +27,7 @@ def calc_leaf_layer_forced_convection_conductance(wind_speed_at_canopy_height: f
     Returns:
         [m h-1] boundary conductance under forced convection
     """
-    leaf_boundary_conductance = leaf.calc_forced_convection_condutance(wind_speed_at_canopy_height,
+    leaf_boundary_conductance = leaf.calc_forced_convection_conductance(wind_speed_at_canopy_height,
                                                                        characteristic_length,
                                                                        shape_parameter)
     scaling_factor = 2.0 / wind_speed_extinction_coefficient * (
