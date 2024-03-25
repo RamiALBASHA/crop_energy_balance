@@ -329,6 +329,15 @@ class LeafComponent(Component):
     def calc_boundary_and_composed_conductances(self, **kwargs):
         pass
 
+    def calc_surface_resistance(self, **kwargs):
+        pass
+
+    def calc_vapor_pressure_deficit(self, inputs: Inputs):
+        self.vapor_pressure_deficit = weather.calc_vapor_pressure_deficit(
+            temperature_air=weather.convert_kelvin_to_celsius(temperature=inputs.air_temperature),
+            temperature_leaf=weather.convert_kelvin_to_celsius(temperature=self.temperature),
+            relative_humidity=inputs.air_relative_humidity)
+
 
 class LumpedLeafComponent(LeafComponent):
     def __init__(self, **kwargs):
@@ -343,28 +352,10 @@ class LumpedLeafComponent(LeafComponent):
                                        params=params,
                                        crop_state_variables=crop_state_variables)
 
-        self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
+        self.calc_vapor_pressure_deficit(inputs=inputs)
         self.water_potential = inputs.soil_water_potential
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index]['lumped']
-        self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
-            self.set_stomatal_sensibility_args(model_params=params.simulation.stomatal_sensibility))
-        self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            incident_direct_irradiance=inputs.incident_irradiance['direct'],
-            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
-            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
-            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
-            stomatal_sensibility_to_water_status=self.stomatal_sensibility,
-            leaf_scattering_coefficient=params.simulation.leaf_scattering_coefficient,
-            canopy_reflectance_to_direct_irradiance=params.simulation.canopy_reflectance_to_direct_irradiance,
-            canopy_reflectance_to_diffuse_irradiance=params.simulation.canopy_reflectance_to_diffuse_irradiance,
-            direct_extinction_coefficient=params.simulation.direct_extinction_coefficient,
-            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
-            diffuse_extinction_coefficient=params.simulation.diffuse_extinction_coefficient,
-            maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
-            residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
-            shape_parameter=params.simulation.absorbed_par_50,
-            sublayers_number=params.simulation.sublayers_number,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.calc_surface_resistance(inputs=inputs, params=params)
         self.boundary_forced_convection_resistance = lumped_leaves.calc_leaf_layer_forced_convection_resistance(
             wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
             upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
@@ -387,6 +378,29 @@ class LumpedLeafComponent(LeafComponent):
             inputs=inputs,
             params=params,
             crop_state_variables=crop_state_variables)
+
+    def calc_surface_resistance(self,
+                                inputs: Inputs,
+                                params: Params):
+        self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
+            self.set_stomatal_sensibility_args(model_params=params.simulation.stomatal_sensibility))
+        self.surface_resistance = lumped_leaves.calc_leaf_layer_surface_resistance_to_vapor(
+            incident_direct_irradiance=inputs.incident_irradiance['direct'],
+            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            stomatal_sensibility_to_water_status=self.stomatal_sensibility,
+            leaf_scattering_coefficient=params.simulation.leaf_scattering_coefficient,
+            canopy_reflectance_to_direct_irradiance=params.simulation.canopy_reflectance_to_direct_irradiance,
+            canopy_reflectance_to_diffuse_irradiance=params.simulation.canopy_reflectance_to_diffuse_irradiance,
+            direct_extinction_coefficient=params.simulation.direct_extinction_coefficient,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
+            diffuse_extinction_coefficient=params.simulation.diffuse_extinction_coefficient,
+            maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
+            residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
+            shape_parameter=params.simulation.absorbed_par_50,
+            sublayers_number=params.simulation.sublayers_number,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
 
     def calc_boundary_and_composed_conductances(self,
                                                 inputs: Inputs,
@@ -421,7 +435,7 @@ class SunlitShadedLeafComponent(LeafComponent):
                                        params=params,
                                        crop_state_variables=crop_state_variables)
 
-        self.vapor_pressure_deficit = inputs.vapor_pressure_deficit
+        self.calc_vapor_pressure_deficit(inputs=inputs)
         self.water_potential = inputs.soil_water_potential
 
         self.surface_fraction = sunlit_shaded_leaves.calc_leaf_fraction_per_leaf_layer(
@@ -430,26 +444,7 @@ class SunlitShadedLeafComponent(LeafComponent):
             lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
             direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient)
         self.absorbed_irradiance = inputs.absorbed_irradiance[self.index][self.leaves_category]
-        self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
-            self.set_stomatal_sensibility_args(model_params=params.simulation.stomatal_sensibility))
-        self.surface_resistance = sunlit_shaded_leaves.calc_leaf_layer_surface_resistance_to_vapor(
-            leaves_category=self.leaves_category,
-            incident_direct_irradiance=inputs.incident_irradiance['direct'],
-            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
-            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
-            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
-            stomatal_sensibility_to_water_status=self.stomatal_sensibility,
-            leaf_scattering_coefficient=params.simulation.leaf_scattering_coefficient,
-            canopy_reflectance_to_direct_irradiance=params.simulation.canopy_reflectance_to_direct_irradiance,
-            canopy_reflectance_to_diffuse_irradiance=params.simulation.canopy_reflectance_to_diffuse_irradiance,
-            direct_extinction_coefficient=params.simulation.direct_extinction_coefficient,
-            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
-            diffuse_extinction_coefficient=params.simulation.diffuse_extinction_coefficient,
-            maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
-            residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
-            shape_parameter=params.simulation.absorbed_par_50,
-            sublayers_number=params.simulation.sublayers_number,
-            stomatal_density_factor=params.simulation.stomatal_density_factor)
+        self.calc_surface_resistance(inputs=inputs, params=params)
         self.boundary_forced_convection_resistance = sunlit_shaded_leaves.calc_leaf_layer_forced_convection_resistance(
             leaves_category=self.leaves_category,
             wind_speed_at_canopy_height=crop_state_variables.wind_speed_at_canopy_height / 3600.0,
@@ -476,6 +471,30 @@ class SunlitShadedLeafComponent(LeafComponent):
             inputs=inputs,
             params=params,
             crop_state_variables=crop_state_variables)
+
+    def calc_surface_resistance(self,
+                                inputs: Inputs,
+                                params: Params):
+        self.stomatal_sensibility = leaf.calc_stomatal_sensibility(
+            self.set_stomatal_sensibility_args(model_params=params.simulation.stomatal_sensibility))
+        self.surface_resistance = sunlit_shaded_leaves.calc_leaf_layer_surface_resistance_to_vapor(
+            leaves_category=self.leaves_category,
+            incident_direct_irradiance=inputs.incident_irradiance['direct'],
+            incident_diffuse_irradiance=inputs.incident_irradiance['diffuse'],
+            upper_cumulative_leaf_area_index=self.upper_cumulative_leaf_area_index,
+            lower_cumulative_leaf_area_index=self.lower_cumulative_leaf_area_index,
+            stomatal_sensibility_to_water_status=self.stomatal_sensibility,
+            leaf_scattering_coefficient=params.simulation.leaf_scattering_coefficient,
+            canopy_reflectance_to_direct_irradiance=params.simulation.canopy_reflectance_to_direct_irradiance,
+            canopy_reflectance_to_diffuse_irradiance=params.simulation.canopy_reflectance_to_diffuse_irradiance,
+            direct_extinction_coefficient=params.simulation.direct_extinction_coefficient,
+            direct_black_extinction_coefficient=params.simulation.direct_black_extinction_coefficient,
+            diffuse_extinction_coefficient=params.simulation.diffuse_extinction_coefficient,
+            maximum_stomatal_conductance=params.simulation.maximum_stomatal_conductance,
+            residual_stomatal_conductance=params.simulation.residual_stomatal_conductance,
+            shape_parameter=params.simulation.absorbed_par_50,
+            sublayers_number=params.simulation.sublayers_number,
+            stomatal_density_factor=params.simulation.stomatal_density_factor)
 
     def calc_boundary_and_composed_conductances(self,
                                                 inputs: Inputs,

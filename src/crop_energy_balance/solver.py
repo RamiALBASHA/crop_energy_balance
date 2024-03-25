@@ -91,6 +91,8 @@ class Solver:
 
     def update_state_variables(self):
         for leaf_component in self.leaf_components:
+            leaf_component.calc_vapor_pressure_deficit(inputs=self.crop.inputs)
+            leaf_component.calc_surface_resistance(inputs=self.crop.inputs, params=self.crop.params)
             leaf_component.calc_boundary_and_composed_conductances(
                 inputs=self.crop.inputs,
                 params=self.crop.params,
