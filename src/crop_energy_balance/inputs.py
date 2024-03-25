@@ -33,6 +33,9 @@ class Inputs:
         self.wind_speed = max(0.01 * 3600., self._inputs['wind_speed'])
         """[m h-1] wind speed"""
 
+        self.air_relative_humidity = self._inputs['relative_humidity']
+        """[-] air relative humidity (%, between 0 and 100)"""
+
         self.air_vapor_pressure = self._inputs['vapor_pressure']
         """[kPa] vapor pressure of the air"""
 
