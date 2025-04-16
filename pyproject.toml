@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crop-energy-balance"
+authors = [
+    { name = "Rami ALBASHA", email = "rami.albasha@inrae.fr" },
+]
+description = "A model for simulating energy balance in the soil-crop-atmosphere continuum"
+license = "CECILL-C"
+requires-python = ">=3.8"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+
+dynamic = ["version", "readme"]
+dependencies = [
+    "numpy"
+]
+
+[project.optional-dependencies]
+tests = [
+    "mock",
+    "nose",
+    "numpy",
+    "pytest",
+]
+
+[project.urls]
+Homepage = "https://github.com/RamiALBASHA/crop_energy_balance"
+"Bug Tracker" = "https://github.com/RamiALBASHA/issues"
+Discussions = "https://github.com/RamiALBASHA/discussions"
+Changelog = "https://github.com/RamiALBASHA/releases"
+
+[tool.setuptools.dynamic]
+version = { attr = "crop_energy_balance.version.__version__" }
+readme = { file = ["README.md"] }
+
+[tool.setuptools.packages.find]
+where = ["src"]

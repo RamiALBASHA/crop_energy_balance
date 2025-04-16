@@ -1,0 +1,5 @@
+sphinx==8.2.3
+sphinx_rtd_theme==3.0.2
+sphinx-autobuild==2024.10.3
+Jinja2==3.1.6
+importlib-metadata>=8.0.0,<9
