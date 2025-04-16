@@ -134,3 +134,4 @@ dmypy.json
 *.png
 
 misc/
+docs/_build
